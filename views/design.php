@@ -26,7 +26,57 @@ $designBodyOutline = $designRow && isset($designRow['body_outline_color']) ? $de
 $designHeaderMode = $designRow && in_array($designRow['header_mode'] ?? '', ['logo_only', 'text_only', 'logo_and_text'], true) ? $designRow['header_mode'] : 'text_only';
 $designFooterMode = $designRow && in_array($designRow['footer_mode'] ?? '', ['logo_only', 'text_only', 'logo_and_text'], true) ? $designRow['footer_mode'] : 'text_only';
 ?>
-<div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">
+<style>
+    /* Hide the default title area from index.php */
+    main > div > div.mb-6:first-child {
+        display: none;
+    }
+
+    /* Force the parent container to be full width and remove padding */
+    main > div.max-w-6xl {
+        max-width: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    /* Style flash messages to stay centered */
+    main > div.max-w-6xl > div.mb-4 {
+        max-width: 72rem; /* 6xl */
+        margin-left: auto;
+        margin-right: auto;
+        margin-top: 1.5rem;
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    @media (min-width: 640px) { main > div.max-w-6xl > div.mb-4 { padding-left: 1.5rem; padding-right: 1.5rem; } }
+    @media (min-width: 1024px) { main > div.max-w-6xl > div.mb-4 { padding-left: 2rem; padding-right: 2rem; } }
+
+    .design-banner {
+        margin-bottom: 2rem;
+    }
+
+    /* Re-apply content constraints for the cards below the banner */
+    .design-content-wrapper {
+        max-width: 72rem; /* 6xl */
+        margin: 0 auto;
+        padding: 0 1rem 2rem 1rem;
+    }
+    @media (min-width: 640px) { .design-content-wrapper { padding: 0 1.5rem 2rem 1.5rem; } }
+    @media (min-width: 1024px) { .design-content-wrapper { padding: 0 2rem 2rem 2rem; } }
+</style>
+
+<!-- Banner (Dashboard Style) -->
+<div class="design-banner bg-[#02396E] py-6 md:py-8 text-white shadow-lg relative overflow-hidden">
+    <div class="px-8 sm:px-24 flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div class="relative z-10">
+            <h1 class="text-[2.5rem] font-bold leading-tight">Design</h1>
+            <p class="text-blue-100/80 mt-1 text-sm font-medium">Manage your email marketing</p>
+        </div>
+    </div>
+</div>
+
+<div class="design-content-wrapper">
+    <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">
     <div class="bg-[#02396E] px-4 md:px-6 py-3 border-b border-white/10"><h2 class="text-sm md:text-base font-semibold text-white uppercase">Email design (header &amp; footer)</h2></div>
     <p class="p-4 text-slate-600 text-sm border-b border-slate-100">Set header and footer using HTML code. Content is centered in the email.</p>
     <form method="post" action="<?= url('design') ?>" enctype="multipart/form-data">
