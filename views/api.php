@@ -7,7 +7,57 @@ if ($newKey !== null) {
 }
 $apiBaseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . (dirname($_SERVER['SCRIPT_NAME'] ?? '') !== '/' ? rtrim(dirname($_SERVER['SCRIPT_NAME'] ?? ''), '/') : '');
 ?>
-<div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">
+<style>
+    /* Hide the default title area from index.php */
+    main > div > div.mb-6:first-child {
+        display: none;
+    }
+
+    /* Force the parent container to be full width and remove padding */
+    main > div.max-w-6xl {
+        max-width: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    /* Style flash messages to stay centered */
+    main > div.max-w-6xl > div.mb-4 {
+        max-width: 72rem; /* 6xl */
+        margin-left: auto;
+        margin-right: auto;
+        margin-top: 1.5rem;
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    @media (min-width: 640px) { main > div.max-w-6xl > div.mb-4 { padding-left: 1.5rem; padding-right: 1.5rem; } }
+    @media (min-width: 1024px) { main > div.max-w-6xl > div.mb-4 { padding-left: 2rem; padding-right: 2rem; } }
+
+    .api-banner {
+        margin-bottom: 2rem;
+    }
+
+    /* Re-apply content constraints for the cards below the banner */
+    .api-content-wrapper {
+        max-width: 72rem; /* 6xl */
+        margin: 0 auto;
+        padding: 0 1rem 2rem 1rem;
+    }
+    @media (min-width: 640px) { .api-content-wrapper { padding: 0 1.5rem 2rem 1.5rem; } }
+    @media (min-width: 1024px) { .api-content-wrapper { padding: 0 2rem 2rem 2rem; } }
+</style>
+
+<!-- Banner (Dashboard Style) -->
+<div class="api-banner bg-[#02396E] py-6 md:py-8 text-white shadow-lg relative overflow-hidden">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div class="relative z-10">
+            <h1 class="text-[2.5rem] font-bold leading-tight">API</h1>
+            <p class="text-blue-100/80 mt-1 text-sm font-medium">Manage your email marketing</p>
+        </div>
+    </div>
+</div>
+
+<div class="api-content-wrapper">
+    <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">
     <div class="bg-[#02396E] px-4 md:px-6 py-3 border-b border-white/10"><h2 class="text-sm md:text-base font-semibold text-white uppercase">API for external websites</h2></div>
     <p class="p-4 text-slate-600 text-sm border-b border-slate-100">Other sites can send email campaigns to this system using an API key. They send subject, body, and a list of recipient emails; campaigns are sent using your senders and (optionally) your header/footer design.</p>
     <?php if ($newKey): ?>
