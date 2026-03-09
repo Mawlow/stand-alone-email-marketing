@@ -50,7 +50,11 @@ if (preg_match('#^/track/email-open/([a-zA-Z0-9]+)$#', $path, $m)) {
 }
 
 $pageMap = [
-    '/' => 'index',
+    '/' => 'landing',
+    '/dashboard' => 'index',
+    '/login' => 'login',
+    '/register' => 'register',
+    '/logout' => 'logout',
     '/compose' => 'compose',
     '/senders' => 'senders',
     '/sender-edit' => 'sender-edit',
@@ -73,7 +77,7 @@ if ($path === '/index.php' || isset($pageMap[$path])) {
     return true;
 }
 
-if (preg_match('/\.(css|js|ico|png|jpg|jpeg|gif|svg)$/', $path) && is_file(__DIR__ . $path)) {
+if (preg_match('/\.(css|js|ico|png|jpg|jpeg|gif|svg|mp4)$/', $path) && is_file(__DIR__ . $path)) {
     return false;
 }
 
