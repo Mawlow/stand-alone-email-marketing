@@ -14,32 +14,112 @@ if ($contactId) {
 }
 $allGroups = $pdo->query('SELECT id, name FROM contact_groups ORDER BY name')->fetchAll(PDO::FETCH_ASSOC);
 ?>
-<div class="mb-4"><a href="<?= url('contacts') ?>" class="text-[#02396E] hover:underline text-sm font-medium">← Contacts</a></div>
-<div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">
-    <div class="bg-[#02396E] px-4 md:px-6 py-3 border-b border-white/10"><h2 class="text-sm md:text-base font-semibold text-white uppercase"><?= $contact ? 'Edit' : 'Add' ?> contact</h2></div>
-    <form method="post" action="<?= url('contacts') ?>">
-        <input type="hidden" name="action" value="contact-save">
-        <?php if ($contact): ?><input type="hidden" name="id" value="<?= (int)$contact['id'] ?>"><?php endif; ?>
-        <div class="p-6 space-y-4">
-            <div><label class="block text-sm font-bold text-slate-700 mb-1">Email *</label><input type="email" name="email" required class="w-full rounded-xl border border-slate-200 px-4 py-2.5 focus:ring-2 focus:ring-[#02396E]" value="<?= h($contact['email'] ?? '') ?>" placeholder="hr@company.com"></div>
-            <div><label class="block text-sm font-bold text-slate-700 mb-1">Company name</label><input type="text" name="company_name" class="w-full rounded-xl border border-slate-200 px-4 py-2.5" value="<?= h($contact['company_name'] ?? '') ?>" placeholder="Acme Corp"></div>
-            <div><label class="block text-sm font-bold text-slate-700 mb-1">Notes</label><textarea name="notes" rows="2" class="w-full rounded-xl border border-slate-200 px-4 py-2.5"><?= h($contact['notes'] ?? '') ?></textarea></div>
-            <div>
-                <label class="block text-sm font-bold text-slate-700 mb-2">Groups</label>
-                <div class="flex flex-wrap gap-3">
-                    <?php foreach ($allGroups as $gr): ?>
-                    <label class="inline-flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" name="group_ids[]" value="<?= (int)$gr['id'] ?>" class="rounded border-slate-300 text-[#02396E]" <?= in_array((int)$gr['id'], $contactGroupIds, true) ? 'checked' : '' ?>>
-                        <span class="text-sm text-slate-700"><?= h($gr['name']) ?></span>
-                    </label>
-                    <?php endforeach; ?>
-                    <?php if (empty($allGroups)): ?><span class="text-slate-500 text-sm">No groups yet. <a href="<?= url('group-edit') ?>" class="text-[#02396E] hover:underline">Create one</a></span><?php endif; ?>
+<style>
+    /* Hide the default title area from index.php */
+    main > div > div.mb-6:first-child {
+        display: none;
+    }
+
+    /* Force the parent container to be full width and remove padding */
+    main > div.max-w-6xl {
+        max-width: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    /* Style flash messages to stay centered */
+    main > div.max-w-6xl > div.mb-4 {
+        max-width: 72rem; /* 6xl */
+        margin-left: auto;
+        margin-right: auto;
+        margin-top: 1.5rem;
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    @media (min-width: 640px) { main > div.max-w-6xl > div.mb-4 { padding-left: 1.5rem; padding-right: 1.5rem; } }
+    @media (min-width: 1024px) { main > div.max-w-6xl > div.mb-4 { padding-left: 2rem; padding-right: 2rem; } }
+
+    .page-banner {
+        margin-bottom: 2rem;
+    }
+</style>
+
+<!-- Header Banner -->
+<div class="page-banner bg-[#02396E] py-6 md:py-8 text-white shadow-lg relative overflow-hidden">
+    <div class="px-8 sm:px-24 flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div class="relative z-10">
+            <div class="flex items-center gap-2 mb-2">
+                <a href="<?= url('contacts') ?>" class="text-[#ff8904] hover:text-orange-600 text-sm font-bold flex items-center gap-1 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    Back
+                </a>
+            </div>
+            <h1 class="text-[2.5rem] font-bold leading-tight"><?= $contact ? 'Edit Contact' : 'Add New Contact' ?></h1>
+            <p class="text-blue-100/80 mt-1 text-sm font-medium">
+                <?= $contact ? 'Update details for ' . h($contact['email']) : 'Create a new profile for your marketing list.' ?>
+            </p>
+        </div>
+    </div>
+    <div class="absolute top-0 right-0 -mt-4 -mr-4 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
+</div>
+
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 relative">
+    <!-- Background element starting from sidebar -->
+    <div class="fixed inset-y-0 left-64 right-0 bg-slate-50 -z-10 border-l border-slate-200"></div>
+
+    <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">
+        <div class="bg-[#02396E] px-4 md:px-8 py-4 border-b border-white/10">
+            <h2 class="text-lg font-bold text-white uppercase tracking-wider">Contact Information</h2>
+        </div>
+        <form method="post" action="<?= url('contacts') ?>">
+            <input type="hidden" name="action" value="contact-save">
+            <?php if ($contact): ?><input type="hidden" name="id" value="<?= (int)$contact['id'] ?>"><?php endif; ?>
+            
+            <div class="p-6 md:p-8 space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Email Address *</label>
+                        <input type="email" name="email" required class="w-full rounded-xl border-2 border-slate-100 px-4 py-3 focus:ring-2 focus:ring-[#02396E] focus:border-[#02396E] transition-all" value="<?= h($contact['email'] ?? '') ?>" placeholder="hr@company.com">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Company Name</label>
+                        <input type="text" name="company_name" class="w-full rounded-xl border-2 border-slate-100 px-4 py-3 focus:ring-2 focus:ring-[#02396E] focus:border-[#02396E] transition-all" value="<?= h($contact['company_name'] ?? '') ?>" placeholder="Acme Corp">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2">Notes</label>
+                    <textarea name="notes" rows="3" class="w-full rounded-xl border-2 border-slate-100 px-4 py-3 focus:ring-2 focus:ring-[#02396E] focus:border-[#02396E] transition-all" placeholder="Add any internal notes about this contact..."><?= h($contact['notes'] ?? '') ?></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-3">Assign to Groups</label>
+                    <div class="bg-slate-50 p-4 rounded-xl border-2 border-slate-100">
+                        <div class="flex flex-wrap gap-3">
+                            <?php foreach ($allGroups as $gr): ?>
+                            <label class="inline-flex items-center gap-2 px-3 py-2 bg-white rounded-lg border border-slate-200 cursor-pointer hover:border-[#02396E] transition-colors group">
+                                <input type="checkbox" name="group_ids[]" value="<?= (int)$gr['id'] ?>" class="w-4 h-4 rounded border-slate-300 text-[#02396E] focus:ring-[#02396E]" <?= in_array((int)$gr['id'], $contactGroupIds, true) ? 'checked' : '' ?>>
+                                <span class="text-sm font-bold text-slate-700 group-hover:text-[#02396E]"><?= h($gr['name']) ?></span>
+                            </label>
+                            <?php endforeach; ?>
+                            <?php if (empty($allGroups)): ?>
+                                <div class="w-full text-center py-2">
+                                    <span class="text-slate-500 text-sm italic">No groups found.</span>
+                                    <a href="<?= url('group-edit') ?>" class="text-[#ff8904] font-bold hover:underline ml-1">Create your first group</a>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="bg-slate-50 px-4 md:px-6 py-3 flex gap-3">
-            <button type="submit" class="px-6 py-2.5 bg-[#02396E] text-white font-bold rounded-xl hover:bg-[#034a8c]">Save</button>
-            <a href="<?= url('contacts') ?>" class="px-6 py-2.5 bg-slate-200 text-slate-700 font-bold rounded-xl">Cancel</a>
-        </div>
-    </form>
+
+            <div class="bg-slate-50 px-6 md:px-8 py-4 flex items-center justify-between border-t border-slate-100">
+                <p class="text-xs text-[#ff8904]/70 font-medium">* Required fields</p>
+                <div class="flex gap-3">
+                    <a href="<?= url('contacts') ?>" class="px-6 py-2.5 bg-white text-slate-600 font-bold rounded-xl border-2 border-slate-200 hover:bg-slate-50 transition-colors">Cancel</a>
+                    <button type="submit" class="px-8 py-2.5 bg-[#02396E] text-white font-bold rounded-xl hover:bg-[#034a8c] shadow-md transition-all">Save Contact</button>
+                </div>
+            </div>
+        </form>
+    </div>
 </div>
