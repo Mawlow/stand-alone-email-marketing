@@ -14,10 +14,57 @@ $composeBodyOutline = '';
 $composeHeaderMode = 'text_only';
 $composeFooterMode = 'text_only';
 ?>
-<?php if ($activeSendersCount === 0): ?>
-<div class="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-800">No sender accounts yet. <a href="<?= url('senders') ?>" class="font-semibold underline">Add senders</a> to send emails (requires composer install for PHPMailer).</div>
-<?php endif; ?>
-<div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">
+<style>
+    /* Hide the default title area from index.php */
+    main > div > div.mb-6:first-child {
+        display: none;
+    }
+
+    /* Force the parent container to be full width and remove padding */
+    main > div.max-w-6xl {
+        max-width: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    /* Style flash messages to stay centered */
+    main > div.max-w-6xl > div.mb-4 {
+        max-width: 72rem; /* 6xl */
+        margin-left: auto;
+        margin-right: auto;
+        margin-top: 1.5rem;
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    @media (min-width: 640px) { main > div.max-w-6xl > div.mb-4 { padding-left: 1.5rem; padding-right: 1.5rem; } }
+    @media (min-width: 1024px) { main > div.max-w-6xl > div.mb-4 { padding-left: 2rem; padding-right: 2rem; } }
+
+    .compose-banner {
+        margin-bottom: 2rem;
+    }
+
+    /* Re-apply content constraints for the cards below the banner */
+    .compose-content-wrapper {
+        max-width: 72rem; /* 6xl */
+        margin: 0 auto;
+        padding: 0 1rem 2rem 1rem;
+    }
+    @media (min-width: 640px) { .compose-content-wrapper { padding: 0 1.5rem 2rem 1.5rem; } }
+    @media (min-width: 1024px) { .compose-content-wrapper { padding: 0 2rem 2rem 2rem; } }
+</style>
+
+<!-- Banner (Dashboard Style) -->
+<div class="compose-banner bg-[#02396E] py-6 md:py-8 text-white shadow-lg relative overflow-hidden">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div class="relative z-10">
+            <h1 class="text-[2.5rem] font-bold leading-tight">Compose</h1>
+            <p class="text-blue-100/80 mt-1 text-sm font-medium">Manage your email marketing</p>
+        </div>
+    </div>
+</div>
+
+<div class="compose-content-wrapper">
+    <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">
     <div class="bg-[#02396E] px-4 md:px-6 py-3 border-b border-white/10"><h2 class="text-sm md:text-base font-semibold text-white uppercase">Compose campaign</h2></div>
     <form method="post" action="/compose" id="compose-form">
         <input type="hidden" name="action" value="send">

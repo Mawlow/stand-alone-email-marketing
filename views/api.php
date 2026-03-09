@@ -48,7 +48,7 @@ $apiBaseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https'
 
 <!-- Banner (Dashboard Style) -->
 <div class="api-banner bg-[#02396E] py-6 md:py-8 text-white shadow-lg relative overflow-hidden">
-    <div class="px-8 sm:px-24 flex flex-col md:flex-row md:items-end justify-between gap-6">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div class="relative z-10">
             <h1 class="text-[2.5rem] font-bold leading-tight">API</h1>
             <p class="text-blue-100/80 mt-1 text-sm font-medium">Manage your email marketing</p>
