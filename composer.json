@@ -1,0 +1,11 @@
+{
+    "name": "standalone/email-marketing",
+    "description": "Standalone email marketing app (copy from Applyna project)",
+    "require": {
+        "php": ">=7.4",
+        "phpmailer/phpmailer": "^6.8"
+    },
+    "config": {
+        "optimize-autoloader": true
+    }
+}

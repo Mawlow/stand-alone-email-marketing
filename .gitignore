@@ -1,0 +1,8 @@
+# Environment and secrets (use .env.example as template)
+.env
+
+# Uploaded logos
+data/uploads/
+
+# Composer
+/vendor/
