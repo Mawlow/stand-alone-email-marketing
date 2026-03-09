@@ -72,6 +72,7 @@ $mysqlSchema = [
     "CREATE TABLE IF NOT EXISTS email_logs (id INT AUTO_INCREMENT PRIMARY KEY, email_campaign_id INT NOT NULL, sender_account_id INT DEFAULT NULL, recipient_email VARCHAR(255) NOT NULL, status VARCHAR(32) NOT NULL DEFAULT 'pending', sent_at DATETIME DEFAULT NULL, opened_at DATETIME DEFAULT NULL, open_tracking_token VARCHAR(64) DEFAULT NULL, error_message TEXT DEFAULT NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (email_campaign_id) REFERENCES email_campaigns(id), FOREIGN KEY (sender_account_id) REFERENCES sender_accounts(id))",
     "CREATE TABLE IF NOT EXISTS contact_groups (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) NOT NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)",
     "CREATE TABLE IF NOT EXISTS contact_group_members (contact_id INT NOT NULL, group_id INT NOT NULL, PRIMARY KEY (contact_id, group_id), FOREIGN KEY (contact_id) REFERENCES marketing_contacts(id) ON DELETE CASCADE, FOREIGN KEY (group_id) REFERENCES contact_groups(id) ON DELETE CASCADE)",
+    "CREATE TABLE IF NOT EXISTS users (id INT AUTO_INCREMENT PRIMARY KEY, email VARCHAR(255) NOT NULL UNIQUE, password VARCHAR(255) NOT NULL, name VARCHAR(255) DEFAULT NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)",
     "CREATE TABLE IF NOT EXISTS email_design (id INT PRIMARY KEY, header_html TEXT NOT NULL DEFAULT '', footer_html TEXT NOT NULL DEFAULT '', footer_bg_color VARCHAR(32) NOT NULL DEFAULT '#f1f5f9', block_text_color VARCHAR(32) NOT NULL DEFAULT '#1e293b', header_logo_url VARCHAR(500) DEFAULT '', header_mode VARCHAR(20) NOT NULL DEFAULT 'text_only', footer_logo_url VARCHAR(500) DEFAULT '', footer_mode VARCHAR(20) NOT NULL DEFAULT 'text_only', body_outline_color VARCHAR(32) DEFAULT '')",
     "INSERT IGNORE INTO email_design (id, header_html, footer_html, footer_bg_color, block_text_color, header_logo_url, header_mode, footer_logo_url, footer_mode, body_outline_color) VALUES (1, '', '', '#f1f5f9', '#1e293b', '', 'text_only', '', 'text_only', '')",
     "CREATE TABLE IF NOT EXISTS api_keys (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) NOT NULL, api_key VARCHAR(64) NOT NULL UNIQUE, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)",
@@ -119,7 +120,11 @@ function splitHeaderFooterHtml(string $combined): array {
 
 // Clean paths used by router.php — links use these so the address bar shows /compose not index.php?page=compose
 $cleanPaths = [
-    'index' => '/',
+    'landing' => '/',
+    'index' => '/dashboard',
+    'login' => '/login',
+    'register' => '/register',
+    'logout' => '/logout',
     'compose' => '/compose',
     'senders' => '/senders',
     'sender-edit' => '/sender-edit',
@@ -155,7 +160,25 @@ function url(string $page = '', array $q = []): string {
 }
 
 function currentPage(): string {
-    return $_GET['page'] ?? 'index';
+    return $_GET['page'] ?? 'landing';
+}
+
+function isLoggedIn(): bool {
+    return isset($_SESSION['user_id']);
+}
+
+// Redirect if not logged in
+$publicPages = ['landing', 'login', 'register', 'logout'];
+if (!isLoggedIn() && !in_array(currentPage(), $publicPages)) {
+    header('Location: ' . url('login'));
+    exit;
+}
+
+if (currentPage() === 'logout') {
+    $_SESSION = [];
+    session_destroy();
+    header('Location: ' . url('landing'));
+    exit;
 }
 
 function navClass(string $page): string {
@@ -381,6 +404,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
+    if ($action === 'register') {
+        $email = trim($_POST['email'] ?? '');
+        $password = $_POST['password'] ?? '';
+        $confirm = $_POST['password_confirmation'] ?? '';
+        $name = trim($_POST['name'] ?? '');
+        
+        if ($email === '' || $password === '') {
+            $flashError = 'Email and password are required.';
+            $_GET['page'] = 'register';
+        } elseif ($password !== $confirm) {
+            $flashError = 'Passwords do not match.';
+            $_GET['page'] = 'register';
+        } else {
+            try {
+                $hash = password_hash($password, PASSWORD_DEFAULT);
+                $pdo->prepare('INSERT INTO users (email, password, name) VALUES (?, ?, ?)')->execute([$email, $hash, $name]);
+                header('Location: ' . url('login') . '&success=' . urlencode('Registration successful. Please login.'));
+                exit;
+            } catch (PDOException $e) {
+                $msg = $e->getMessage();
+                $flashError = (strpos($msg, 'UNIQUE') !== false || strpos($msg, 'Duplicate entry') !== false) ? 'Email already registered.' : $msg;
+                $_GET['page'] = 'register';
+            }
+        }
+    }
+
+    if ($action === 'login') {
+        $email = trim($_POST['email'] ?? '');
+        $password = $_POST['password'] ?? '';
+        $stmt = $pdo->prepare('SELECT id, password, name FROM users WHERE email = ?');
+        $stmt->execute([$email]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($user && password_verify($password, $user['password'])) {
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['user_name'] = $user['name'];
+            header('Location: ' . url('index'));
+            exit;
+        } else {
+            $flashError = 'Invalid email or password.';
+            $_GET['page'] = 'login';
+        }
+    }
+
+    if ($action === 'logout' || (currentPage() === 'logout')) {
+        session_destroy();
+        header('Location: ' . url('landing'));
+        exit;
+    }
+
     if ($action === 'save-design') {
         $headerFooterHtml = normalizeEmailBlockHtml((string) ($_POST['header_footer_html'] ?? ''));
         $headerHtml = $headerFooterHtml;
@@ -587,7 +659,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $flashSuccess = $_GET['success'] ?? null;
 $flashError = $flashError ?? null;
-$page = $_GET['page'] ?? 'index';
+$page = currentPage();
 
 // Sender count for nav
 $sendersCount = (int) $pdo->query('SELECT COUNT(*) FROM sender_accounts')->fetchColumn();
@@ -605,6 +677,7 @@ $contactsCount = (int) $pdo->query('SELECT COUNT(*) FROM marketing_contacts')->f
 </head>
 <body class="min-h-screen bg-slate-100 font-sans text-slate-900 antialiased">
 <div class="flex min-h-screen">
+    <?php if (!in_array(currentPage(), $publicPages)): ?>
     <!-- Left sidebar -->
     <aside class="w-64 flex-shrink-0 bg-slate-900 flex flex-col sticky top-0 h-screen">
         <div class="p-5 border-b border-slate-700/50">
@@ -646,22 +719,31 @@ $contactsCount = (int) $pdo->query('SELECT COUNT(*) FROM marketing_contacts')->f
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
                 <span>Logs</span>
             </a>
+            <div class="mt-auto p-3 border-t border-slate-700/50">
+                <a href="<?= url('logout') ?>" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-red-500/10 hover:text-red-400 transition-colors">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    <span>Logout</span>
+                </a>
+            </div>
         </nav>
     </aside>
+    <?php endif; ?>
 
     <!-- Main content -->
     <main class="flex-1 overflow-auto">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
+        <div class="<?= in_array(currentPage(), $publicPages) ? '' : 'max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8' ?>">
+            <?php if (!in_array(currentPage(), $publicPages)): ?>
             <div class="mb-6">
                 <h2 class="text-2xl font-semibold text-slate-900"><?= $page === 'index' ? 'Dashboard' : ucfirst(str_replace('-', ' ', $page)) ?></h2>
                 <p class="text-slate-500 text-sm mt-0.5"><?= $page === 'index' ? 'Overview and recent campaigns' : 'Manage your email marketing' ?></p>
             </div>
+            <?php endif; ?>
 
             <?php if ($flashSuccess): ?>
-            <div class="mb-4 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 font-medium"><?= h($flashSuccess) ?></div>
+            <div class="mb-4 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 font-medium <?= in_array(currentPage(), $publicPages) ? 'max-w-md mx-auto mt-4' : '' ?>"><?= h($flashSuccess) ?></div>
             <?php endif; ?>
             <?php if (!empty($flashError)): ?>
-            <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 font-medium"><?= h($flashError) ?></div>
+            <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 font-medium <?= in_array(currentPage(), $publicPages) ? 'max-w-md mx-auto mt-4' : '' ?>"><?= h($flashError) ?></div>
             <?php endif; ?>
 
             <?php
@@ -672,8 +754,6 @@ $contactsCount = (int) $pdo->query('SELECT COUNT(*) FROM marketing_contacts')->f
                 echo '<div class="p-8 bg-white rounded-2xl shadow border border-slate-100 text-center text-slate-500">Page not found.</div>';
             }
             ?>
-
-
         </div>
     </main>
 </div>
