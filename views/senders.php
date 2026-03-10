@@ -35,7 +35,7 @@ foreach ($accounts as $a) { if ($a['is_active']) $activeSenders++; }
 </style>
 
 <!-- Senders Banner (Desktop) -->
-<div class="page-banner bg-[#02396E] py-6 md:py-8 text-white shadow-lg relative overflow-hidden hidden lg:block">
+<div class="page-banner bg-[#141d2e] py-6 md:py-8 text-white shadow-lg relative overflow-hidden hidden lg:block">
     <div class="px-8 sm:px-24 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div class="relative z-10">
             <h1 class="text-[2.5rem] font-bold leading-tight">Sender Accounts</h1>
@@ -70,11 +70,11 @@ foreach ($accounts as $a) { if ($a['is_active']) $activeSenders++; }
         </div>
         <p class="text-blue-100/80 text-xs">Manage your senders</p>
         <div class="relative">
-            <input type="text" id="senderSearch" placeholder="Search senders..." class="w-full bg-white rounded-lg py-2 pl-10 pr-16 text-slate-900 text-sm placeholder-slate-400 focus:outline-none">
+            <input type="text" id="senderSearchMobile" placeholder="Search senders..." class="w-full bg-white rounded-lg py-2 pl-10 pr-16 text-slate-900 text-sm placeholder-slate-400 focus:outline-none">
             <div class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
             </div>
-            <button id="clearSearch" class="absolute right-10 top-1/2 -translate-y-1/2 p-0.5 text-slate-400 hover:text-slate-600 hidden">
+            <button id="clearSearchMobile" class="absolute right-10 top-1/2 -translate-y-1/2 p-0.5 text-slate-400 hover:text-slate-600 hidden">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
             <button class="absolute right-2 top-1/2 -translate-y-1/2 p-1 bg-[#02396E] text-white rounded-full">
@@ -128,7 +128,7 @@ foreach ($accounts as $a) { if ($a['is_active']) $activeSenders++; }
             </div>
         </div>
         <div class="bg-white rounded-xl shadow-md border-2 border-blue-200 p-4 md:p-6 flex items-center gap-6 hover:bg-slate-50 transition-colors">
-            <div class="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center text-[#ff8904] shrink-0">
+            <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-[#02396E] shrink-0">
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
             </div>
             <div class="flex-1 flex justify-between items-end">
@@ -227,36 +227,58 @@ foreach ($accounts as $a) { if ($a['is_active']) $activeSenders++; }
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('senderSearch');
+    const searchInputMobile = document.getElementById('senderSearchMobile');
     const clearBtn = document.getElementById('clearSearch');
+    const clearBtnMobile = document.getElementById('clearSearchMobile');
     const tableRows = document.querySelectorAll('#senderTable tbody tr');
     const mobileCards = document.querySelectorAll('.lg\\:hidden.divide-y > div');
 
-    searchInput.addEventListener('input', () => {
-        const query = searchInput.value.toLowerCase();
-        
-        if (query.length > 0) {
-            clearBtn.classList.remove('hidden');
-        } else {
-            clearBtn.classList.add('hidden');
-        }
-
+    function filterSenders(query) {
+        query = query.toLowerCase();
         tableRows.forEach(row => {
             const text = row.innerText.toLowerCase();
             row.style.display = text.includes(query) ? '' : 'none';
         });
-
         mobileCards.forEach(card => {
             const text = card.innerText.toLowerCase();
             card.style.display = text.includes(query) ? '' : 'none';
         });
-    });
+    }
 
-    clearBtn.addEventListener('click', () => {
-        searchInput.value = '';
-        clearBtn.classList.add('hidden');
-        tableRows.forEach(row => row.style.display = '');
-        mobileCards.forEach(card => card.style.display = '');
-        searchInput.focus();
-    });
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            const query = searchInput.value;
+            if (query.length > 0) clearBtn.classList.remove('hidden');
+            else clearBtn.classList.add('hidden');
+            filterSenders(query);
+        });
+    }
+
+    if (searchInputMobile) {
+        searchInputMobile.addEventListener('input', () => {
+            const query = searchInputMobile.value;
+            if (query.length > 0) clearBtnMobile.classList.remove('hidden');
+            else clearBtnMobile.classList.add('hidden');
+            filterSenders(query);
+        });
+    }
+
+    if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            clearBtn.classList.add('hidden');
+            filterSenders('');
+            searchInput.focus();
+        });
+    }
+
+    if (clearBtnMobile) {
+        clearBtnMobile.addEventListener('click', () => {
+            searchInputMobile.value = '';
+            clearBtnMobile.classList.add('hidden');
+            filterSenders('');
+            searchInputMobile.focus();
+        });
+    }
 });
 </script>
