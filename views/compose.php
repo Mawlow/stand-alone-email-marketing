@@ -59,17 +59,18 @@ $composeFooterMode = 'text_only';
 </style>
 
 <!-- Banner (Desktop) -->
-<div class="compose-banner bg-[#02396E] py-6 md:py-8 text-white shadow-lg relative overflow-hidden hidden lg:block">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div class="compose-banner bg-[#141d2e] py-6 md:py-8 text-white shadow-lg relative overflow-hidden hidden lg:block">
+    <div class="px-8 sm:px-24 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div class="relative z-10">
             <h1 class="text-[2.5rem] font-bold leading-tight">Compose</h1>
             <p class="text-blue-100/80 mt-1 text-sm font-medium">Create and send email campaigns</p>
         </div>
     </div>
+    <div class="absolute top-0 right-0 -mt-4 -mr-4 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
 </div>
 
 <!-- Mobile Header -->
-<div class="lg:hidden bg-[#02396E] px-4 py-4 text-white pb-6">
+<div class="lg:hidden bg-[#141d2e] px-4 py-4 text-white pb-6">
     <h1 class="text-xl font-bold">Compose</h1>
     <p class="text-blue-100/80 text-xs">Create campaigns</p>
 </div>
@@ -82,11 +83,11 @@ $composeFooterMode = 'text_only';
         <div class="p-6 space-y-4">
             <div class="flex flex-col md:flex-row md:items-end gap-3">
                 <div class="flex-1 min-w-[200px]">
-                    <label class="block text-sm font-bold text-slate-700 mb-1">Subject *</label>
-                    <input type="text" name="subject" id="compose-subject" required maxlength="255" class="w-full rounded-xl border border-slate-200 px-4 py-3 md:py-2.5 focus:ring-2 focus:ring-[#02396E] text-base" placeholder="Email subject" value="<?= h($_POST['subject'] ?? '') ?>">
+                    <label class="block text-sm font-bold text-slate-700 mb-1">Subject <span class="text-red-600">*</span></label>
+                    <input type="text" name="subject" id="compose-subject" required maxlength="255" class="w-full rounded-xl border border-slate-200 px-4 py-2.5 focus:ring-2 focus:ring-[#02396E]" placeholder="Email subject" value="<?= h($_POST['subject'] ?? '') ?>">
                 </div>
-                <div class="relative" id="load-template-wrap">
-                    <button type="button" id="load-template-btn" class="w-full md:w-auto px-4 py-3 md:py-2.5 rounded-xl border-2 border-[#02396E] text-[#02396E] font-bold text-sm hover:bg-[#02396E] hover:text-white touch-manipulation">Load template</button>
+                <div class="relative mb-[5px]" id="load-template-wrap">
+                    <button type="button" id="load-template-btn" class="inline-flex items-center px-6 py-2.5 bg-[#ff8904] text-white text-sm font-bold rounded-xl hover:bg-[#f54a00] transition-colors">Load template</button>
                     <div id="load-template-dropdown" class="hidden absolute right-0 top-full mt-1 w-56 rounded-xl border border-slate-200 bg-white shadow-lg py-1 z-20">
                         <div class="px-3 py-2 text-xs font-semibold text-slate-500 uppercase border-b border-slate-100">Saved templates</div>
                         <div id="load-template-list" class="max-h-64 overflow-y-auto"></div>
@@ -96,7 +97,7 @@ $composeFooterMode = 'text_only';
             </div>
             <div>
                 <div class="flex items-center justify-between gap-2 mb-1">
-                    <label class="block text-sm font-bold text-slate-700">Body *</label>
+                    <label class="block text-sm font-bold text-slate-700">Body <span class="text-red-600">*</span></label>
                     <div class="flex rounded-lg border border-slate-200 p-0.5 bg-slate-50">
                         <button type="button" id="body-mode-visual" class="px-3 py-1.5 text-sm font-medium rounded-md bg-[#02396E] text-white">Visual</button>
                         <button type="button" id="body-mode-html" class="px-3 py-1.5 text-sm font-medium rounded-md text-slate-600 hover:bg-slate-200">HTML</button>
@@ -113,7 +114,7 @@ $composeFooterMode = 'text_only';
                             </div>
                         </div>
                         <div id="compose-body-html-wrap" class="hidden p-2 bg-white">
-                            <textarea name="body" id="compose-body" rows="12" class="w-full rounded-xl border border-slate-200 px-4 py-2.5 font-mono text-sm" aria-required="true"><?= h($_POST['body'] ?? '') ?></textarea>
+                            <textarea name="body" id="compose-body" rows="12" class="w-full rounded-xl border border-slate-200 px-4 py-2.5 font-mono text-sm" aria-required="true" placeholder="Hello there! We are excited to share our latest updates..."><?= h($_POST['body'] ?? '') ?></textarea>
                         </div>
                     </div>
                     <div class="border-t border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-500 uppercase">Footer (fixed)</div>
@@ -159,9 +160,9 @@ $composeFooterMode = 'text_only';
                 <label for="rotate_senders" class="text-sm font-medium text-slate-700">Rotate sender accounts</label>
             </div>
         </div>
-        <div class="bg-slate-50 px-4 md:px-6 py-3 flex flex-col sm:flex-row gap-3">
-            <button type="submit" class="px-6 py-3 bg-[#02396E] text-white font-bold rounded-xl hover:bg-[#034a8c] touch-manipulation w-full sm:w-auto">Send campaign</button>
-            <a href="<?= url('index') ?>" class="px-6 py-3 bg-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-300 text-center touch-manipulation w-full sm:w-auto">Cancel</a>
+        <div class="bg-slate-50 px-4 md:px-6 py-3 flex gap-3">
+            <button type="submit" class="inline-flex items-center px-6 py-2.5 bg-[#ff8904] text-white text-sm font-bold rounded-xl hover:bg-[#f54a00] transition-colors">Send campaign</button>
+            <a href="<?= url('index') ?>" class="inline-flex items-center px-6 py-2.5 bg-slate-200 text-slate-700 text-sm font-bold rounded-xl hover:bg-slate-300 transition-colors">Cancel</a>
         </div>
     </form>
 </div>
@@ -242,10 +243,10 @@ $composeFooterMode = 'text_only';
             logoSrc = String(logoSrc).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;');
             var altEsc = escapeAttr(altText);
             var fallbackEsc = escapeHtmlAndBreaks(altText);
-            inner += '<span style="display:inline-block; min-height:40px;"><img src="' + logoSrc + '" alt="' + altEsc + '" style="max-width:180px; height:auto; display:block; margin:0 auto 8px;" onerror="this.style.display=\'none\'; var n=this.nextElementSibling; if(n) n.style.display=\'block\';" /><span style="display:none; font-size:15px; font-weight:600;">' + fallbackEsc + '</span></span>';
+            inner += '<span style="display:inline-block; min-height:40px;"><img src="' + logoSrc + '" alt="' + altEsc + '" style="max-width:180px; height:auto; display:block; margin:0 auto 8px;" onerror="this.style.display=\'none\'; var n=this.nextElementSibling; if(n) n.style.display=\'block\';" /><span style="display:none; font-size:15px; font-weight:600; color:' + (textColor || '#1e293b') + ';">' + fallbackEsc + '</span></span>';
         }
-        if (showText) inner += '<div style="margin:0; font-size:15px; line-height:1.4;">' + text + '</div>';
-        return '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%; border-collapse:collapse; margin:0;"><tr><td align="center" style="padding:0; margin:0; text-align:center;">' + inner + '</td></tr></table>';
+        if (showText) inner += '<div style="margin:0; font-size:15px; line-height:1.4; color:' + (textColor || '#1e293b') + ';">' + text + '</div>';
+        return '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%; border-collapse:collapse; margin:0; background-color:' + (bg || 'transparent') + ';"><tr><td align="center" style="padding:24px 20px; margin:0; text-align:center;">' + inner + '</td></tr></table>';
     }
     function buildBlockWithAbsoluteUrls(logoUrl, text, bg, textColor, mode) {
         var cleanText = normalizeTemplateHtml(text || '');
@@ -273,8 +274,21 @@ $composeFooterMode = 'text_only';
             if (fBlock) { footerPreview.innerHTML = fBlock; }
             else { footerPreview.innerHTML = '<span class="text-slate-400 text-sm">Load a template to add footer</span>'; }
         }
+        if (outlineWrap) {
+            if (typeof composeBodyOutline !== 'undefined' && composeBodyOutline) {
+                outlineWrap.style.border = '2px solid ' + composeBodyOutline;
+                outlineWrap.style.borderRadius = '12px';
+            } else {
+                outlineWrap.style.border = '';
+                outlineWrap.style.borderRadius = '';
+            }
+        }
     }
     var outlineWrap = document.getElementById('compose-body-outline-wrap');
+    if (outlineWrap && typeof composeBodyOutline !== 'undefined' && composeBodyOutline) {
+        outlineWrap.style.border = '2px solid ' + composeBodyOutline;
+        outlineWrap.style.borderRadius = '12px';
+    }
     var loadTemplateBtn = document.getElementById('load-template-btn');
     var loadTemplateDropdown = document.getElementById('load-template-dropdown');
     var loadTemplateList = document.getElementById('load-template-list');
@@ -295,9 +309,8 @@ $composeFooterMode = 'text_only';
         composeFooterLogo = d.footer_logo_url || '';
         composeHeaderMode = d.header_mode || 'text_only';
         composeFooterMode = d.footer_mode || 'text_only';
-        composeBodyOutline = '';
+        composeBodyOutline = d.body_outline_color || '';
         refreshDesignPreviews();
-        if (outlineWrap) { outlineWrap.style.border = ''; outlineWrap.style.borderRadius = ''; outlineWrap.style.background = ''; }
     }
     function renderLoadTemplateList() {
         if (!loadTemplateList) return;
@@ -385,9 +398,18 @@ $composeFooterMode = 'text_only';
         loadTemplateDropdown.addEventListener('click', function(e) { e.stopPropagation(); });
     }
     if (outlineWrap) { outlineWrap.style.border = ''; outlineWrap.style.borderRadius = ''; outlineWrap.style.background = ''; }
-    var quill = new Quill('#compose-body-editor', { theme: 'snow', modules: { toolbar: [[{header:[1,2,3,false]}], ['bold','italic','underline'], [{list:'ordered'},{list:'bullet'}], ['link'], ['clean']] } });
+    var quill = new Quill('#compose-body-editor', { 
+        theme: 'snow', 
+        placeholder: 'Hello there! We are excited to share our latest updates...',
+        modules: { toolbar: [[{header:[1,2,3,false]}], ['bold','italic','underline'], [{list:'ordered'},{list:'bullet'}], ['link'], ['clean']] } 
+    });
     window.quill = quill;
-    if (ta.value) quill.root.innerHTML = ta.value;
+    if (ta.value) {
+        // Only populate visual editor if it's NOT the default example text or an empty paragraph
+        if (ta.value.indexOf("<h1>Hello there!</h1>") === -1 && ta.value !== '<p><br></p>') {
+            quill.root.innerHTML = ta.value;
+        }
+    }
     quill.on('text-change', function() { ta.value = quill.root.innerHTML; });
     function setVisual(v) {
         isVisualMode = !!v;
