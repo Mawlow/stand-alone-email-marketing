@@ -293,7 +293,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt = $pdo->prepare('INSERT INTO sender_accounts (name, email, password, host, port, encryption, is_active) VALUES (?,?,?,?,?,?,?)');
                 $stmt->execute([$name, $email, $pwStore, $host, $port, $encryption, $isActive ? 1 : 0]);
             }
-            header('Location: ' . url('senders') . '&success=' . urlencode('Sender saved.'));
+            header('Location: ' . url('senders', ['success' => 'Sender saved.']));
             exit;
         }
         $_GET['page'] = 'sender-edit';
@@ -303,7 +303,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'sender-delete' && isset($_POST['id'])) {
         $pdo->prepare('DELETE FROM sender_accounts WHERE id=?')->execute([(int) $_POST['id']]);
-        header('Location: ' . url('senders') . '&success=' . urlencode('Sender deleted.'));
+        header('Location: ' . url('senders', ['success' => 'Sender deleted.']));
         exit;
     }
 
@@ -331,7 +331,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 foreach ($groupIds as $gid) {
                     if ($gid > 0) $ins->execute([$contactId, $gid]);
                 }
-                header('Location: ' . url('contacts') . '&success=' . urlencode('Contact saved.'));
+                header('Location: ' . url('contacts', ['success' => 'Contact saved.']));
                 exit;
             } catch (PDOException $e) {
                 if (strpos($e->getMessage(), 'UNIQUE') !== false) {
@@ -349,32 +349,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $cid = (int) $_POST['id'];
         $pdo->prepare('DELETE FROM contact_group_members WHERE contact_id=?')->execute([$cid]);
         $pdo->prepare('DELETE FROM marketing_contacts WHERE id=?')->execute([$cid]);
-        header('Location: ' . url('contacts') . '&success=' . urlencode('Contact removed.'));
-        exit;
-    }
-
-    if ($action === 'group-save') {
-        $gid = isset($_POST['id']) ? (int) $_POST['id'] : 0;
-        $name = trim($_POST['name'] ?? '');
-        if ($name === '') {
-            $flashError = 'Group name is required.';
-            $_GET['page'] = 'group-edit';
-            if ($gid) $_GET['id'] = $gid;
-        } else {
-            if ($gid) {
-                $pdo->prepare('UPDATE contact_groups SET name=? WHERE id=?')->execute([$name, $gid]);
-            } else {
-                $pdo->prepare('INSERT INTO contact_groups (name) VALUES (?)')->execute([$name]);
-            }
-            header('Location: ' . url('groups') . '&success=' . urlencode('Group saved.'));
-            exit;
-        }
-    }
-
-    if ($action === 'group-delete' && isset($_POST['id'])) {
-        $pdo->prepare('DELETE FROM contact_group_members WHERE group_id=?')->execute([(int) $_POST['id']]);
-        $pdo->prepare('DELETE FROM contact_groups WHERE id=?')->execute([(int) $_POST['id']]);
-        header('Location: ' . url('groups') . '&success=' . urlencode('Group deleted.'));
+        header('Location: ' . url('contacts', ['success' => 'Contact removed.']));
         exit;
     }
 
@@ -389,7 +364,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $pdo->prepare('INSERT INTO api_keys (name, api_key) VALUES (?, ?)')->execute([$name, $key]);
                 $_SESSION['new_api_key'] = $key;
                 $_SESSION['new_api_key_name'] = $name;
-                header('Location: ' . url('api') . '&created=1');
+                header('Location: ' . url('api', ['created' => 1]));
                 exit;
             } catch (PDOException $e) {
                 $flashError = 'Could not create key. Try again.';
@@ -400,7 +375,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'api-key-delete' && isset($_POST['id'])) {
         $pdo->prepare('DELETE FROM api_keys WHERE id = ?')->execute([(int) $_POST['id']]);
-        header('Location: ' . url('api') . '&success=' . urlencode('API key deleted.'));
+        header('Location: ' . url('api', ['success' => 'API key deleted.']));
         exit;
     }
 
@@ -420,7 +395,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 $hash = password_hash($password, PASSWORD_DEFAULT);
                 $pdo->prepare('INSERT INTO users (email, password, name) VALUES (?, ?, ?)')->execute([$email, $hash, $name]);
-                header('Location: ' . url('login') . '&success=' . urlencode('Registration successful. Please login.'));
+                header('Location: ' . url('login', ['success' => 'Registration successful. Please login.']));
                 exit;
             } catch (PDOException $e) {
                 $msg = $e->getMessage();
@@ -451,6 +426,139 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         session_destroy();
         header('Location: ' . url('landing'));
         exit;
+    }
+
+    if ($action === 'group-save') {
+        $gid = isset($_POST['id']) ? (int) $_POST['id'] : 0;
+        $name = trim($_POST['name'] ?? '');
+        if ($name === '') {
+            header('Location: ' . url('group-edit', ['id' => $gid, 'error' => 'Group name is required.']));
+            exit;
+        } else {
+            if ($gid) {
+                $pdo->prepare('UPDATE contact_groups SET name=? WHERE id=?')->execute([$name, $gid]);
+            } else {
+                $pdo->prepare('INSERT INTO contact_groups (name) VALUES (?)')->execute([$name]);
+                $gid = (int)$pdo->lastInsertId();
+            }
+            header('Location: ' . url('groups', ['success' => 'Group saved.']));
+            exit;
+        }
+    }
+
+    if ($action === 'group-delete' && isset($_POST['id'])) {
+        $gid = (int) $_POST['id'];
+        $pdo->prepare('DELETE FROM contact_group_members WHERE group_id=?')->execute([$gid]);
+        $pdo->prepare('DELETE FROM contact_groups WHERE id=?')->execute([$gid]);
+        header('Location: ' . url('groups', ['success' => 'Group deleted.']));
+        exit;
+    }
+
+    if ($action === 'group-add-member') {
+        $gid = (int)($_POST['group_id'] ?? 0);
+        $cid = (int)($_POST['contact_id'] ?? 0);
+        $isAjax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
+        if ($gid && $cid) {
+            try {
+                $pdo->prepare('INSERT INTO contact_group_members (contact_id, group_id) VALUES (?,?)')->execute([$cid, $gid]);
+                if ($isAjax) {
+                    header('Content-Type: application/json');
+                    echo json_encode(['success' => true, 'message' => 'Member added.']);
+                    exit;
+                }
+                header('Location: ' . url('group-edit', ['id' => $gid, 'success' => 'Member added.']));
+                exit;
+            } catch (PDOException $e) {
+                if ($isAjax) {
+                    header('Content-Type: application/json');
+                    echo json_encode(['success' => false, 'message' => 'Member already in group.']);
+                    exit;
+                }
+                header('Location: ' . url('group-edit', ['id' => $gid, 'error' => 'Member already in group.']));
+                exit;
+            }
+        }
+    }
+
+    if ($action === 'group-create-add-member') {
+        $gid = (int)($_POST['group_id'] ?? 0);
+        $email = trim($_POST['email'] ?? '');
+        $company = trim($_POST['company_name'] ?? '');
+        $isAjax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
+        
+        if ($gid && filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            try {
+                $pdo->beginTransaction();
+                // Check if contact exists first
+                $st = $pdo->prepare('SELECT id FROM marketing_contacts WHERE email = ?');
+                $st->execute([$email]);
+                $contact = $st->fetch();
+                
+                if ($contact) {
+                    $cid = (int)$contact['id'];
+                } else {
+                    $pdo->prepare('INSERT INTO marketing_contacts (email, company_name) VALUES (?, ?)')
+                        ->execute([$email, $company ?: null]);
+                    $cid = (int)$pdo->lastInsertId();
+                }
+                
+                // Link to group - use IGNORE to avoid errors if already linked
+                $pdo->prepare('INSERT IGNORE INTO contact_group_members (contact_id, group_id) VALUES (?, ?)')
+                    ->execute([$cid, $gid]);
+                
+                $pdo->commit();
+                
+                if ($isAjax) {
+                    header('Content-Type: application/json');
+                    echo json_encode([
+                        'success' => true, 
+                        'message' => 'Contact created and added to group.',
+                        'data' => [
+                            'id' => $cid,
+                            'email' => $email,
+                            'company_name' => $company ?: '—'
+                        ]
+                    ]);
+                    exit;
+                }
+                
+                header('Location: ' . url('group-edit', ['id' => $gid, 'success' => 'Contact created and added to group.']));
+                exit;
+            } catch (Exception $e) {
+                if ($pdo->inTransaction()) $pdo->rollBack();
+                if ($isAjax) {
+                    header('Content-Type: application/json');
+                    echo json_encode(['success' => false, 'message' => 'Could not add contact: ' . $e->getMessage()]);
+                    exit;
+                }
+                header('Location: ' . url('group-edit', ['id' => $gid, 'error' => 'Could not add contact: ' . addslashes($e->getMessage())]));
+                exit;
+            }
+        } else {
+            if ($isAjax) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'Valid email is required.']);
+                exit;
+            }
+            header('Location: ' . url('group-edit', ['id' => $gid, 'error' => 'Valid email is required.']));
+            exit;
+        }
+    }
+
+    if ($action === 'group-remove-member') {
+        $gid = (int)($_POST['group_id'] ?? 0);
+        $cid = (int)($_POST['contact_id'] ?? 0);
+        $isAjax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
+        if ($gid && $cid) {
+            $pdo->prepare('DELETE FROM contact_group_members WHERE group_id = ? AND contact_id = ?')->execute([$gid, $cid]);
+            if ($isAjax) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => true, 'message' => 'Member removed.']);
+                exit;
+            }
+            header('Location: ' . url('group-edit', ['id' => $gid, 'success' => 'Member removed.']));
+            exit;
+        }
     }
 
     if ($action === 'save-design') {
