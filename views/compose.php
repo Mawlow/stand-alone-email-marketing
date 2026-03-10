@@ -16,7 +16,7 @@ $composeFooterMode = 'text_only';
 ?>
 <style>
     /* Hide the default title area from index.php */
-    main > div > div.mb-6:first-child {
+    main > div > div.mb-4:first-child {
         display: none;
     }
 
@@ -49,33 +49,44 @@ $composeFooterMode = 'text_only';
         margin: 0 auto;
         padding: 0 1rem 2rem 1rem;
     }
+    @media (max-width: 1023px) {
+        .compose-content-wrapper {
+            margin-top: 1.5rem;
+        }
+    }
     @media (min-width: 640px) { .compose-content-wrapper { padding: 0 1.5rem 2rem 1.5rem; } }
     @media (min-width: 1024px) { .compose-content-wrapper { padding: 0 2rem 2rem 2rem; } }
 </style>
 
-<!-- Banner (Dashboard Style) -->
-<div class="compose-banner bg-[#02396E] py-6 md:py-8 text-white shadow-lg relative overflow-hidden">
+<!-- Banner (Desktop) -->
+<div class="compose-banner bg-[#02396E] py-6 md:py-8 text-white shadow-lg relative overflow-hidden hidden lg:block">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div class="relative z-10">
             <h1 class="text-[2.5rem] font-bold leading-tight">Compose</h1>
-            <p class="text-blue-100/80 mt-1 text-sm font-medium">Manage your email marketing</p>
+            <p class="text-blue-100/80 mt-1 text-sm font-medium">Create and send email campaigns</p>
         </div>
     </div>
 </div>
 
-<div class="compose-content-wrapper">
+<!-- Mobile Header -->
+<div class="lg:hidden bg-[#02396E] px-4 py-4 text-white pb-6">
+    <h1 class="text-xl font-bold">Compose</h1>
+    <p class="text-blue-100/80 text-xs">Create campaigns</p>
+</div>
+
+<div class="compose-content-wrapper mt-6 lg:mt-0">
     <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">
     <div class="bg-[#02396E] px-4 md:px-6 py-3 border-b border-white/10"><h2 class="text-sm md:text-base font-semibold text-white uppercase">Compose campaign</h2></div>
     <form method="post" action="/compose" id="compose-form">
         <input type="hidden" name="action" value="send">
         <div class="p-6 space-y-4">
-            <div class="flex flex-wrap items-end gap-3">
+            <div class="flex flex-col md:flex-row md:items-end gap-3">
                 <div class="flex-1 min-w-[200px]">
                     <label class="block text-sm font-bold text-slate-700 mb-1">Subject *</label>
-                    <input type="text" name="subject" id="compose-subject" required maxlength="255" class="w-full rounded-xl border border-slate-200 px-4 py-2.5 focus:ring-2 focus:ring-[#02396E]" placeholder="Email subject" value="<?= h($_POST['subject'] ?? '') ?>">
+                    <input type="text" name="subject" id="compose-subject" required maxlength="255" class="w-full rounded-xl border border-slate-200 px-4 py-3 md:py-2.5 focus:ring-2 focus:ring-[#02396E] text-base" placeholder="Email subject" value="<?= h($_POST['subject'] ?? '') ?>">
                 </div>
                 <div class="relative" id="load-template-wrap">
-                    <button type="button" id="load-template-btn" class="px-4 py-2.5 rounded-xl border-2 border-[#02396E] text-[#02396E] font-bold text-sm hover:bg-[#02396E] hover:text-white">Load template</button>
+                    <button type="button" id="load-template-btn" class="w-full md:w-auto px-4 py-3 md:py-2.5 rounded-xl border-2 border-[#02396E] text-[#02396E] font-bold text-sm hover:bg-[#02396E] hover:text-white touch-manipulation">Load template</button>
                     <div id="load-template-dropdown" class="hidden absolute right-0 top-full mt-1 w-56 rounded-xl border border-slate-200 bg-white shadow-lg py-1 z-20">
                         <div class="px-3 py-2 text-xs font-semibold text-slate-500 uppercase border-b border-slate-100">Saved templates</div>
                         <div id="load-template-list" class="max-h-64 overflow-y-auto"></div>
@@ -148,9 +159,9 @@ $composeFooterMode = 'text_only';
                 <label for="rotate_senders" class="text-sm font-medium text-slate-700">Rotate sender accounts</label>
             </div>
         </div>
-        <div class="bg-slate-50 px-4 md:px-6 py-3 flex gap-3">
-            <button type="submit" class="px-6 py-2.5 bg-[#02396E] text-white font-bold rounded-xl hover:bg-[#034a8c]">Send campaign</button>
-            <a href="<?= url('index') ?>" class="px-6 py-2.5 bg-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-300">Cancel</a>
+        <div class="bg-slate-50 px-4 md:px-6 py-3 flex flex-col sm:flex-row gap-3">
+            <button type="submit" class="px-6 py-3 bg-[#02396E] text-white font-bold rounded-xl hover:bg-[#034a8c] touch-manipulation w-full sm:w-auto">Send campaign</button>
+            <a href="<?= url('index') ?>" class="px-6 py-3 bg-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-300 text-center touch-manipulation w-full sm:w-auto">Cancel</a>
         </div>
     </form>
 </div>

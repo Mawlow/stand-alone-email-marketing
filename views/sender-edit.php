@@ -9,7 +9,7 @@ if ($senderId) {
 ?>
 <style>
     /* Hide the default title area from index.php */
-    main > div > div.mb-6:first-child {
+    main > div > div.mb-4:first-child {
         display: none;
     }
 
@@ -35,10 +35,16 @@ if ($senderId) {
     .page-banner {
         margin-bottom: 2rem;
     }
+
+    @media (max-width: 1023px) {
+        .page-content {
+            margin-top: 1.5rem;
+        }
+    }
 </style>
 
-<!-- Header Banner -->
-<div class="page-banner bg-[#02396E] py-6 md:py-8 text-white shadow-lg relative overflow-hidden">
+<!-- Header Banner (Desktop) -->
+<div class="page-banner bg-[#02396E] py-6 md:py-8 text-white shadow-lg relative overflow-hidden hidden lg:block">
     <div class="px-8 sm:px-24 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div class="relative z-10">
             <div class="flex items-center gap-2 mb-2">
@@ -56,12 +62,18 @@ if ($senderId) {
     <div class="absolute top-0 right-0 -mt-4 -mr-4 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
 </div>
 
-<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 relative">
+<!-- Mobile Header -->
+<div class="lg:hidden bg-[#02396E] px-4 py-4 text-white">
+    <h1 class="text-xl font-bold"><?= $account ? 'Edit Sender' : 'Add Sender' ?></h1>
+    <p class="text-blue-100/80 text-xs"><?= $account ? 'Update SMTP settings' : 'Configure new sender' ?></p>
+</div>
+
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 relative page-content">
     <!-- Background element starting from sidebar -->
     <div class="fixed inset-y-0 left-64 right-0 bg-slate-50 -z-10 border-l border-slate-200"></div>
 
     <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">
-        <div class="bg-[#02396E] px-4 md:px-8 py-4 border-b border-white/10">
+        <div class="bg-[#02396E] px-4 md:px-8 py-4 border-b border-white/10 hidden lg:block">
             <h2 class="text-lg font-bold text-white uppercase tracking-wider">SMTP Configuration</h2>
         </div>
         <form method="post" action="<?= url('senders') ?>">
@@ -112,11 +124,11 @@ if ($senderId) {
                 </div>
             </div>
 
-            <div class="bg-slate-50 px-6 md:px-8 py-4 flex items-center justify-between border-t border-slate-100">
-                <p class="text-xs text-[#ff8904] font-medium">* Required for sending</p>
-                <div class="flex gap-3">
-                    <a href="<?= url('senders') ?>" class="px-6 py-2.5 bg-white text-slate-600 font-bold rounded-xl border-2 border-slate-200 hover:bg-slate-50 transition-colors">Cancel</a>
-                    <button type="submit" class="px-8 py-2.5 bg-[#02396E] text-white font-bold rounded-xl hover:bg-[#034a8c] shadow-md transition-all">Save Sender</button>
+            <div class="bg-slate-50 px-4 md:px-8 py-4 flex items-center justify-between border-t border-slate-100 gap-2">
+                <p class="text-xs text-[#ff8904] font-medium hidden sm:block">* Required for sending</p>
+                <div class="flex gap-2 w-full sm:w-auto">
+                    <a href="<?= url('senders') ?>" class="flex-1 sm:flex-none px-4 py-2 bg-white text-slate-600 font-bold rounded-lg border-2 border-slate-200 hover:bg-slate-50 transition-colors text-center text-sm">Cancel</a>
+                    <button type="submit" class="flex-1 sm:flex-none px-4 py-2 bg-[#02396E] text-white font-bold rounded-lg hover:bg-[#034a8c] shadow-md transition-all text-sm">Save</button>
                 </div>
             </div>
         </form>

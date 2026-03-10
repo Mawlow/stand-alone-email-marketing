@@ -9,7 +9,7 @@ $apiBaseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https'
 ?>
 <style>
     /* Hide the default title area from index.php */
-    main > div > div.mb-6:first-child {
+    main > div > div.mb-4:first-child {
         display: none;
     }
 
@@ -42,18 +42,29 @@ $apiBaseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https'
         margin: 0 auto;
         padding: 0 1rem 2rem 1rem;
     }
+    @media (max-width: 1023px) {
+        .api-content-wrapper {
+            margin-top: 1.5rem;
+        }
+    }
     @media (min-width: 640px) { .api-content-wrapper { padding: 0 1.5rem 2rem 1.5rem; } }
     @media (min-width: 1024px) { .api-content-wrapper { padding: 0 2rem 2rem 2rem; } }
 </style>
 
-<!-- Banner (Dashboard Style) -->
-<div class="api-banner bg-[#02396E] py-6 md:py-8 text-white shadow-lg relative overflow-hidden">
+<!-- Banner (Desktop) -->
+<div class="api-banner bg-[#02396E] py-6 md:py-8 text-white shadow-lg relative overflow-hidden hidden lg:block">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div class="relative z-10">
             <h1 class="text-[2.5rem] font-bold leading-tight">API</h1>
-            <p class="text-blue-100/80 mt-1 text-sm font-medium">Manage your email marketing</p>
+            <p class="text-blue-100/80 mt-1 text-sm font-medium">Integrate with external systems</p>
         </div>
     </div>
+</div>
+
+<!-- Mobile Header -->
+<div class="lg:hidden bg-[#02396E] px-4 py-4 text-white">
+    <h1 class="text-xl font-bold">API</h1>
+    <p class="text-blue-100/80 text-xs">Integrate systems</p>
 </div>
 
 <div class="api-content-wrapper">

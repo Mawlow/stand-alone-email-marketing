@@ -6,7 +6,7 @@ foreach ($accounts as $a) { if ($a['is_active']) $activeSenders++; }
 ?>
 <style>
     /* Hide the default title area from index.php when on the senders page */
-    main > div > div.mb-6:first-child {
+    main > div > div.mb-4:first-child {
         display: none;
     }
 
@@ -34,8 +34,8 @@ foreach ($accounts as $a) { if ($a['is_active']) $activeSenders++; }
     }
 </style>
 
-<!-- Senders Banner -->
-<div class="page-banner bg-[#02396E] py-6 md:py-8 text-white shadow-lg relative overflow-hidden">
+<!-- Senders Banner (Desktop) -->
+<div class="page-banner bg-[#02396E] py-6 md:py-8 text-white shadow-lg relative overflow-hidden hidden lg:block">
     <div class="px-8 sm:px-24 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div class="relative z-10">
             <h1 class="text-[2.5rem] font-bold leading-tight">Sender Accounts</h1>
@@ -62,11 +62,56 @@ foreach ($accounts as $a) { if ($a['is_active']) $activeSenders++; }
     <div class="absolute top-0 right-0 -mt-4 -mr-4 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
 </div>
 
+<!-- Mobile Header -->
+<div class="lg:hidden bg-[#02396E] px-4 py-4 text-white">
+    <div class="flex flex-col gap-3">
+        <div class="flex items-center justify-between">
+            <h1 class="text-xl font-bold">Sender Accounts</h1>
+        </div>
+        <p class="text-blue-100/80 text-xs">Manage your senders</p>
+        <div class="relative">
+            <input type="text" id="senderSearch" placeholder="Search senders..." class="w-full bg-white rounded-lg py-2 pl-10 pr-16 text-slate-900 text-sm placeholder-slate-400 focus:outline-none">
+            <div class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </div>
+            <button id="clearSearch" class="absolute right-10 top-1/2 -translate-y-1/2 p-0.5 text-slate-400 hover:text-slate-600 hidden">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <button class="absolute right-2 top-1/2 -translate-y-1/2 p-1 bg-[#02396E] text-white rounded-full">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
+            </button>
+        </div>
+    </div>
+</div>
+
 <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 relative">
     <!-- Background element starting from sidebar -->
-    <div class="fixed inset-y-0 left-64 right-0 bg-slate-50 -z-10 border-l border-slate-200"></div>
+    <div class="fixed inset-y-0 left-64 right-0 bg-slate-50 -z-10 border-l border-slate-200 hidden lg:block"></div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+    <!-- Mobile Stats Cards -->
+    <div class="lg:hidden grid grid-cols-2 gap-3 mt-4 mb-4">
+        <div class="bg-white rounded-xl shadow-md border-2 border-blue-200 p-4 flex flex-col items-center gap-2">
+            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-[#02396E]">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+            </div>
+            <div class="text-center">
+                <p class="text-2xl font-bold text-slate-900"><?= $activeSenders ?></p>
+                <p class="text-[10px] font-bold text-slate-500 uppercase">active</p>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-md border-2 border-blue-200 p-4 flex flex-col items-center gap-2">
+            <div class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-[#ff8904]">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+            </div>
+            <div class="text-center">
+                <p class="text-2xl font-bold text-slate-900"><?= $totalSenders ?></p>
+                <p class="text-[10px] font-bold text-slate-500 uppercase">total</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Desktop Stats Cards -->
+    <div class="hidden lg:grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
         <div class="bg-white rounded-xl shadow-md border-2 border-blue-200 p-4 md:p-6 flex items-center gap-6 hover:bg-slate-50 transition-colors">
             <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-[#02396E] shrink-0">
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
@@ -100,11 +145,39 @@ foreach ($accounts as $a) { if ($a['is_active']) $activeSenders++; }
     </div>
 
     <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">
-        <div class="bg-[#02396E] px-4 md:px-8 py-6 border-b border-white/10 flex justify-between items-center">
-            <h2 class="text-xl md:text-2xl font-bold text-white">List of Senders</h2>
-            <a href="<?= url('sender-edit') ?>" class="inline-flex items-center px-3.5 py-1.5 bg-[#ff8904] text-white text-sm font-bold rounded-xl hover:bg-orange-600 transition-colors">+ Add Sender</a>
+        <div class="bg-[#02396E] px-4 md:px-8 py-4 md:py-6 border-b border-white/10 flex flex-col sm:flex-row justify-between items-center gap-3">
+            <h2 class="text-lg md:text-2xl font-bold text-white">Senders</h2>
+            <a href="<?= url('sender-edit') ?>" class="w-full sm:w-auto inline-flex items-center justify-center px-3.5 py-1.5 bg-[#ff8904] text-white text-sm font-bold rounded-xl hover:bg-orange-600 transition-colors">+ Add Sender</a>
         </div>
-        <div class="overflow-x-auto">
+        
+        <!-- Mobile Card View -->
+        <div class="lg:hidden divide-y divide-slate-100">
+            <?php foreach ($accounts as $a): ?>
+            <div class="p-4 hover:bg-slate-50">
+                <div class="flex items-start justify-between gap-2 mb-2">
+                    <div>
+                        <h3 class="font-semibold text-slate-900"><?= h($a['name']) ?></h3>
+                        <p class="text-sm text-slate-600"><?= h($a['email']) ?></p>
+                    </div>
+                    <span class="shrink-0 px-2 py-0.5 rounded text-xs font-bold <?= $a['is_active'] ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-600' ?>"><?= $a['is_active'] ? 'Active' : 'Inactive' ?></span>
+                </div>
+                <p class="text-xs text-slate-500 mb-3"><?= h($a['host']) ?>:<?= h($a['port']) ?></p>
+                <div class="flex gap-2">
+                    <a href="<?= url('sender-edit', ['id' => $a['id']]) ?>" class="flex-1 text-center px-3 py-2 text-sm text-[#02396E] border border-[#02396E] rounded-lg touch-manipulation">Edit</a>
+                    <form method="post" action="<?= url('senders') ?>" class="flex-1" onsubmit="return confirm('Delete this sender?');">
+                        <input type="hidden" name="action" value="sender-delete"><input type="hidden" name="id" value="<?= (int)$a['id'] ?>">
+                        <button type="submit" class="w-full px-3 py-2 text-sm text-red-600 border border-red-600 rounded-lg touch-manipulation">Delete</button>
+                    </form>
+                </div>
+            </div>
+            <?php endforeach; ?>
+            <?php if (empty($accounts)): ?>
+            <div class="p-8 text-center text-slate-500 text-sm">No senders. <a href="<?= url('sender-edit') ?>" class="text-[#ff8904] font-bold hover:underline">Add one</a>.</div>
+            <?php endif; ?>
+        </div>
+        
+        <!-- Desktop Table View -->
+        <div class="hidden lg:block overflow-x-auto">
             <table class="w-full text-left" id="senderTable">
                 <thead class="bg-blue-50">
                     <tr>
@@ -156,6 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('senderSearch');
     const clearBtn = document.getElementById('clearSearch');
     const tableRows = document.querySelectorAll('#senderTable tbody tr');
+    const mobileCards = document.querySelectorAll('.lg\\:hidden.divide-y > div');
 
     searchInput.addEventListener('input', () => {
         const query = searchInput.value.toLowerCase();
@@ -170,12 +244,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const text = row.innerText.toLowerCase();
             row.style.display = text.includes(query) ? '' : 'none';
         });
+
+        mobileCards.forEach(card => {
+            const text = card.innerText.toLowerCase();
+            card.style.display = text.includes(query) ? '' : 'none';
+        });
     });
 
     clearBtn.addEventListener('click', () => {
         searchInput.value = '';
         clearBtn.classList.add('hidden');
         tableRows.forEach(row => row.style.display = '');
+        mobileCards.forEach(card => card.style.display = '');
         searchInput.focus();
     });
 });

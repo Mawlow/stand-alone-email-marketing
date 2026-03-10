@@ -5,7 +5,7 @@ $groupsCount = (int) $pdo->query('SELECT COUNT(*) FROM contact_groups')->fetchCo
 ?>
 <style>
     /* Hide the default title area from index.php when on the contacts page */
-    main > div > div.mb-6:first-child {
+    main > div > div.mb-4:first-child {
         display: none;
     }
 
@@ -33,8 +33,8 @@ $groupsCount = (int) $pdo->query('SELECT COUNT(*) FROM contact_groups')->fetchCo
     }
 </style>
 
-<!-- Contacts Banner -->
-<div class="page-banner bg-[#02396E] py-6 md:py-8 text-white shadow-lg relative overflow-hidden">
+<!-- Contacts Banner (Desktop) -->
+<div class="page-banner bg-[#02396E] py-6 md:py-8 text-white shadow-lg relative overflow-hidden hidden lg:block">
     <div class="px-8 sm:px-24 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div class="relative z-10">
             <h1 class="text-[2.5rem] font-bold leading-tight">Marketing Contacts</h1>
@@ -61,11 +61,56 @@ $groupsCount = (int) $pdo->query('SELECT COUNT(*) FROM contact_groups')->fetchCo
     <div class="absolute top-0 right-0 -mt-4 -mr-4 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
 </div>
 
+<!-- Mobile Header -->
+<div class="lg:hidden bg-[#02396E] px-4 py-4 text-white">
+    <div class="flex flex-col gap-3">
+        <div class="flex items-center justify-between">
+            <h1 class="text-xl font-bold">Marketing Contacts</h1>
+        </div>
+        <p class="text-blue-100/80 text-xs">Manage your audience</p>
+        <div class="relative">
+            <input type="text" id="contactSearch" placeholder="Search contacts..." class="w-full bg-white rounded-lg py-2 pl-10 pr-16 text-slate-900 text-sm placeholder-slate-400 focus:outline-none">
+            <div class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </div>
+            <button id="clearSearch" class="absolute right-10 top-1/2 -translate-y-1/2 p-0.5 text-slate-400 hover:text-slate-600 hidden">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <button class="absolute right-2 top-1/2 -translate-y-1/2 p-1 bg-[#02396E] text-white rounded-full">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
+            </button>
+        </div>
+    </div>
+</div>
+
 <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 relative">
     <!-- Background element starting from sidebar -->
-    <div class="fixed inset-y-0 left-64 right-0 bg-slate-50 -z-10 border-l border-slate-200"></div>
+    <div class="fixed inset-y-0 left-64 right-0 bg-slate-50 -z-10 border-l border-slate-200 hidden lg:block"></div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+    <!-- Mobile Stats Cards -->
+    <div class="lg:hidden grid grid-cols-2 gap-3 mt-4 mb-4">
+        <div class="bg-white rounded-xl shadow-md border-2 border-blue-200 p-4 flex flex-col items-center gap-2">
+            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-[#02396E]">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            </div>
+            <div class="text-center">
+                <p class="text-2xl font-bold text-slate-900"><?= $totalContacts ?></p>
+                <p class="text-[10px] font-bold text-slate-500 uppercase">contacts</p>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-md border-2 border-blue-200 p-4 flex flex-col items-center gap-2">
+            <div class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-[#ff8904]">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+            </div>
+            <div class="text-center">
+                <p class="text-2xl font-bold text-slate-900"><?= $groupsCount ?></p>
+                <p class="text-[10px] font-bold text-slate-500 uppercase">groups</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Desktop Stats Cards -->
+    <div class="hidden lg:grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
         <div class="bg-white rounded-xl shadow-md border-2 border-blue-200 p-4 md:p-6 flex items-center gap-6 hover:bg-slate-50 transition-colors">
             <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-[#02396E] shrink-0">
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
@@ -99,15 +144,45 @@ $groupsCount = (int) $pdo->query('SELECT COUNT(*) FROM contact_groups')->fetchCo
     </div>
 
     <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">
-        <div class="bg-[#02396E] px-4 md:px-8 py-6 border-b border-white/10 flex flex-wrap justify-between items-center gap-4">
-            <h2 class="text-xl md:text-2xl font-bold text-white">Contact List</h2>
-            <div class="flex flex-wrap gap-2">
-                <a href="<?= url('contact-edit') ?>" class="inline-flex items-center px-3.5 py-1.5 bg-white text-[#02396E] text-sm font-bold rounded-xl hover:bg-[#ff8904] hover:text-white transition-colors">+ Add Contact</a>
-                <a href="<?= url('contacts-import') ?>" class="inline-flex items-center px-3.5 py-1.5 bg-[#ff8904] text-white text-sm font-bold rounded-xl hover:bg-[#f54a00] transition-colors">Import CSV</a>
-                <a href="<?= url('groups') ?>" class="inline-flex items-center px-3.5 py-1.5 border-2 border-white/20 text-white text-sm font-bold rounded-xl hover:bg-white/10 transition-colors">Manage Groups</a>
+        <div class="bg-[#02396E] px-4 md:px-8 py-4 md:py-6 border-b border-white/10 flex flex-col sm:flex-row justify-between items-center gap-3">
+            <h2 class="text-lg md:text-2xl font-bold text-white">Contacts</h2>
+            <div class="flex flex-wrap gap-2 w-full sm:w-auto">
+                <a href="<?= url('contact-edit') ?>" class="flex-1 sm:flex-none inline-flex items-center justify-center px-3.5 py-1.5 bg-white text-[#02396E] text-sm font-bold rounded-xl hover:bg-[#ff8904] hover:text-white transition-colors">+ Add</a>
+                <a href="<?= url('contacts-import') ?>" class="flex-1 sm:flex-none inline-flex items-center justify-center px-3.5 py-1.5 bg-[#ff8904] text-white text-sm font-bold rounded-xl hover:bg-[#f54a00] transition-colors">Import</a>
+                <a href="<?= url('groups') ?>" class="flex-1 sm:flex-none inline-flex items-center justify-center px-3.5 py-1.5 border-2 border-white/20 text-white text-sm font-bold rounded-xl hover:bg-white/10 transition-colors">Groups</a>
             </div>
         </div>
-        <div class="overflow-x-auto">
+        
+        <!-- Mobile Card View -->
+        <div class="lg:hidden divide-y divide-slate-100">
+            <?php foreach ($contacts as $c): ?>
+            <div class="p-4 hover:bg-slate-50">
+                <h3 class="font-semibold text-slate-900 text-sm mb-1"><?= h($c['email']) ?></h3>
+                <?php if (!empty($c['company_name'])): ?>
+                <p class="text-xs text-slate-600 mb-1"><?= h($c['company_name']) ?></p>
+                <?php endif; ?>
+                <?php if (!empty($c['group_names'])): ?>
+                <p class="text-xs text-blue-600 mb-2"><?= h($c['group_names']) ?></p>
+                <?php endif; ?>
+                <?php if (!empty($c['notes'])): ?>
+                <p class="text-xs text-slate-500 mb-3 line-clamp-2"><?= h($c['notes']) ?></p>
+                <?php endif; ?>
+                <div class="flex gap-2">
+                    <a href="<?= url('contact-edit', ['id' => $c['id']]) ?>" class="flex-1 text-center px-3 py-2 text-xs text-[#02396E] border border-[#02396E] rounded-lg touch-manipulation">Edit</a>
+                    <form method="post" action="<?= url('contacts') ?>" class="flex-1" onsubmit="return confirm('Remove this contact?');">
+                        <input type="hidden" name="action" value="contact-delete"><input type="hidden" name="id" value="<?= (int)$c['id'] ?>">
+                        <button type="submit" class="w-full px-3 py-2 text-xs text-red-600 border border-red-600 rounded-lg touch-manipulation">Delete</button>
+                    </form>
+                </div>
+            </div>
+            <?php endforeach; ?>
+            <?php if (empty($contacts)): ?>
+            <div class="p-8 text-center text-slate-500 text-sm">No contacts. <a href="<?= url('contact-edit') ?>" class="text-[#ff8904] font-bold hover:underline">Add one</a> or <a href="<?= url('contacts-import') ?>" class="text-[#ff8904] font-bold hover:underline">import CSV</a>.</div>
+            <?php endif; ?>
+        </div>
+        
+        <!-- Desktop Table View -->
+        <div class="hidden lg:block overflow-x-auto">
             <table class="w-full text-left" id="contactTable">
                 <thead class="bg-blue-50">
                     <tr>
@@ -165,6 +240,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('contactSearch');
     const clearBtn = document.getElementById('clearSearch');
     const tableRows = document.querySelectorAll('#contactTable tbody tr');
+    const mobileCards = document.querySelectorAll('.lg\\:hidden.divide-y > div');
 
     searchInput.addEventListener('input', () => {
         const query = searchInput.value.toLowerCase();
@@ -179,12 +255,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const text = row.innerText.toLowerCase();
             row.style.display = text.includes(query) ? '' : 'none';
         });
+
+        mobileCards.forEach(card => {
+            const text = card.innerText.toLowerCase();
+            card.style.display = text.includes(query) ? '' : 'none';
+        });
     });
 
     clearBtn.addEventListener('click', () => {
         searchInput.value = '';
         clearBtn.classList.add('hidden');
         tableRows.forEach(row => row.style.display = '');
+        mobileCards.forEach(card => card.style.display = '');
         searchInput.focus();
     });
 });

@@ -28,7 +28,7 @@ $designFooterMode = $designRow && in_array($designRow['footer_mode'] ?? '', ['lo
 ?>
 <style>
     /* Hide the default title area from index.php */
-    main > div > div.mb-6:first-child {
+    main > div > div.mb-4:first-child {
         display: none;
     }
 
@@ -61,18 +61,29 @@ $designFooterMode = $designRow && in_array($designRow['footer_mode'] ?? '', ['lo
         margin: 0 auto;
         padding: 0 1rem 2rem 1rem;
     }
+    @media (max-width: 1023px) {
+        .design-content-wrapper {
+            margin-top: 1.5rem;
+        }
+    }
     @media (min-width: 640px) { .design-content-wrapper { padding: 0 1.5rem 2rem 1.5rem; } }
     @media (min-width: 1024px) { .design-content-wrapper { padding: 0 2rem 2rem 2rem; } }
 </style>
 
-<!-- Banner (Dashboard Style) -->
-<div class="design-banner bg-[#02396E] py-6 md:py-8 text-white shadow-lg relative overflow-hidden">
+<!-- Banner (Desktop) -->
+<div class="design-banner bg-[#02396E] py-6 md:py-8 text-white shadow-lg relative overflow-hidden hidden lg:block">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div class="relative z-10">
             <h1 class="text-[2.5rem] font-bold leading-tight">Design</h1>
-            <p class="text-blue-100/80 mt-1 text-sm font-medium">Manage your email marketing</p>
+            <p class="text-blue-100/80 mt-1 text-sm font-medium">Customize email templates</p>
         </div>
     </div>
+</div>
+
+<!-- Mobile Header -->
+<div class="lg:hidden bg-[#02396E] px-4 py-4 text-white">
+    <h1 class="text-xl font-bold">Design</h1>
+    <p class="text-blue-100/80 text-xs">Customize templates</p>
 </div>
 
 <div class="design-content-wrapper">
@@ -108,9 +119,9 @@ $designFooterMode = $designRow && in_array($designRow['footer_mode'] ?? '', ['lo
                 <textarea name="header_footer_html" rows="14" class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-mono focus:ring-2 focus:ring-[#02396E]" placeholder="Header HTML here...&#10;&#10;&lt;!-- FOOTER --&gt;&#10;&#10;Footer HTML here..."><?= h($designHeaderFooterCombined) ?></textarea>
             </div>
         </div>
-        <div class="bg-slate-50 px-4 md:px-6 py-3 flex gap-3">
-            <button type="submit" class="px-6 py-2.5 bg-[#02396E] text-white font-bold rounded-xl hover:bg-[#034a8c]">Save design</button>
-            <a href="<?= url('compose') ?>" class="px-6 py-2.5 bg-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-300">Compose</a>
+        <div class="bg-slate-50 px-4 md:px-6 py-3 flex flex-col sm:flex-row gap-3">
+            <button type="submit" class="px-6 py-3 bg-[#02396E] text-white font-bold rounded-xl hover:bg-[#034a8c] touch-manipulation w-full sm:w-auto">Save design</button>
+            <a href="<?= url('compose') ?>" class="px-6 py-3 bg-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-300 text-center touch-manipulation w-full sm:w-auto">Compose</a>
         </div>
     </form>
 </div>

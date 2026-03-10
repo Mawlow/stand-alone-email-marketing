@@ -9,9 +9,9 @@
             <p class="text-slate-600 mb-4">Upload a CSV with columns: <strong>email</strong> (required), optional <strong>company</strong> or <strong>company_name</strong>. First row can be header.</p>
             <input type="file" name="file" accept=".csv,.txt" required class="w-full rounded-xl border border-slate-200 px-4 py-2">
         </div>
-        <div class="bg-slate-50 px-4 md:px-6 py-3 flex gap-3">
-            <button type="submit" class="px-6 py-2.5 bg-[#02396E] text-white font-bold rounded-xl">Import</button>
-            <a href="<?= url('contacts') ?>" class="px-6 py-2.5 bg-slate-200 text-slate-700 font-bold rounded-xl">Cancel</a>
+        <div class="bg-slate-50 px-4 md:px-6 py-3 flex flex-col sm:flex-row gap-3">
+            <button type="submit" class="px-6 py-3 bg-[#02396E] text-white font-bold rounded-xl touch-manipulation w-full sm:w-auto">Import</button>
+            <a href="<?= url('contacts') ?>" class="px-6 py-3 bg-slate-200 text-slate-700 font-bold rounded-xl text-center touch-manipulation w-full sm:w-auto">Cancel</a>
         </div>
     </form>
 </div>

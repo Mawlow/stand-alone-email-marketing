@@ -778,23 +778,66 @@ $contactsCount = (int) $pdo->query('SELECT COUNT(*) FROM marketing_contacts')->f
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title><?= h($page === 'index' ? 'Email Marketing' : ucfirst(str_replace('-', ' ', $page))) ?> - <?= h($appName) ?></title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+    <style>
+        @media (max-width: 767px) {
+            .mobile-nav-open { overflow: hidden; }
+            body { overflow-x: hidden; }
+            .no-horizontal-scroll { overflow-x: hidden; max-width: 100vw; }
+        }
+        @media (min-width: 768px) {
+            .sidebar-overlay { display: none !important; }
+        }
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 40;
+            backdrop-filter: blur(2px);
+        }
+        .sidebar-overlay:not(.hidden) {
+            display: block;
+        }
+        .rotate-180 {
+            transform: rotate(180deg);
+        }
+    </style>
 </head>
 <body class="min-h-screen bg-slate-100 font-sans text-slate-900 antialiased">
 <div class="flex min-h-screen">
     <?php if (!in_array(currentPage(), $publicPages)): ?>
-    <!-- Left sidebar -->
-    <aside class="w-64 flex-shrink-0 bg-slate-900 flex flex-col sticky top-0 h-screen">
-        <div class="p-5 border-b border-slate-700/50">
+    <!-- Mobile Header -->
+    <header class="md:hidden fixed top-0 left-0 right-0 bg-slate-900 z-30 h-14 flex items-center justify-between px-4 shadow-lg">
+        <button id="mobile-menu-btn" type="button" class="p-2 -ml-2 text-white hover:bg-white/10 rounded-lg touch-manipulation" aria-label="Open menu">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+        </button>
+        <a href="<?= url('index') ?>" class="text-white font-semibold text-base truncate">Email Marketing</a>
+        <div class="w-10"></div>
+    </header>
+
+    <!-- Mobile Sidebar Overlay -->
+    <div id="sidebar-overlay" class="sidebar-overlay hidden" aria-hidden="true"></div>
+
+    <!-- Sidebar -->
+    <aside id="mobile-sidebar" class="w-64 flex-shrink-0 bg-slate-900 flex flex-col fixed md:sticky top-0 h-screen z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
+        <div class="p-5 border-b border-slate-700/50 flex items-center justify-between">
             <a href="<?= url('index') ?>" class="block">
                 <h1 class="text-lg font-semibold text-white tracking-tight">Email Marketing</h1>
                 <p class="text-slate-400 text-xs mt-0.5">Campaigns & contacts</p>
             </a>
+            <button id="mobile-close-btn" type="button" class="md:hidden p-2 -mr-2 text-slate-400 hover:text-white" aria-label="Close menu">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
         </div>
-        <nav class="flex-1 p-3 space-y-0.5" aria-label="Main">
+        <nav class="flex-1 p-3 space-y-0.5 overflow-y-auto" aria-label="Main">
             <a href="<?= url('index') ?>" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors <?= currentPage() === 'index' ? 'bg-[#f54a00] text-white' : 'text-slate-300 hover:bg-white/10 hover:text-white' ?>">
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
                 <span>Dashboard</span>
@@ -838,14 +881,12 @@ $contactsCount = (int) $pdo->query('SELECT COUNT(*) FROM marketing_contacts')->f
     <?php endif; ?>
 
     <!-- Main content -->
-    <main class="flex-1 overflow-auto">
-        <div class="<?= in_array(currentPage(), $publicPages) ? '' : 'max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8' ?>">
-            <?php if (!in_array(currentPage(), $publicPages)): ?>
-            <div class="mb-6">
-                <?php if (!in_array($page, ['api', 'design'])): ?>
-                <h2 class="text-2xl font-semibold text-slate-900"><?= $page === 'index' ? 'Dashboard' : ucfirst(str_replace('-', ' ', $page)) ?></h2>
-                <p class="text-slate-500 text-sm mt-0.5"><?= $page === 'index' ? 'Overview and recent campaigns' : 'Manage your email marketing' ?></p>
-                <?php endif; ?>
+    <main class="flex-1 overflow-auto pt-14 md:pt-0">
+        <div class="<?= in_array(currentPage(), $publicPages) ? '' : 'max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 md:py-8' ?> <?= !in_array(currentPage(), $publicPages) ? 'no-horizontal-scroll' : '' ?>">
+            <?php if (!in_array(currentPage(), $publicPages) && !in_array($page, ['index', 'compose', 'design', 'api'])): ?>
+            <div class="mb-4 md:mb-6">
+                <h2 class="text-xl md:text-2xl font-semibold text-slate-900"><?= ucfirst(str_replace('-', ' ', $page)) ?></h2>
+                <p class="text-slate-500 text-xs md:text-sm mt-0.5">Manage your email marketing</p>
             </div>
             <?php endif; ?>
 
@@ -867,5 +908,33 @@ $contactsCount = (int) $pdo->query('SELECT COUNT(*) FROM marketing_contacts')->f
         </div>
     </main>
 </div>
+<script>
+(function() {
+    var menuBtn = document.getElementById('mobile-menu-btn');
+    var closeBtn = document.getElementById('mobile-close-btn');
+    var sidebar = document.getElementById('mobile-sidebar');
+    var overlay = document.getElementById('sidebar-overlay');
+    
+    function openMenu() {
+        sidebar.classList.remove('-translate-x-full');
+        overlay.classList.remove('hidden');
+        document.body.classList.add('mobile-nav-open');
+    }
+    
+    function closeMenu() {
+        sidebar.classList.add('-translate-x-full');
+        overlay.classList.add('hidden');
+        document.body.classList.remove('mobile-nav-open');
+    }
+    
+    if (menuBtn) menuBtn.addEventListener('click', openMenu);
+    if (closeBtn) closeBtn.addEventListener('click', closeMenu);
+    if (overlay) overlay.addEventListener('click', closeMenu);
+    
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeMenu();
+    });
+})();
+</script>
 </body>
 </html>
