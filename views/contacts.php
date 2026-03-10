@@ -169,9 +169,9 @@ $groupsCount = (int) $pdo->query('SELECT COUNT(*) FROM contact_groups')->fetchCo
                 <?php endif; ?>
                 <div class="flex gap-2">
                     <a href="<?= url('contact-edit', ['id' => $c['id']]) ?>" class="flex-1 text-center px-3 py-2 text-xs text-[#02396E] border border-[#02396E] rounded-lg touch-manipulation">Edit</a>
-                    <form method="post" action="<?= url('contacts') ?>" class="flex-1" onsubmit="return confirm('Remove this contact?');">
+                    <form method="post" action="<?= url('contacts') ?>" class="flex-1 delete-form" data-contact-name="<?= h($c['email']) ?>">
                         <input type="hidden" name="action" value="contact-delete"><input type="hidden" name="id" value="<?= (int)$c['id'] ?>">
-                        <button type="submit" class="w-full px-3 py-2 text-xs text-red-600 border border-red-600 rounded-lg touch-manipulation">Delete</button>
+                        <button type="button" class="delete-btn w-full px-3 py-2 text-xs text-red-600 border border-red-600 rounded-lg touch-manipulation">Delete</button>
                     </form>
                 </div>
             </div>
@@ -215,10 +215,10 @@ $groupsCount = (int) $pdo->query('SELECT COUNT(*) FROM contact_groups')->fetchCo
                                 <a href="<?= url('contact-edit', ['id' => $c['id']]) ?>" class="p-2 text-slate-400 hover:text-[#02396E] hover:bg-blue-50 rounded-lg transition-colors" title="Edit">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                                 </a>
-                                <form method="post" action="<?= url('contacts') ?>" class="inline" onsubmit="return confirm('Remove this contact?');">
+                                <form method="post" action="<?= url('contacts') ?>" class="inline delete-form" data-contact-name="<?= h($c['email']) ?>">
                                     <input type="hidden" name="action" value="contact-delete">
                                     <input type="hidden" name="id" value="<?= (int)$c['id'] ?>">
-                                    <button type="submit" class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
+                                    <button type="button" class="delete-btn p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                     </button>
                                 </form>
@@ -292,4 +292,91 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+</script>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-[1px] flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 transform transition-all">
+        <div class="p-6">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                    <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-slate-900">Delete Contact</h3>
+                    <p class="text-sm text-slate-500">This action cannot be undone</p>
+                </div>
+            </div>
+            <p class="text-slate-700 mb-6">Are you sure you want to delete <span id="contactName" class="font-semibold text-slate-900"></span>?</p>
+            <div class="flex gap-3">
+                <button type="button" id="cancelDelete" class="flex-1 px-4 py-2 bg-white text-slate-600 font-medium rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors">Cancel</button>
+                <button type="button" id="confirmDelete" class="flex-1 px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Initialize modal functionality immediately
+(function() {
+    const deleteModal = document.getElementById('deleteModal');
+    const contactNameSpan = document.getElementById('contactName');
+    const cancelDeleteBtn = document.getElementById('cancelDelete');
+    const confirmDeleteBtn = document.getElementById('confirmDelete');
+    let currentForm = null;
+
+    // Handle delete button clicks - use event delegation for better performance
+    document.addEventListener('click', function(e) {
+        const deleteBtn = e.target.closest('.delete-btn');
+        if (deleteBtn) {
+            e.preventDefault();
+            const form = deleteBtn.closest('.delete-form');
+            const contactName = form.dataset.contactName;
+            
+            currentForm = form;
+            contactNameSpan.textContent = contactName;
+            deleteModal.classList.remove('hidden');
+            deleteModal.classList.add('flex');
+            return false;
+        }
+    });
+
+    // Handle cancel button
+    if (cancelDeleteBtn) {
+        cancelDeleteBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            deleteModal.classList.add('hidden');
+            deleteModal.classList.remove('flex');
+            currentForm = null;
+            return false;
+        });
+    }
+
+    // Handle confirm delete
+    if (confirmDeleteBtn) {
+        confirmDeleteBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (currentForm) {
+                currentForm.submit();
+            }
+            return false;
+        });
+    }
+
+    // Close modal on escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && !deleteModal.classList.contains('hidden')) {
+            cancelDeleteBtn.click();
+        }
+    });
+
+    // Close modal on backdrop click
+    deleteModal.addEventListener('click', function(e) {
+        if (e.target === deleteModal) {
+            cancelDeleteBtn.click();
+        }
+    });
+})();
 </script>
