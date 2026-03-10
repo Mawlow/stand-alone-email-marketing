@@ -86,7 +86,9 @@ document.addEventListener('DOMContentLoaded', () => {
 <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
         <div class="bg-white rounded-xl shadow-md border-2 border-blue-200 p-4 md:p-6 flex items-center gap-6 hover:bg-slate-50 transition-colors">
-            <img src="public/images/sender-icon.png" alt="" class="w-20 h-20 opacity-100">
+            <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-[#02396E] shrink-0">
+                <div class="w-8 h-8 bg-current" style="mask: url('public/images/sender-icon.png') no-repeat center; -webkit-mask: url('public/images/sender-icon.png') no-repeat center; mask-size: contain; -webkit-mask-size: contain;"></div>
+            </div>
             <div class="flex-1 flex justify-between items-end">
                 <div>
                     <p class="text-lg font-bold text-black uppercase tracking-wide mb-1">Sender Accounts</p>
@@ -99,12 +101,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <div class="text-right">
                     <p class="text-4xl font-bold text-slate-900 leading-none"><?= $activeSendersCount ?></p>
-                    <p class="text-[10px] font-bold text-slate-500 uppercase mt-1">active</p>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase mt-1">Total</p>
                 </div>
             </div>
         </div>
         <div class="bg-white rounded-xl shadow-md border-2 border-blue-200 p-4 md:p-6 flex items-center gap-6 hover:bg-slate-50 transition-colors">
-            <img src="public/images/list.png" alt="" class="w-20 h-20 opacity-100">
+            <div class="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center text-[#ff8904] shrink-0">
+                <div class="w-8 h-8 bg-current" style="mask: url('public/images/marketlist.png') no-repeat center; -webkit-mask: url('public/images/marketlist.png') no-repeat center; mask-size: contain; -webkit-mask-size: contain;"></div>
+            </div>
             <div class="flex-1 flex justify-between items-end">
                 <div>
                     <p class="text-lg font-bold text-black uppercase tracking-wide mb-1">Marketing list</p>
