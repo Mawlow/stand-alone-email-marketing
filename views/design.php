@@ -71,17 +71,18 @@ $designFooterMode = $designRow && in_array($designRow['footer_mode'] ?? '', ['lo
 </style>
 
 <!-- Banner (Desktop) -->
-<div class="design-banner bg-[#02396E] py-6 md:py-8 text-white shadow-lg relative overflow-hidden hidden lg:block">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div class="design-banner bg-[#141d2e] py-6 md:py-8 text-white shadow-lg relative overflow-hidden hidden lg:block">
+    <div class="px-8 sm:px-24 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div class="relative z-10">
             <h1 class="text-[2.5rem] font-bold leading-tight">Design</h1>
             <p class="text-blue-100/80 mt-1 text-sm font-medium">Customize email templates</p>
         </div>
     </div>
+    <div class="absolute top-0 right-0 -mt-4 -mr-4 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
 </div>
 
 <!-- Mobile Header -->
-<div class="lg:hidden bg-[#02396E] px-4 py-4 text-white">
+<div class="lg:hidden bg-[#141d2e] px-4 py-4 text-white">
     <h1 class="text-xl font-bold">Design</h1>
     <p class="text-blue-100/80 text-xs">Customize templates</p>
 </div>
@@ -89,7 +90,6 @@ $designFooterMode = $designRow && in_array($designRow['footer_mode'] ?? '', ['lo
 <div class="design-content-wrapper">
     <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">
     <div class="bg-[#02396E] px-4 md:px-6 py-3 border-b border-white/10"><h2 class="text-sm md:text-base font-semibold text-white uppercase">Email design (header &amp; footer)</h2></div>
-    <p class="p-4 text-slate-600 text-sm border-b border-slate-100">Set header and footer using HTML code. Content is centered in the email.</p>
     <form method="post" action="<?= url('design') ?>" enctype="multipart/form-data">
         <input type="hidden" name="action" value="save-design">
         <input type="hidden" name="template_edit_id" value="<?= (int)$editingTemplateId ?>">
@@ -100,28 +100,32 @@ $designFooterMode = $designRow && in_array($designRow['footer_mode'] ?? '', ['lo
         <input type="hidden" name="footer_bg_color" value="<?= h($designFooterBg) ?>">
         <input type="hidden" name="block_text_color" value="<?= h($designTextColor) ?>">
         <input type="hidden" name="body_outline_color" value="<?= h($designBodyOutline) ?>">
-        <div class="p-6 space-y-8">
+        
+        <div class="p-6 space-y-6">
             <?php if ($editingTemplateId > 0): ?>
             <div class="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
                 Editing template <strong><?= h($editingTemplateName) ?></strong>.
             </div>
             <?php endif; ?>
-            <div class="rounded-xl border-2 border-slate-200 bg-slate-50/50 p-5">
-                <label class="block text-sm font-bold text-slate-700 mb-1">Template name</label>
-                <p class="text-slate-500 text-xs mb-2">Give this design a name to show in the Compose &quot;Load template&quot; dropdown. Leave empty to only update the current design.</p>
-                <input type="text" name="template_name" maxlength="255" placeholder="e.g. Newsletter, Welcome email" class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#02396E]" value="<?= h($editingTemplateName) ?>">
-            </div>
-            <!-- Header & Footer (single code block, split by delimiter) -->
-            <div class="rounded-xl border-2 border-slate-200 bg-slate-50/50 p-5">
-                <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wide mb-3">Header &amp; Footer</h3>
-                <label class="block text-sm font-bold text-slate-700 mb-1">Header &amp; Footer (HTML code)</label>
-                <p class="text-slate-500 text-xs mb-2">Paste your HTML in one block. To use different content for header and footer, put <code class="bg-slate-100 px-1 rounded">&lt;!-- FOOTER --&gt;</code> on its own line: everything above = header, everything below = footer. If you don’t use it, the same code is used for both. Use email-safe HTML with inline styles.</p>
-                <textarea name="header_footer_html" rows="14" class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-mono focus:ring-2 focus:ring-[#02396E]" placeholder="Header HTML here...&#10;&#10;&lt;!-- FOOTER --&gt;&#10;&#10;Footer HTML here..."><?= h($designHeaderFooterCombined) ?></textarea>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">Template name</label>
+                    <p class="text-slate-500 text-xs mb-2">Give this design a name to show in the Compose "Load template" dropdown. Leave empty to only update current design.</p>
+                    <input type="text" name="template_name" maxlength="255" placeholder="e.g. Newsletter, Welcome email" class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#02396E]" value="<?= h($editingTemplateName) ?>">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">Header &amp; Footer (HTML code) <span class="text-red-600">*</span></label>
+                    <p class="text-slate-500 text-xs mb-2">Paste your HTML in one block. To use different content for header and footer, put <code class="bg-slate-100 px-1 rounded">&lt;!-- FOOTER --&gt;</code> on its own line.</p>
+                    <textarea name="header_footer_html" rows="16" class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-mono focus:ring-2 focus:ring-[#02396E]" placeholder="Hello there! We are excited to share our latest updates..."><?= h($designHeaderFooterCombined) ?></textarea>
+                </div>
             </div>
         </div>
-        <div class="bg-slate-50 px-4 md:px-6 py-3 flex flex-col sm:flex-row gap-3">
-            <button type="submit" class="px-6 py-3 bg-[#02396E] text-white font-bold rounded-xl hover:bg-[#034a8c] touch-manipulation w-full sm:w-auto">Save design</button>
-            <a href="<?= url('compose') ?>" class="px-6 py-3 bg-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-300 text-center touch-manipulation w-full sm:w-auto">Compose</a>
+
+        <div class="bg-slate-50 px-4 md:px-6 py-3 flex gap-3">
+            <button type="submit" class="inline-flex items-center px-6 py-2.5 bg-[#ff8904] text-white text-sm font-bold rounded-xl hover:bg-[#f54a00] transition-colors">Save design</button>
+            <a href="<?= url('compose') ?>" class="inline-flex items-center px-6 py-2.5 bg-slate-200 text-slate-700 text-sm font-bold rounded-xl hover:bg-slate-300 transition-colors">Compose</a>
         </div>
     </form>
 </div>

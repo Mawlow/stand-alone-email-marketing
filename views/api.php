@@ -52,17 +52,18 @@ $apiBaseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https'
 </style>
 
 <!-- Banner (Desktop) -->
-<div class="api-banner bg-[#02396E] py-6 md:py-8 text-white shadow-lg relative overflow-hidden hidden lg:block">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div class="api-banner bg-[#141d2e] py-6 md:py-8 text-white shadow-lg relative overflow-hidden hidden lg:block">
+    <div class="px-8 sm:px-24 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div class="relative z-10">
             <h1 class="text-[2.5rem] font-bold leading-tight">API</h1>
             <p class="text-blue-100/80 mt-1 text-sm font-medium">Integrate with external systems</p>
         </div>
     </div>
+    <div class="absolute top-0 right-0 -mt-4 -mr-4 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
 </div>
 
 <!-- Mobile Header -->
-<div class="lg:hidden bg-[#02396E] px-4 py-4 text-white">
+<div class="lg:hidden bg-[#141d2e] px-4 py-4 text-white pb-6">
     <h1 class="text-xl font-bold">API</h1>
     <p class="text-blue-100/80 text-xs">Integrate systems</p>
 </div>
@@ -76,7 +77,7 @@ $apiBaseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https'
         <p class="font-bold text-emerald-800 mb-1">API key created (copy it now — it won’t be shown again):</p>
         <div class="flex flex-wrap items-center gap-2">
             <code id="new-api-key" class="block flex-1 min-w-0 p-3 bg-white border border-emerald-300 rounded-lg text-sm break-all"><?= h($newKey) ?></code>
-            <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('new-api-key').textContent); this.textContent='Copied!';" class="px-4 py-2 bg-[#02396E] text-white rounded-lg font-medium text-sm">Copy</button>
+            <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('new-api-key').textContent); this.textContent='Copied!';" class="inline-flex items-center px-4 py-2 bg-slate-200 text-slate-700 rounded-lg font-bold text-sm hover:bg-slate-300 transition-colors">Copy</button>
         </div>
         <p class="text-emerald-700 text-xs mt-2">Use in requests: <code>X-API-Key: &lt;key&gt;</code> or <code>Authorization: Bearer &lt;key&gt;</code></p>
     </div>
@@ -89,7 +90,7 @@ $apiBaseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https'
                 <label class="block text-sm font-bold text-slate-700 mb-1">Name (e.g. website or company)</label>
                 <input type="text" name="api_key_name" required maxlength="255" placeholder="e.g. Acme Corp Website" class="rounded-xl border border-slate-200 px-4 py-2.5 focus:ring-2 focus:ring-[#02396E] w-64">
             </div>
-            <button type="submit" class="px-4 py-2.5 bg-[#02396E] text-white font-bold rounded-xl hover:bg-[#034a8c]">Create key</button>
+            <button type="submit" class="inline-flex items-center px-6 py-2.5 bg-[#ff8904] text-white text-sm font-bold rounded-xl hover:bg-[#f54a00] transition-colors">Create key</button>
         </form>
     </div>
     <div class="border-t border-slate-200 p-6">
