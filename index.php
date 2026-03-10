@@ -182,7 +182,13 @@ if (currentPage() === 'logout') {
 }
 
 function navClass(string $page): string {
-    return currentPage() === $page
+    $currentPage = currentPage();
+    // Handle related pages - contact-edit and contacts-import should highlight Contacts, sender-edit should highlight Senders
+    if (($page === 'contacts' && ($currentPage === 'contacts' || $currentPage === 'contact-edit' || $currentPage === 'contacts-import')) ||
+        ($page === 'senders' && ($currentPage === 'senders' || $currentPage === 'sender-edit'))) {
+        return 'bg-[#f54a00] text-white';
+    }
+    return $currentPage === $page
         ? 'bg-[#f54a00] text-white'
         : 'text-slate-300 hover:bg-white/10 hover:text-white';
 }
