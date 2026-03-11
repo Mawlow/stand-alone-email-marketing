@@ -77,11 +77,8 @@ $designFooterMode = $designRow && in_array($designRow['footer_mode'] ?? '', ['lo
         <!-- Header -->
         <div class="bg-[#02396E] px-4 md:px-8 py-4 md:py-6 border-b border-white/10 flex flex-col sm:flex-row justify-between items-center gap-3">
             <h2 class="text-lg md:text-2xl font-bold text-white">Email Design</h2>
-            <div class="flex gap-2 w-full sm:w-auto">
-                <a href="<?= url('compose') ?>" class="flex-1 sm:flex-none inline-flex items-center px-4 py-2 bg-white/10 text-white text-sm font-bold rounded-xl hover:bg-white/20 transition-colors justify-center border border-white/20">Go to Compose</a>
-                <button type="submit" form="design-form" class="flex-1 sm:flex-none inline-flex items-center px-6 py-2 bg-[#ff8904] text-white text-sm font-bold rounded-xl hover:bg-[#f54a00] transition-colors justify-center shadow-lg">Save Design</button>
-            </div>
         </div>
+
 
         <form method="post" action="<?= url('design') ?>" enctype="multipart/form-data" id="design-form" onsubmit="return validateDesignForm()">
             <input type="hidden" name="action" value="save-design">
@@ -104,13 +101,14 @@ $designFooterMode = $designRow && in_array($designRow['footer_mode'] ?? '', ['lo
 
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-1">Template Label <span class="text-red-600 font-black">*</span></label>
+                        <label class="block text-lg font-bold text-slate-800 mb-1">Template Label <span class="text-red-600 font-black">*</span></label>
                         <input type="text" name="template_name" id="template_name" maxlength="255" placeholder="e.g. Monthly Newsletter" class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-[#02396E] outline-none transition-all" value="<?= h($editingTemplateName) ?>">
                         <p id="template-name-error" class="hidden text-red-600 text-[10px] font-black uppercase mt-1 tracking-widest">Template name is required.</p>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-1">HTML Architecture <span class="text-red-600 font-black">*</span></label>
+                        <label class="block text-lg font-bold text-slate-800 mb-1">HTML Architecture <span class="text-red-600 font-black">*</span></label>
+
                         <p class="text-slate-500 text-[10px] mb-2 font-medium uppercase tracking-tighter">Use <code class="bg-slate-100 px-1.5 py-0.5 rounded font-bold text-[#02396E]">&lt;!-- FOOTER --&gt;</code> to separate blocks.</p>
                         <textarea name="header_footer_html" rows="15" class="w-full rounded-xl border border-slate-200 px-4 py-4 font-mono text-xs text-slate-800 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#02396E] outline-none transition-all" placeholder="&lt;!-- Your HTML Here --&gt;"><?= h($designHeaderFooterCombined) ?></textarea>
                     </div>
@@ -118,9 +116,10 @@ $designFooterMode = $designRow && in_array($designRow['footer_mode'] ?? '', ['lo
             </div>
 
             <!-- Redundant "Deploy Design" button removed -->
-            <div class="bg-slate-50 px-4 md:px-6 py-3 flex items-center justify-between border-t border-slate-100">
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter italic">* Mandatory fields</p>
-                <div class="text-[10px] font-bold text-slate-400 uppercase">System ID: <?= $editingTemplateId ?: 'New' ?></div>
+            <!-- Bottom Action Bar -->
+            <div class="bg-slate-50 px-4 md:px-6 py-4 flex items-center justify-start gap-3 border-t border-slate-100">
+                <button type="submit" class="px-10 py-3 bg-[#ff8904] text-white font-black rounded-xl hover:bg-[#f54a00] transition-all shadow-lg uppercase tracking-widest text-sm">Save Design</button>
+                <a href="<?= url('compose') ?>" class="px-6 py-3 bg-slate-200 text-slate-700 text-sm font-bold rounded-xl hover:bg-slate-300 transition-colors">Go to Compose</a>
             </div>
         </form>
     </div>

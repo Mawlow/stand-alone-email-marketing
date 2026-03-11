@@ -876,12 +876,14 @@ $contactsCount = (int) $pdo->query('SELECT COUNT(*) FROM marketing_contacts')->f
                 <span>Logs</span>
             </a>
         </nav>
-        <div class="mt-auto p-3 border-t border-slate-700/50">
-            <button type="button" class="logout-btn flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-red-500 hover:bg-red-500/10 hover:text-red-600 transition-colors w-full text-left">
+        <!-- START: Isolated Logout Section -->
+        <div id="logout-section-isolated" class="mt-auto p-3 border border-black bg-[#132440]">
+            <button type="button" class="logout-btn-isolated logout-btn flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-black text-white hover:bg-[#C3110C] transition-colors w-full text-left uppercase tracking-widest">
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
                 <span>Logout</span>
             </button>
         </div>
+        <!-- END: Isolated Logout Section -->
     </aside>
     <?php endif; ?>
 
@@ -961,8 +963,8 @@ $contactsCount = (int) $pdo->query('SELECT COUNT(*) FROM marketing_contacts')->f
             </div>
             <p class="text-slate-700 mb-6">Are you sure you want to logout from your account?</p>
             <div class="flex gap-3">
-                <button type="button" id="cancelLogout" class="flex-1 px-4 py-2 bg-white text-slate-600 font-medium rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors">Cancel</button>
-                <a href="<?= url('logout') ?>" id="confirmLogout" class="flex-1 px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors text-center">Logout</a>
+                <button type="button" id="cancelLogout" class="flex-1 px-4 py-2 bg-white text-slate-600 font-bold rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors">Cancel</button>
+                <a href="<?= url('logout') ?>" id="confirmLogout" class="flex-1 px-4 py-2 bg-[#8B0000] text-white font-black rounded-lg hover:bg-red-500 transition-colors text-center uppercase tracking-widest text-sm shadow-lg">Logout</a>
             </div>
         </div>
     </div>

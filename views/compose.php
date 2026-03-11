@@ -60,12 +60,11 @@ $composeFooterMode = 'text_only';
 
 <div class="compose-content-wrapper mt-6 lg:mt-0">
     <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">
-        <!-- Dashboard-Style Section Header (Preserved) -->
+        <!-- Dashboard-Style Section Header -->
         <div class="bg-[#02396E] px-4 md:px-8 py-4 md:py-6 border-b border-white/10 flex flex-col sm:flex-row justify-between items-center gap-3">
             <h2 class="text-lg md:text-2xl font-bold text-white">Compose Campaign</h2>
             <div class="flex flex-wrap gap-2 w-full sm:w-auto">
-                <button type="button" id="load-template-btn" class="flex-1 sm:flex-none inline-flex items-center px-4 py-2 bg-white/10 text-white text-sm font-bold rounded-xl hover:bg-white/20 transition-colors justify-center border border-white/20">Load Template</button>
-                <button type="submit" form="compose-form" class="flex-1 sm:flex-none inline-flex items-center px-6 py-2 bg-[#ff8904] text-white text-sm font-bold rounded-xl hover:bg-[#f54a00] transition-colors justify-center shadow-lg">Send Campaign</button>
+                <button type="button" id="load-template-btn" class="flex-1 sm:flex-none inline-flex items-center px-4 py-2 bg-[#ff8904] text-white text-sm font-bold rounded-xl hover:bg-[#f54a00] transition-colors justify-center shadow-lg">Load Template</button>
             </div>
         </div>
 
@@ -82,24 +81,24 @@ $composeFooterMode = 'text_only';
             <div class="p-6 md:p-8 space-y-6">
                 <!-- Subject -->
                 <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-1">Campaign Subject <span class="text-red-600">*</span></label>
+                    <label class="block text-lg font-bold text-slate-800 mb-1">Campaign Subject <span class="text-red-600">*</span></label>
                     <input type="text" name="subject" id="compose-subject" required maxlength="255" class="w-full rounded-xl border border-slate-200 px-4 py-3 text-slate-900 font-bold focus:ring-2 focus:ring-[#02396E] outline-none transition-all" placeholder="Email subject" value="<?= h($_POST['subject'] ?? '') ?>">
                 </div>
 
                 <!-- Body -->
                 <div>
-                    <div class="flex items-center justify-between gap-2 mb-2">
-                        <label class="block text-sm font-bold text-slate-700">Message Content <span class="text-red-600">*</span></label>
-                        <div class="flex rounded-lg border border-slate-200 p-0.5 bg-slate-50">
+                    <div class="flex items-center justify-between gap-2">
+                        <label class="block text-lg font-bold text-slate-800">Message Content <span class="text-red-600">*</span></label>
+                        <div class="flex gap-1 rounded-lg border border-slate-200 p-0.5 bg-slate-50 -mt-1.5">
                             <button type="button" id="body-mode-visual" class="px-3 py-1.5 text-xs font-bold rounded-md bg-[#02396E] text-white">Visual</button>
                             <button type="button" id="body-mode-html" class="px-3 py-1.5 text-xs font-bold rounded-md text-slate-600 hover:bg-slate-200">HTML</button>
                         </div>
                     </div>
                     <div id="compose-body-wysiwyg-wrap" class="rounded-2xl border-2 border-slate-100 overflow-hidden bg-white shadow-sm">
-                        <div class="bg-slate-50 px-4 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">Header Preview</div>
+                        <div class="bg-slate-50 px-6 py-3 text-[11px] font-black text-slate-500 uppercase tracking-[0.2em] border-b border-slate-100">Header Preview</div>
                         <div id="compose-header-preview" class="min-h-[40px]"></div>
                         
-                        <div class="bg-slate-50 px-4 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest border-y border-slate-100">Body Editor</div>
+                        <div class="bg-slate-50 px-6 py-3 text-[11px] font-black text-slate-500 uppercase tracking-[0.2em] border-y border-slate-100">Body Editor</div>
                         <div class="max-w-[600px] w-full mx-auto">
                             <div id="compose-body-visual-wrap">
                                 <div id="compose-body-outline-wrap" class="p-4">
@@ -107,11 +106,11 @@ $composeFooterMode = 'text_only';
                                 </div>
                             </div>
                             <div id="compose-body-html-wrap" class="hidden p-4 bg-white">
-                                <textarea name="body" id="compose-body" rows="15" class="w-full rounded-xl border border-slate-200 px-4 py-3 font-mono text-sm focus:ring-2 focus:ring-[#02396E] outline-none" placeholder="HTML content here..."><?= h($_POST['body'] ?? '') ?></textarea>
+                                <textarea name="body" id="compose-body" rows="15" class="w-full rounded-xl border border-slate-200 px-4 py-3 font-mono text-sm focus:ring-2 focus:ring-[#02396E] outline-none" placeholder="Compose your marketing masterpiece..."><?= h($_POST['body'] ?? '') ?></textarea>
                             </div>
                         </div>
 
-                        <div class="bg-slate-50 px-4 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest border-t border-slate-100">Footer Preview</div>
+                        <div class="bg-slate-50 px-6 py-3 text-[11px] font-black text-slate-500 uppercase tracking-[0.2em] border-t border-slate-100">Footer Preview</div>
                         <div id="compose-footer-preview" class="min-h-[40px]"></div>
                     </div>
                 </div>
@@ -119,7 +118,7 @@ $composeFooterMode = 'text_only';
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 pt-4">
                     <!-- Recipients -->
                     <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-3">Recipients</label>
+                        <label class="block text-lg font-bold text-slate-800 mb-3">Recipients</label>
                         <div class="space-y-3">
                             <label class="flex items-center gap-3 p-4 rounded-xl border-2 border-slate-100 hover:border-[#02396E] hover:bg-blue-50/30 cursor-pointer transition-all">
                                 <input type="radio" name="recipient_filter" value="all" checked class="w-5 h-5 text-[#02396E] border-slate-300 focus:ring-[#02396E]">
@@ -150,7 +149,7 @@ $composeFooterMode = 'text_only';
                     <!-- Sending Configuration -->
                     <div class="space-y-6">
                         <div>
-                            <label class="block text-sm font-bold text-slate-700 mb-2" for="compose-sender">Select Sender Identity</label>
+                            <label class="block text-lg font-bold text-slate-800 mb-2" for="compose-sender">Select Sender Identity</label>
                             <select id="compose-sender" name="compose_sender" class="w-full rounded-xl border-2 border-slate-100 px-4 py-3 text-slate-900 font-bold focus:ring-2 focus:ring-[#02396E] outline-none transition-all bg-white">
                                 <option value="all">All Active Senders (Recommended: Rotating)</option>
                                 <?php foreach ($composeSenders as $s): ?>
@@ -167,9 +166,9 @@ $composeFooterMode = 'text_only';
             </div>
             
             <!-- Bottom Action Bar -->
-            <div class="bg-slate-50 px-6 py-4 flex items-center justify-between border-t border-slate-100">
-                <a href="<?= url('index') ?>" class="text-sm font-bold text-slate-500 hover:text-slate-800 transition-colors">Cancel & Discard</a>
-                <button type="submit" class="px-8 py-3 bg-[#ff8904] text-white font-black rounded-xl hover:bg-[#f54a00] transition-all shadow-lg uppercase tracking-widest text-sm">Launch Campaign</button>
+            <div class="bg-slate-50 px-6 py-4 flex items-center justify-start gap-3 border-t border-slate-100">
+                <button type="submit" class="px-10 py-3 bg-[#ff8904] text-white font-black rounded-xl hover:bg-[#f54a00] transition-all shadow-lg uppercase tracking-widest text-sm">Send Campaign</button>
+                <a href="<?= url('index') ?>" class="px-6 py-3 bg-slate-200 text-slate-700 text-sm font-bold rounded-xl hover:bg-slate-300 transition-colors">Cancel</a>
             </div>
         </form>
     </div>
