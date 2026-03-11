@@ -877,10 +877,10 @@ $contactsCount = (int) $pdo->query('SELECT COUNT(*) FROM marketing_contacts')->f
             </a>
         </nav>
         <div class="mt-auto p-3 border-t border-slate-700/50">
-            <a href="<?= url('logout') ?>" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-red-500 hover:bg-red-500/10 hover:text-red-600 transition-colors">
+            <button type="button" class="logout-btn flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-red-500 hover:bg-red-500/10 hover:text-red-600 transition-colors w-full text-left">
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
                 <span>Logout</span>
-            </a>
+            </button>
         </div>
     </aside>
     <?php endif; ?>
@@ -940,6 +940,74 @@ $contactsCount = (int) $pdo->query('SELECT COUNT(*) FROM marketing_contacts')->f
     
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') closeMenu();
+    });
+})();
+</script>
+
+<!-- Logout Confirmation Modal -->
+<div id="logoutModal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-[1px] flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 transform transition-all">
+        <div class="p-6">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                    <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-slate-900">Logout</h3>
+                    <p class="text-sm text-slate-500">Confirm your action</p>
+                </div>
+            </div>
+            <p class="text-slate-700 mb-6">Are you sure you want to logout from your account?</p>
+            <div class="flex gap-3">
+                <button type="button" id="cancelLogout" class="flex-1 px-4 py-2 bg-white text-slate-600 font-medium rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors">Cancel</button>
+                <a href="<?= url('logout') ?>" id="confirmLogout" class="flex-1 px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors text-center">Logout</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Initialize logout modal functionality
+(function() {
+    const logoutModal = document.getElementById('logoutModal');
+    const cancelLogoutBtn = document.getElementById('cancelLogout');
+    const confirmLogoutBtn = document.getElementById('confirmLogout');
+
+    // Handle logout button clicks
+    document.addEventListener('click', function(e) {
+        const logoutBtn = e.target.closest('.logout-btn');
+        if (logoutBtn) {
+            e.preventDefault();
+            logoutModal.classList.remove('hidden');
+            logoutModal.classList.add('flex');
+            return false;
+        }
+    });
+
+    // Handle cancel button
+    if (cancelLogoutBtn) {
+        cancelLogoutBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            logoutModal.classList.add('hidden');
+            logoutModal.classList.remove('flex');
+            return false;
+        });
+    }
+
+    // Close modal on escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && !logoutModal.classList.contains('hidden')) {
+            cancelLogoutBtn.click();
+        }
+    });
+
+    // Close modal on backdrop click
+    logoutModal.addEventListener('click', function(e) {
+        if (e.target === logoutModal) {
+            cancelLogoutBtn.click();
+        }
     });
 })();
 </script>
