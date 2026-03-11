@@ -116,16 +116,18 @@ $apiBaseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https'
             </div>
 
             <!-- Create New Key Form -->
-            <div id="api-key-form" class="bg-slate-50 p-4 md:p-6 rounded-2xl border border-slate-200">
-                <h3 class="text-xs font-bold text-slate-700 uppercase tracking-widest mb-4">Request New Access</h3>
-                <form method="post" action="<?= url('api') ?>" class="flex flex-col md:flex-row md:items-end gap-3">
-                    <input type="hidden" name="action" value="api-key-create">
-                    <div class="flex-1">
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Application Name</label>
-                        <input type="text" name="api_key_name" required maxlength="255" placeholder="e.g. My Website Signup" class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-[#02396E] outline-none transition-all bg-white">
-                    </div>
-                    <button type="submit" class="inline-flex items-center px-8 py-2.5 bg-[#ff8904] text-white text-sm font-bold rounded-xl hover:bg-[#f54a00] transition-colors shadow-md">Generate Key</button>
-                </form>
+            <div>
+                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Request New Access</h3>
+                <div id="api-key-form" class="bg-slate-50 p-4 md:p-6 rounded-2xl border border-slate-200 mb-8">
+                    <form method="post" action="<?= url('api') ?>" class="flex flex-col md:flex-row md:items-end gap-3">
+                        <input type="hidden" name="action" value="api-key-create">
+                        <div class="flex-1">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Application Name</label>
+                            <input type="text" name="api_key_name" required maxlength="255" placeholder="e.g. My Website Signup" class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-[#02396E] outline-none transition-all bg-white">
+                        </div>
+                        <button type="submit" class="inline-flex items-center px-8 py-2.5 bg-[#ff8904] text-white text-sm font-bold rounded-xl hover:bg-[#f54a00] transition-colors shadow-md">Generate Key</button>
+                    </form>
+                </div>
             </div>
         </div>
 
