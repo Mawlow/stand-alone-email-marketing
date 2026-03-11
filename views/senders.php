@@ -119,7 +119,7 @@ foreach ($accounts as $a) { if ($a['is_active']) $activeSenders++; }
             <div class="flex-1 flex justify-between items-end">
                 <div>
                     <p class="text-lg font-bold text-black uppercase tracking-wide mb-1">Active Senders</p>
-                    <p class="text-slate-500 text-sm font-medium">Currently enabled for sending.</p>
+                    <p class="text-slate-500 text-sm font-medium">Currently enabled for sending</p>
                 </div>
                 <div class="text-right">
                     <p class="text-4xl font-bold text-slate-900 leading-none"><?= $activeSenders ?></p>
@@ -134,7 +134,7 @@ foreach ($accounts as $a) { if ($a['is_active']) $activeSenders++; }
             <div class="flex-1 flex justify-between items-end">
                 <div>
                     <p class="text-lg font-bold text-black uppercase tracking-wide mb-1">Total Accounts</p>
-                    <p class="text-slate-500 text-sm font-medium">Total SMTP profiles configured.</p>
+                    <p class="text-slate-500 text-sm font-medium">Total SMTP profiles configured</p>
                 </div>
                 <div class="text-right">
                     <p class="text-4xl font-bold text-slate-900 leading-none"><?= $totalSenders ?></p>
@@ -147,7 +147,7 @@ foreach ($accounts as $a) { if ($a['is_active']) $activeSenders++; }
     <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">
         <div class="bg-[#02396E] px-4 md:px-8 py-4 md:py-6 border-b border-white/10 flex flex-col sm:flex-row justify-between items-center gap-3">
             <h2 class="text-lg md:text-2xl font-bold text-white">Senders</h2>
-            <a href="<?= url('sender-edit') ?>" class="w-full sm:w-auto inline-flex items-center justify-center px-3.5 py-1.5 bg-[#ff8904] text-white text-sm font-bold rounded-xl hover:bg-orange-600 transition-colors">+ Add Sender</a>
+            <a href="<?= url('sender-edit') ?>" class="w-full sm:w-auto inline-flex items-center justify-center px-3.5 py-1.5 bg-[#ff8904] text-white text-sm font-bold rounded-xl hover:bg-orange-600 transition-colors">Add Sender</a>
         </div>
         
         <!-- Mobile Card View -->
@@ -172,7 +172,20 @@ foreach ($accounts as $a) { if ($a['is_active']) $activeSenders++; }
             </div>
             <?php endforeach; ?>
             <?php if (empty($accounts)): ?>
-            <div class="p-8 text-center text-slate-500 text-sm">No senders. <a href="<?= url('sender-edit') ?>" class="text-[#ff8904] font-bold hover:underline">Add one</a>.</div>
+            <div class="pt-6 pb-14 px-4 text-center">
+                <div class="flex flex-col items-center justify-center space-y-4">
+                    <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-300">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                    </div>
+                    <div>
+                        <p class="text-xl md:text-2xl font-bold text-slate-400 uppercase tracking-wider">No Senders Found</p>
+                        <p class="text-slate-400 mt-1 text-sm font-medium">Get started by adding your first SMTP account</p>
+                    </div>
+                    <a href="<?= url('sender-edit') ?>" class="inline-flex items-center px-8 py-3 bg-[#ff8904] text-white text-sm font-bold rounded-xl hover:bg-orange-600 transition-all shadow-md hover:shadow-lg">
+                        Add your first one
+                    </a>
+                </div>
+            </div>
             <?php endif; ?>
         </div>
         
@@ -216,7 +229,22 @@ foreach ($accounts as $a) { if ($a['is_active']) $activeSenders++; }
                     </tr>
                     <?php endforeach; ?>
                     <?php if (empty($accounts)): ?>
-                    <tr><td colspan="5" class="px-4 md:px-8 py-12 text-center text-slate-500 font-medium">No senders found. <a href="<?= url('sender-edit') ?>" class="text-[#ff8904] font-bold hover:underline">Add your first one</a>.</td></tr>
+                    <tr>
+                        <td colspan="5" class="px-4 md:px-8 pt-8 pb-20 text-center">
+                            <div class="flex flex-col items-center justify-center space-y-4">
+                                <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-300">
+                                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                </div>
+                                <div>
+                                    <p class="text-xl md:text-2xl font-bold text-slate-400 uppercase tracking-wider">No Senders Found</p>
+                                    <p class="text-slate-400 mt-1 text-sm font-medium">Get started by adding your first SMTP account</p>
+                                </div>
+                                <a href="<?= url('sender-edit') ?>" class="inline-flex items-center px-6 py-2.5 bg-[#ff8904] text-white text-sm font-bold rounded-xl hover:bg-orange-600 transition-all shadow-md hover:shadow-lg">
+                                    Add your first one
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
                     <?php endif; ?>
                 </tbody>
             </table>
