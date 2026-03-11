@@ -63,7 +63,7 @@ $campaigns = $pdo->query('SELECT * FROM email_campaigns ORDER BY id DESC LIMIT 1
 </div>
 
 <!-- Mobile Header -->
-<div class="lg:hidden bg-[#02396E] px-4 py-4 text-white">
+<div class="lg:hidden bg-[#141d2e] px-4 py-4 text-white">
     <div class="flex flex-col gap-3">
         <div class="flex items-center justify-between">
             <h1 class="text-xl font-bold">Email Marketing</h1>
@@ -127,33 +127,31 @@ document.addEventListener('DOMContentLoaded', () => {
 <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
     <!-- Mobile Stats Cards -->
     <div class="lg:hidden grid grid-cols-2 gap-3 mt-4 mb-4">
-        <div class="bg-white rounded-xl shadow-md border-2 border-blue-200 p-4 flex flex-col items-center gap-2">
-            <div class="w-12 h-12 flex items-center justify-center text-[#02396E]">
-                <div class="w-10 h-10 bg-current" style="mask: url('public/images/sender-icon.png') no-repeat center; -webkit-mask: url('public/images/sender-icon.png') no-repeat center; mask-size: contain; -webkit-mask-size: contain;"></div>
+        <a href="<?= url('senders') ?>" class="bg-white rounded-xl shadow border-2 border-blue-200 p-3 flex items-center gap-3 active:bg-slate-50 transition-colors">
+            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-[#02396E] shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
             </div>
-            <div class="text-center">
-                <p class="text-2xl font-bold text-slate-900"><?= $activeSendersCount ?></p>
-                <p class="text-[10px] font-bold text-slate-500 uppercase">active senders</p>
+            <div class="min-w-0 flex-1">
+                <p class="text-[10px] font-bold text-slate-500 uppercase truncate">Senders</p>
+                <p class="text-xl font-bold text-slate-900 leading-none mt-0.5 truncate"><?= $activeSendersCount ?></p>
             </div>
-            <a href="<?= url('senders') ?>" class="text-[#ff8904] text-xs font-medium">View →</a>
-        </div>
-        <div class="bg-white rounded-xl shadow-md border-2 border-blue-200 p-4 flex flex-col items-center gap-2">
-            <div class="w-12 h-12 flex items-center justify-center text-[#02396E]">
-                <div class="w-10 h-10 bg-current" style="mask: url('public/images/list.png') no-repeat center; -webkit-mask: url('public/images/list.png') no-repeat center; mask-size: contain; -webkit-mask-size: contain;"></div>
+        </a>
+        <a href="<?= url('contacts') ?>" class="bg-white rounded-xl shadow border-2 border-blue-200 p-3 flex items-center gap-3 active:bg-slate-50 transition-colors">
+            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-[#02396E] shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
             </div>
-            <div class="text-center">
-                <p class="text-2xl font-bold text-slate-900"><?= $contactsCount ?></p>
-                <p class="text-[10px] font-bold text-slate-500 uppercase">contacts</p>
+            <div class="min-w-0 flex-1">
+                <p class="text-[10px] font-bold text-slate-500 uppercase truncate">Contacts</p>
+                <p class="text-xl font-bold text-slate-900 leading-none mt-0.5 truncate"><?= $contactsCount ?></p>
             </div>
-            <a href="<?= url('contacts') ?>" class="text-[#ff8904] text-xs font-medium">View →</a>
-        </div>
+        </a>
     </div>
 
     <!-- Desktop Stats Cards -->
     <div class="hidden lg:grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
         <div class="bg-white rounded-xl shadow-md border-2 border-blue-200 p-4 md:p-6 flex items-center gap-6 hover:bg-slate-50 transition-colors">
             <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-[#02396E] shrink-0">
-                <div class="w-8 h-8 bg-current" style="mask: url('public/images/sender-icon.png') no-repeat center; -webkit-mask: url('public/images/sender-icon.png') no-repeat center; mask-size: contain; -webkit-mask-size: contain; filter: drop-shadow(1px 0 0 currentColor) drop-shadow(-1px 0 0 currentColor) drop-shadow(0 1px 0 currentColor) drop-shadow(0 -1px 0 currentColor) drop-shadow(0.5px 0.5px 0 currentColor) drop-shadow(-0.5px -0.5px 0 currentColor);"></div>
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
             </div>
             <div class="flex-1 flex justify-between items-end">
                 <div>
@@ -173,7 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         <div class="bg-white rounded-xl shadow-md border-2 border-blue-200 p-4 md:p-6 flex items-center gap-6 hover:bg-slate-50 transition-colors">
             <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-[#02396E] shrink-0">
-                <div class="w-8 h-8 bg-current" style="mask: url('public/images/marketlist.png') no-repeat center; -webkit-mask: url('public/images/marketlist.png') no-repeat center; mask-size: contain; -webkit-mask-size: contain; filter: drop-shadow(1px 0 0 currentColor) drop-shadow(-1px 0 0 currentColor) drop-shadow(0 1px 0 currentColor) drop-shadow(0 -1px 0 currentColor) drop-shadow(0.5px 0.5px 0 currentColor) drop-shadow(-0.5px -0.5px 0 currentColor);"></div>
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
             </div>
             <div class="flex-1 flex justify-between items-end">
                 <div>

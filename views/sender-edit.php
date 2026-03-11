@@ -63,7 +63,7 @@ if ($senderId) {
 </div>
 
 <!-- Mobile Header -->
-<div class="lg:hidden bg-[#02396E] px-4 py-4 text-white">
+<div class="lg:hidden bg-[#141d2e] px-4 py-4 text-white">
     <h1 class="text-xl font-bold"><?= $account ? 'Edit Sender' : 'Add Sender' ?></h1>
     <p class="text-blue-100/80 text-xs"><?= $account ? 'Update SMTP settings' : 'Configure new sender' ?></p>
 </div>

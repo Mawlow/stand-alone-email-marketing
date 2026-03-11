@@ -62,7 +62,7 @@ $groupsCount = (int) $pdo->query('SELECT COUNT(*) FROM contact_groups')->fetchCo
 </div>
 
 <!-- Mobile Header -->
-<div class="lg:hidden bg-[#02396E] px-4 py-4 text-white">
+<div class="lg:hidden bg-[#141d2e] px-4 py-4 text-white">
     <div class="flex flex-col gap-3">
         <div class="flex items-center justify-between">
             <h1 class="text-xl font-bold">Marketing Contacts</h1>
@@ -89,22 +89,22 @@ $groupsCount = (int) $pdo->query('SELECT COUNT(*) FROM contact_groups')->fetchCo
 
     <!-- Mobile Stats Cards -->
     <div class="lg:hidden grid grid-cols-2 gap-3 mt-4 mb-4">
-        <div class="bg-white rounded-xl shadow-md border-2 border-blue-200 p-4 flex flex-col items-center gap-2">
-            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-[#02396E]">
+        <div class="bg-white rounded-xl shadow border-2 border-blue-200 p-3 flex items-center gap-3">
+            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-[#02396E] shrink-0">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
             </div>
-            <div class="text-center">
-                <p class="text-2xl font-bold text-slate-900"><?= $totalContacts ?></p>
-                <p class="text-[10px] font-bold text-slate-500 uppercase">contacts</p>
+            <div class="min-w-0 flex-1">
+                <p class="text-[10px] font-bold text-slate-500 uppercase truncate">Contacts</p>
+                <p class="text-xl font-bold text-slate-900 leading-none mt-0.5 truncate"><?= $totalContacts ?></p>
             </div>
         </div>
-        <div class="bg-white rounded-xl shadow-md border-2 border-blue-200 p-4 flex flex-col items-center gap-2">
-            <div class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-[#ff8904]">
+        <div class="bg-white rounded-xl shadow border-2 border-blue-200 p-3 flex items-center gap-3">
+            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-[#02396E] shrink-0">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
             </div>
-            <div class="text-center">
-                <p class="text-2xl font-bold text-slate-900"><?= $groupsCount ?></p>
-                <p class="text-[10px] font-bold text-slate-500 uppercase">groups</p>
+            <div class="min-w-0 flex-1">
+                <p class="text-[10px] font-bold text-slate-500 uppercase truncate">Groups</p>
+                <p class="text-xl font-bold text-slate-900 leading-none mt-0.5 truncate"><?= $groupsCount ?></p>
             </div>
         </div>
     </div>
@@ -144,12 +144,12 @@ $groupsCount = (int) $pdo->query('SELECT COUNT(*) FROM contact_groups')->fetchCo
     </div>
 
     <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">
-        <div class="bg-[#02396E] px-4 md:px-8 py-6 border-b border-white/10 flex flex-wrap justify-between items-center gap-4">
+        <div class="bg-[#02396E] px-4 md:px-8 py-4 md:py-6 border-b border-white/10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <h2 class="text-xl md:text-2xl font-bold text-white">Contact List</h2>
-            <div class="flex flex-wrap gap-2">
-                <a href="<?= url('contact-edit') ?>" class="inline-flex items-center px-3.5 py-1.5 bg-[#ff8904] text-white text-sm font-bold rounded-xl hover:bg-orange-600 transition-colors">+ Add Contact</a>
-                <a href="<?= url('contacts-import') ?>" class="inline-flex items-center px-3.5 py-1.5 bg-white border-2 border-[#FF7A00] text-[#FF7A00] text-sm font-bold rounded-xl hover:bg-orange-100 transition-colors">Import CSV</a>
-                <a href="<?= url('groups') ?>" class="inline-flex items-center px-3.5 py-1.5 bg-slate-50 border border-[#D1D5DB] text-[#02396E] text-sm font-bold rounded-xl hover:bg-blue-200 transition-colors">Manage Groups</a>
+            <div class="grid grid-cols-2 md:flex md:flex-row gap-2 w-full md:w-auto">
+                <a href="<?= url('contact-edit') ?>" class="col-span-2 md:col-span-1 inline-flex justify-center items-center px-4 py-2.5 md:py-2 bg-[#ff8904] text-white text-sm font-bold rounded-xl hover:bg-orange-600 transition-colors shadow-sm">+ Add Contact</a>
+                <a href="<?= url('contacts-import') ?>" class="inline-flex justify-center items-center px-4 py-2.5 md:py-2 bg-white border-2 border-[#ff8904] text-[#ff8904] text-sm font-bold rounded-xl hover:bg-orange-50 transition-colors shadow-sm">Import CSV</a>
+                <a href="<?= url('groups') ?>" class="inline-flex justify-center items-center px-4 py-2.5 md:py-2 bg-slate-50 border border-slate-300 text-[#02396E] text-sm font-bold rounded-xl hover:bg-blue-100 transition-colors shadow-sm"><span class="hidden md:inline mr-1">Manage</span> Groups</a>
             </div>
         </div>
         
@@ -168,10 +168,10 @@ $groupsCount = (int) $pdo->query('SELECT COUNT(*) FROM contact_groups')->fetchCo
                 <p class="text-xs text-slate-500 mb-3 line-clamp-2"><?= h($c['notes']) ?></p>
                 <?php endif; ?>
                 <div class="flex gap-2">
-                    <a href="<?= url('contact-edit', ['id' => $c['id']]) ?>" class="flex-1 text-center px-3 py-2 text-xs text-[#02396E] border border-[#02396E] rounded-lg touch-manipulation">Edit</a>
+                    <a href="<?= url('contact-edit', ['id' => $c['id']]) ?>" class="flex-1 text-center px-3 py-2 text-xs font-bold text-white bg-[#02396E] hover:bg-[#034a8c] rounded-lg shadow-sm border border-transparent transition-colors touch-manipulation">Edit</a>
                     <form method="post" action="<?= url('contacts') ?>" class="flex-1 delete-form" data-contact-name="<?= h($c['email']) ?>">
                         <input type="hidden" name="action" value="contact-delete"><input type="hidden" name="id" value="<?= (int)$c['id'] ?>">
-                        <button type="button" class="delete-btn w-full px-3 py-2 text-xs text-red-600 border border-red-600 rounded-lg touch-manipulation">Delete</button>
+                        <button type="button" class="delete-btn w-full px-3 py-2 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-sm border border-transparent transition-colors touch-manipulation">Delete</button>
                     </form>
                 </div>
             </div>

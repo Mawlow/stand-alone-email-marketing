@@ -70,7 +70,7 @@ $allGroups = $pdo->query('SELECT id, name FROM contact_groups ORDER BY name')->f
 </div>
 
 <!-- Mobile Header -->
-<div class="lg:hidden bg-[#02396E] px-4 py-4 text-white">
+<div class="lg:hidden bg-[#141d2e] px-4 py-4 text-white">
     <h1 class="text-xl font-bold"><?= $contact ? 'Edit Contact' : 'Add Contact' ?></h1>
     <p class="text-blue-100/80 text-xs"><?= $contact ? 'Update contact details' : 'Add new contact' ?></p>
 </div>
