@@ -182,13 +182,12 @@ if (currentPage() === 'logout') {
 }
 
 function navClass(string $page): string {
-    $currentPage = currentPage();
-    // Handle related pages - contact-edit and contacts-import should highlight Contacts, sender-edit should highlight Senders
-    if (($page === 'contacts' && ($currentPage === 'contacts' || $currentPage === 'contact-edit' || $currentPage === 'contacts-import')) ||
-        ($page === 'senders' && ($currentPage === 'senders' || $currentPage === 'sender-edit'))) {
-        return 'bg-[#f54a00] text-white';
-    }
-    return $currentPage === $page
+    $current = currentPage();
+    if ($page === 'groups' && ($current === 'groups' || $current === 'group-edit')) return 'bg-[#f54a00] text-white';
+    if ($page === 'contacts' && in_array($current, ['contacts', 'contact-edit', 'contacts-import'])) return 'bg-[#f54a00] text-white';
+    if ($page === 'senders' && ($current === 'senders' || $current === 'sender-edit')) return 'bg-[#f54a00] text-white';
+    
+    return $current === $page
         ? 'bg-[#f54a00] text-white'
         : 'text-slate-300 hover:bg-white/10 hover:text-white';
 }
@@ -889,11 +888,13 @@ $contactsCount = (int) $pdo->query('SELECT COUNT(*) FROM marketing_contacts')->f
     <!-- Main content -->
     <main class="flex-1 overflow-auto pt-14 md:pt-0">
         <div class="<?= in_array(currentPage(), $publicPages) ? '' : 'max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 md:py-8' ?> <?= !in_array(currentPage(), $publicPages) ? 'no-horizontal-scroll' : '' ?>">
-            <?php if (!in_array(currentPage(), $publicPages) && !in_array($page, ['index', 'compose', 'design', 'api'])): ?>
-            <div class="mb-4 md:mb-6">
-                <h2 class="text-xl md:text-2xl font-semibold text-slate-900"><?= ucfirst(str_replace('-', ' ', $page)) ?></h2>
-                <p class="text-slate-500 text-xs md:text-sm mt-0.5">Manage your email marketing</p>
-            </div>
+            <?php if (!in_array(currentPage(), $publicPages)): ?>
+                <?php if (!in_array($page, ['api', 'design', 'compose', 'senders', 'contacts', 'group-edit', 'groups', 'logs', 'contact-edit', 'sender-edit', 'contacts-import', 'index'])): ?>
+                <div class="mb-4 md:mb-6">
+                    <h2 class="text-xl md:text-2xl font-semibold text-slate-900"><?= $page === 'index' ? 'Dashboard' : ucfirst(str_replace('-', ' ', $page)) ?></h2>
+                    <p class="text-slate-500 text-xs md:text-sm mt-0.5"><?= $page === 'index' ? 'Overview and recent campaigns' : 'Manage your email marketing' ?></p>
+                </div>
+                <?php endif; ?>
             <?php endif; ?>
 
             <?php if ($flashSuccess): ?>
