@@ -6,3 +6,6 @@ data/uploads/
 
 # Composer
 /vendor/
+
+# Gemini CLI configurations and skills
+.gemini/
