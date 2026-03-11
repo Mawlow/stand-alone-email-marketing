@@ -76,7 +76,7 @@ $groups = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </style>
 
 <!-- Groups Banner -->
-<div class="groups-banner bg-[#141d2e] py-6 md:py-8 text-white shadow-lg relative overflow-hidden">
+<div class="groups-banner bg-[#141d2e] py-6 md:py-8 text-white shadow-lg relative overflow-hidden hidden lg:block">
     <div class="px-8 sm:px-24 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div class="relative z-10">
             <h1 class="text-[2.5rem] font-bold leading-tight">Contact Groups</h1>
@@ -107,26 +107,50 @@ $groups = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <div class="absolute top-0 right-0 -mt-4 -mr-4 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
 </div>
 
+<!-- Mobile Header -->
+<div class="lg:hidden bg-[#141d2e] px-4 pt-4 pb-6 text-white mb-2">
+    <div class="flex flex-col gap-3">
+        <div class="flex items-center justify-between">
+            <h1 class="text-xl font-bold">Contact Groups</h1>
+        </div>
+        <p class="text-blue-100/80 text-xs">Organize your contacts for more targeted campaigns.</p>
+        <form method="get" action="<?= url('groups') ?>" class="relative">
+            <input type="hidden" name="page" value="groups">
+            <input type="text" name="search" id="groupsSearchMobile" placeholder="Search groups..." value="<?= h($searchQuery) ?>" class="w-full bg-white rounded-lg py-2 pl-10 pr-16 text-slate-900 text-sm placeholder-slate-400 focus:outline-none">
+            <div class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </div>
+            <button type="button" id="clearGroupsSearchMobile" class="absolute right-10 top-1/2 -translate-y-1/2 p-0.5 text-slate-400 hover:text-slate-600 <?= empty($searchQuery) ? 'hidden' : '' ?>" title="Clear search">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <button type="submit" class="absolute right-2 top-1/2 -translate-y-1/2 p-1 bg-[#02396E] text-white rounded-full">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
+            </button>
+        </form>
+    </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    const searchInput = document.getElementById('groupsSearch');
-    const clearBtn = document.getElementById('clearGroupsSearch');
-
-    if (searchInput) {
-        searchInput.addEventListener('input', () => {
-            if (searchInput.value.length > 0) {
-                clearBtn.classList.remove('hidden');
+    const setupSearch = (input, clear) => {
+        if (!input || !clear) return;
+        input.addEventListener('input', () => {
+            if (input.value.length > 0) {
+                clear.classList.remove('hidden');
             } else {
-                clearBtn.classList.add('hidden');
+                clear.classList.add('hidden');
             }
         });
 
-        clearBtn.addEventListener('click', () => {
-            searchInput.value = '';
-            clearBtn.classList.add('hidden');
-            searchInput.closest('form').submit();
+        clear.addEventListener('click', () => {
+            input.value = '';
+            clear.classList.add('hidden');
+            input.closest('form').submit();
         });
-    }
+    };
+
+    setupSearch(document.getElementById('groupsSearch'), document.getElementById('clearGroupsSearch'));
+    setupSearch(document.getElementById('groupsSearchMobile'), document.getElementById('clearGroupsSearchMobile'));
 
     // Modal Logic
     const deleteModal = document.getElementById('deleteModal');

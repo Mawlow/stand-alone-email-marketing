@@ -114,7 +114,7 @@ if ($groupId) {
 </style>
 
 <!-- Group Edit Banner -->
-<div class="group-edit-banner bg-[#141d2e] py-6 md:py-8 text-white shadow-lg relative overflow-hidden">
+<div class="group-edit-banner bg-[#141d2e] py-6 md:py-8 text-white shadow-lg relative overflow-hidden hidden lg:block">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div class="mb-4">
             <a href="<?= url('groups') ?>" class="text-[#ff8904] hover:text-orange-600 text-sm font-bold flex items-center gap-1 transition-colors">
@@ -129,6 +129,20 @@ if ($groupId) {
     </div>
     <!-- Decorative element -->
     <div class="absolute top-0 right-0 -mt-4 -mr-4 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
+</div>
+
+<!-- Mobile Header -->
+<div class="lg:hidden bg-[#141d2e] px-4 pt-4 pb-6 text-white mb-2">
+    <div class="flex items-center gap-2 mb-2">
+        <a href="<?= url('groups') ?>" class="text-[#ff8904] hover:text-orange-300 text-sm font-bold flex items-center gap-1 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            Back
+        </a>
+    </div>
+    <div class="flex items-center justify-between">
+        <h1 class="text-xl font-bold"><?= $group ? 'Edit Group' : 'Add New Group' ?></h1>
+    </div>
+    <p class="text-blue-100/80 text-xs mt-1">Define and organize your contact segments.</p>
 </div>
 
 <div id="toastContainer" class="toast-container"></div>
