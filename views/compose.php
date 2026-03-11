@@ -3,7 +3,6 @@ $templateSubject = 'Simplify your hiring process — Start with us';
 $templateBody = '<p style="margin:0 0 16px; font-size:11px; font-weight:700; color:#ff8904;">Hire smarter. Hire faster.</p><h1 style="margin:0 0 20px; font-size:28px; font-weight:800; color:#0f172a;">Simplify your hiring process</h1><p style="margin:0 0 32px; font-size:15px; color:#64748b;">We streamline recruitment — from posting jobs to managing applicants — in one platform.</p><p><a href="#" style="display:inline-block; padding:14px 28px; background:#0f172a; color:#fff!important; text-decoration:none; font-weight:700; border-radius:12px;">Get started for free →</a></p>';
 $composeGroups = $pdo->query('SELECT g.id, g.name, (SELECT COUNT(*) FROM contact_group_members WHERE group_id = g.id) as cnt FROM contact_groups g ORDER BY g.name')->fetchAll(PDO::FETCH_ASSOC);
 $composeSenders = $pdo->query('SELECT id, name, email FROM sender_accounts WHERE is_active=1 ORDER BY name')->fetchAll(PDO::FETCH_ASSOC);
-// Header and footer start empty; user loads them via Load template
 $composeHeader = '';
 $composeFooter = '';
 $composeFooterBg = '#f1f5f9';
@@ -16,20 +15,11 @@ $composeFooterMode = 'text_only';
 ?>
 <style>
     /* Hide the default title area from index.php */
-    main > div > div.mb-4:first-child {
-        display: none;
-    }
-
-    /* Force the parent container to be full width and remove padding */
-    main > div.max-w-6xl {
-        max-width: none !important;
-        padding: 0 !important;
-        margin: 0 !important;
-    }
-
-    /* Style flash messages to stay centered */
+    main > div > div.mb-4:first-child { display: none; }
+    main > div.max-w-6xl { max-width: none !important; padding: 0 !important; margin: 0 !important; }
+    
     main > div.max-w-6xl > div.mb-4 {
-        max-width: 72rem; /* 6xl */
+        max-width: 72rem;
         margin-left: auto;
         margin-right: auto;
         margin-top: 1.5rem;
@@ -39,26 +29,19 @@ $composeFooterMode = 'text_only';
     @media (min-width: 640px) { main > div.max-w-6xl > div.mb-4 { padding-left: 1.5rem; padding-right: 1.5rem; } }
     @media (min-width: 1024px) { main > div.max-w-6xl > div.mb-4 { padding-left: 2rem; padding-right: 2rem; } }
 
-    .compose-banner {
-        margin-bottom: 2rem;
-    }
+    .compose-banner { margin-bottom: 2rem; }
 
-    /* Re-apply content constraints for the cards below the banner */
     .compose-content-wrapper {
-        max-width: 72rem; /* 6xl */
+        max-width: 72rem;
         margin: 0 auto;
         padding: 0 1rem 2rem 1rem;
     }
-    @media (max-width: 1023px) {
-        .compose-content-wrapper {
-            margin-top: 1.5rem;
-        }
-    }
+    @media (max-width: 1023px) { .compose-content-wrapper { margin-top: 1.5rem; } }
     @media (min-width: 640px) { .compose-content-wrapper { padding: 0 1.5rem 2rem 1.5rem; } }
     @media (min-width: 1024px) { .compose-content-wrapper { padding: 0 2rem 2rem 2rem; } }
 </style>
 
-<!-- Banner (Desktop) -->
+<!-- Banner (Desktop) - Restored Dark Design -->
 <div class="compose-banner bg-[#141d2e] py-6 md:py-8 text-white shadow-lg relative overflow-hidden hidden lg:block">
     <div class="px-8 sm:px-24 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div class="relative z-10">
@@ -69,7 +52,7 @@ $composeFooterMode = 'text_only';
     <div class="absolute top-0 right-0 -mt-4 -mr-4 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
 </div>
 
-<!-- Mobile Header -->
+<!-- Mobile Header - Restored Dark Design -->
 <div class="lg:hidden bg-[#141d2e] px-4 py-4 text-white pb-6">
     <h1 class="text-xl font-bold">Compose</h1>
     <p class="text-blue-100/80 text-xs">Create campaigns</p>
@@ -77,95 +60,121 @@ $composeFooterMode = 'text_only';
 
 <div class="compose-content-wrapper mt-6 lg:mt-0">
     <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">
-    <div class="bg-[#02396E] px-4 md:px-6 py-3 border-b border-white/10"><h2 class="text-sm md:text-base font-semibold text-white uppercase">Compose campaign</h2></div>
-    <form method="post" action="/compose" id="compose-form">
-        <input type="hidden" name="action" value="send">
-        <div class="p-6 space-y-4">
-            <div class="flex flex-col md:flex-row md:items-end gap-3">
-                <div class="flex-1 min-w-[200px]">
-                    <label class="block text-sm font-bold text-slate-700 mb-1">Subject <span class="text-red-600">*</span></label>
-                    <input type="text" name="subject" id="compose-subject" required maxlength="255" class="w-full rounded-xl border border-slate-200 px-4 py-2.5 focus:ring-2 focus:ring-[#02396E]" placeholder="Email subject" value="<?= h($_POST['subject'] ?? '') ?>">
-                </div>
-                <div class="relative mb-[5px]" id="load-template-wrap">
-                    <button type="button" id="load-template-btn" class="inline-flex items-center px-6 py-2.5 bg-[#ff8904] text-white text-sm font-bold rounded-xl hover:bg-[#f54a00] transition-colors">Load template</button>
-                    <div id="load-template-dropdown" class="hidden absolute right-0 top-full mt-1 w-56 rounded-xl border border-slate-200 bg-white shadow-lg py-1 z-20">
-                        <div class="px-3 py-2 text-xs font-semibold text-slate-500 uppercase border-b border-slate-100">Saved templates</div>
-                        <div id="load-template-list" class="max-h-64 overflow-y-auto"></div>
-                        <div id="load-template-empty" class="hidden px-4 py-3 text-sm text-slate-500">No templates yet. Save a design with a template name in Design.</div>
-                    </div>
-                </div>
+        <!-- Dashboard-Style Section Header (Preserved) -->
+        <div class="bg-[#02396E] px-4 md:px-8 py-4 md:py-6 border-b border-white/10 flex flex-col sm:flex-row justify-between items-center gap-3">
+            <h2 class="text-lg md:text-2xl font-bold text-white">Compose Campaign</h2>
+            <div class="flex flex-wrap gap-2 w-full sm:w-auto">
+                <button type="button" id="load-template-btn" class="flex-1 sm:flex-none inline-flex items-center px-4 py-2 bg-white/10 text-white text-sm font-bold rounded-xl hover:bg-white/20 transition-colors justify-center border border-white/20">Load Template</button>
+                <button type="submit" form="compose-form" class="flex-1 sm:flex-none inline-flex items-center px-6 py-2 bg-[#ff8904] text-white text-sm font-bold rounded-xl hover:bg-[#f54a00] transition-colors justify-center shadow-lg">Send Campaign</button>
             </div>
-            <div>
-                <div class="flex items-center justify-between gap-2 mb-1">
-                    <label class="block text-sm font-bold text-slate-700">Body <span class="text-red-600">*</span></label>
-                    <div class="flex rounded-lg border border-slate-200 p-0.5 bg-slate-50">
-                        <button type="button" id="body-mode-visual" class="px-3 py-1.5 text-sm font-medium rounded-md bg-[#02396E] text-white">Visual</button>
-                        <button type="button" id="body-mode-html" class="px-3 py-1.5 text-sm font-medium rounded-md text-slate-600 hover:bg-slate-200">HTML</button>
-                    </div>
+        </div>
+
+        <div class="relative" id="load-template-wrap">
+            <div id="load-template-dropdown" class="hidden absolute right-8 top-2 w-64 rounded-xl border border-slate-200 bg-white shadow-2xl py-1 z-50">
+                <div class="px-3 py-2 text-xs font-semibold text-slate-500 uppercase border-b border-slate-100">Saved templates</div>
+                <div id="load-template-list" class="max-h-64 overflow-y-auto"></div>
+                <div id="load-template-empty" class="hidden px-4 py-3 text-sm text-slate-500">No templates yet.</div>
+            </div>
+        </div>
+
+        <form method="post" action="/compose" id="compose-form">
+            <input type="hidden" name="action" value="send">
+            <div class="p-6 md:p-8 space-y-6">
+                <!-- Subject -->
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">Campaign Subject <span class="text-red-600">*</span></label>
+                    <input type="text" name="subject" id="compose-subject" required maxlength="255" class="w-full rounded-xl border border-slate-200 px-4 py-3 text-slate-900 font-bold focus:ring-2 focus:ring-[#02396E] outline-none transition-all" placeholder="Email subject" value="<?= h($_POST['subject'] ?? '') ?>">
                 </div>
-                <div id="compose-body-wysiwyg-wrap" class="rounded-xl border border-slate-200 overflow-hidden bg-white">
-                    <div class="border-b border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-500 uppercase">Header (fixed)</div>
-                    <div id="compose-header-preview" class="min-h-[40px] p-0 m-0"></div>
-                    <div class="border-y border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-500 uppercase">Your content</div>
-                    <div class="max-w-[600px] w-full mx-auto">
-                        <div id="compose-body-visual-wrap">
-                            <div id="compose-body-outline-wrap" class="p-2">
-                                <div id="compose-body-editor" class="min-h-[280px] text-slate-800" style="min-height:280px"></div>
+
+                <!-- Body -->
+                <div>
+                    <div class="flex items-center justify-between gap-2 mb-2">
+                        <label class="block text-sm font-bold text-slate-700">Message Content <span class="text-red-600">*</span></label>
+                        <div class="flex rounded-lg border border-slate-200 p-0.5 bg-slate-50">
+                            <button type="button" id="body-mode-visual" class="px-3 py-1.5 text-xs font-bold rounded-md bg-[#02396E] text-white">Visual</button>
+                            <button type="button" id="body-mode-html" class="px-3 py-1.5 text-xs font-bold rounded-md text-slate-600 hover:bg-slate-200">HTML</button>
+                        </div>
+                    </div>
+                    <div id="compose-body-wysiwyg-wrap" class="rounded-2xl border-2 border-slate-100 overflow-hidden bg-white shadow-sm">
+                        <div class="bg-slate-50 px-4 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">Header Preview</div>
+                        <div id="compose-header-preview" class="min-h-[40px]"></div>
+                        
+                        <div class="bg-slate-50 px-4 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest border-y border-slate-100">Body Editor</div>
+                        <div class="max-w-[600px] w-full mx-auto">
+                            <div id="compose-body-visual-wrap">
+                                <div id="compose-body-outline-wrap" class="p-4">
+                                    <div id="compose-body-editor" class="min-h-[350px] text-slate-800" style="min-height:350px"></div>
+                                </div>
+                            </div>
+                            <div id="compose-body-html-wrap" class="hidden p-4 bg-white">
+                                <textarea name="body" id="compose-body" rows="15" class="w-full rounded-xl border border-slate-200 px-4 py-3 font-mono text-sm focus:ring-2 focus:ring-[#02396E] outline-none" placeholder="HTML content here..."><?= h($_POST['body'] ?? '') ?></textarea>
                             </div>
                         </div>
-                        <div id="compose-body-html-wrap" class="hidden p-2 bg-white">
-                            <textarea name="body" id="compose-body" rows="12" class="w-full rounded-xl border border-slate-200 px-4 py-2.5 font-mono text-sm" aria-required="true" placeholder="Hello there! We are excited to share our latest updates..."><?= h($_POST['body'] ?? '') ?></textarea>
-                        </div>
+
+                        <div class="bg-slate-50 px-4 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest border-t border-slate-100">Footer Preview</div>
+                        <div id="compose-footer-preview" class="min-h-[40px]"></div>
                     </div>
-                    <div class="border-t border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-500 uppercase">Footer (fixed)</div>
-                    <div id="compose-footer-preview" class="min-h-[40px] p-0 m-0"></div>
                 </div>
-            </div>
-            <div>
-                <label class="block text-sm font-bold text-slate-700 mb-2">Recipients</label>
-                <div class="space-y-2">
-                    <label class="flex items-center gap-2 p-3 rounded-xl border-2 border-slate-200 hover:border-[#02396E] hover:bg-blue-50/30 cursor-pointer">
-                        <input type="radio" name="recipient_filter" value="all" checked class="text-[#02396E]">
-                        <span>All contacts — <?= $contactsCount ?> total</span>
-                    </label>
-                    <?php if (!empty($composeGroups)): ?>
-                    <div class="p-3 rounded-xl border-2 border-slate-200">
-                        <label class="flex items-center gap-2 cursor-pointer mb-2">
-                            <input type="radio" name="recipient_filter" value="groups" class="text-[#02396E]">
-                            <span class="font-medium">Select groups:</span>
-                        </label>
-                        <div class="flex flex-wrap gap-3 pl-6">
-                            <?php foreach ($composeGroups as $cg): ?>
-                            <label class="inline-flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" name="recipient_groups[]" value="<?= (int)$cg['id'] ?>" class="rounded border-slate-300 text-[#02396E] recipient-group-cb">
-                                <span class="text-sm"><?= h($cg['name']) ?> (<?= (int)$cg['cnt'] ?>)</span>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 pt-4">
+                    <!-- Recipients -->
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-3">Recipients</label>
+                        <div class="space-y-3">
+                            <label class="flex items-center gap-3 p-4 rounded-xl border-2 border-slate-100 hover:border-[#02396E] hover:bg-blue-50/30 cursor-pointer transition-all">
+                                <input type="radio" name="recipient_filter" value="all" checked class="w-5 h-5 text-[#02396E] border-slate-300 focus:ring-[#02396E]">
+                                <div class="flex flex-col">
+                                    <span class="font-bold text-slate-900 text-sm">All Contacts</span>
+                                    <span class="text-xs text-slate-500"><?= $contactsCount ?> total subscribers</span>
+                                </div>
                             </label>
-                            <?php endforeach; ?>
+                            <?php if (!empty($composeGroups)): ?>
+                            <div class="p-4 rounded-xl border-2 border-slate-100">
+                                <label class="flex items-center gap-3 cursor-pointer mb-4">
+                                    <input type="radio" name="recipient_filter" value="groups" class="w-5 h-5 text-[#02396E] border-slate-300 focus:ring-[#02396E]">
+                                    <span class="font-bold text-slate-900 text-sm">Target Specific Groups:</span>
+                                </label>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pl-8">
+                                    <?php foreach ($composeGroups as $cg): ?>
+                                    <label class="inline-flex items-center gap-2 cursor-pointer group">
+                                        <input type="checkbox" name="recipient_groups[]" value="<?= (int)$cg['id'] ?>" class="rounded border-slate-300 text-[#02396E] focus:ring-[#02396E] recipient-group-cb">
+                                        <span class="text-sm text-slate-600 group-hover:text-slate-900 transition-colors"><?= h($cg['name']) ?> <span class="text-xs text-slate-400">(<?= (int)$cg['cnt'] ?>)</span></span>
+                                    </label>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                            <?php endif; ?>
                         </div>
                     </div>
-                    <?php endif; ?>
+
+                    <!-- Sending Configuration -->
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2" for="compose-sender">Select Sender Identity</label>
+                            <select id="compose-sender" name="compose_sender" class="w-full rounded-xl border-2 border-slate-100 px-4 py-3 text-slate-900 font-bold focus:ring-2 focus:ring-[#02396E] outline-none transition-all bg-white">
+                                <option value="all">All Active Senders (Recommended: Rotating)</option>
+                                <?php foreach ($composeSenders as $s): ?>
+                                <option value="<?= (int)$s['id'] ?>"><?= h($s['name']) ?> (<?= h($s['email']) ?>)</option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-3 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                            <input type="checkbox" name="rotate_senders" id="rotate_senders" value="1" checked class="w-5 h-5 rounded border-slate-300 text-[#02396E] focus:ring-[#02396E]">
+                            <label for="rotate_senders" class="text-sm font-bold text-slate-700 cursor-pointer">Rotate sender accounts automatically</label>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div>
-                <label class="block text-sm font-bold text-slate-700 mb-1" for="compose-sender">Sender (who sends this campaign)</label>
-                <select id="compose-sender" name="compose_sender" class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-slate-800 font-bold focus:ring-2 focus:ring-[#02396E] focus:border-[#02396E]">
-                    <option value="all" class="font-bold">All active senders (rotate)</option>
-                    <?php foreach ($composeSenders as $s): ?>
-                    <option value="<?= (int)$s['id'] ?>" class="font-bold"><?= h($s['name']) ?> (<?= h($s['email']) ?>)</option>
-                    <?php endforeach; ?>
-                </select>
+            
+            <!-- Bottom Action Bar -->
+            <div class="bg-slate-50 px-6 py-4 flex items-center justify-between border-t border-slate-100">
+                <a href="<?= url('index') ?>" class="text-sm font-bold text-slate-500 hover:text-slate-800 transition-colors">Cancel & Discard</a>
+                <button type="submit" class="px-8 py-3 bg-[#ff8904] text-white font-black rounded-xl hover:bg-[#f54a00] transition-all shadow-lg uppercase tracking-widest text-sm">Launch Campaign</button>
             </div>
-            <div class="flex items-center gap-2">
-                <input type="checkbox" name="rotate_senders" id="rotate_senders" value="1" checked class="rounded border-slate-300 text-[#02396E]">
-                <label for="rotate_senders" class="text-sm font-medium text-slate-700">Rotate sender accounts</label>
-            </div>
-        </div>
-        <div class="bg-slate-50 px-4 md:px-6 py-3 flex gap-3">
-            <button type="submit" class="inline-flex items-center px-6 py-2.5 bg-[#ff8904] text-white text-sm font-bold rounded-xl hover:bg-[#f54a00] transition-colors">Send campaign</button>
-            <a href="<?= url('index') ?>" class="inline-flex items-center px-6 py-2.5 bg-slate-200 text-slate-700 text-sm font-bold rounded-xl hover:bg-slate-300 transition-colors">Cancel</a>
-        </div>
-    </form>
+        </form>
+    </div>
 </div>
+
 <script>
     var composeDesignHeader = <?= json_encode($composeHeader) ?>;
     var composeDesignFooter = <?= json_encode($composeFooter) ?>;
@@ -186,10 +195,11 @@ $composeFooterMode = 'text_only';
     var ta = document.getElementById('compose-body');
     var visualBtn = document.getElementById('body-mode-visual');
     var htmlBtn = document.getElementById('body-mode-html');
-    var form = ta.closest('form');
+    var form = document.getElementById('compose-form');
     var headerPreview = document.getElementById('compose-header-preview');
     var footerPreview = document.getElementById('compose-footer-preview');
     var isVisualMode = true;
+
     function escapeHtmlAndBreaks(t) {
         if (t == null || t === '') return '';
         var div = document.createElement('div');
@@ -253,26 +263,14 @@ $composeFooterMode = 'text_only';
         var absText = makeAbsoluteUrls(cleanText, typeof logoBaseUrl !== 'undefined' ? logoBaseUrl : '');
         return buildBlock(logoUrl, absText, bg, textColor, mode);
     }
-    if (headerPreview && typeof composeDesignFooterBg !== 'undefined') {
-        var headerBlock = buildBlockWithAbsoluteUrls(typeof composeHeaderLogo !== 'undefined' ? composeHeaderLogo : '', typeof composeDesignHeader !== 'undefined' ? composeDesignHeader : '', composeDesignFooterBg, composeBlockTextColor, typeof composeHeaderMode !== 'undefined' ? composeHeaderMode : 'text_only');
-        if (headerBlock) headerPreview.innerHTML = headerBlock;
-        else headerPreview.innerHTML = '<span class="text-slate-400 text-sm">Load a template to add header</span>';
-    }
-    if (footerPreview && typeof composeDesignFooterBg !== 'undefined') {
-        var footerBlock = buildBlockWithAbsoluteUrls(typeof composeFooterLogo !== 'undefined' ? composeFooterLogo : '', typeof composeDesignFooter !== 'undefined' ? composeDesignFooter : '', composeDesignFooterBg, composeBlockTextColor, typeof composeFooterMode !== 'undefined' ? composeFooterMode : 'text_only');
-        if (footerBlock) { footerPreview.innerHTML = footerBlock; }
-        else { footerPreview.innerHTML = '<span class="text-slate-400 text-sm">Load a template to add footer</span>'; }
-    }
     function refreshDesignPreviews() {
         var hBlock = buildBlockWithAbsoluteUrls(typeof composeHeaderLogo !== 'undefined' ? composeHeaderLogo : '', typeof composeDesignHeader !== 'undefined' ? composeDesignHeader : '', composeDesignFooterBg, composeBlockTextColor, typeof composeHeaderMode !== 'undefined' ? composeHeaderMode : 'text_only');
         if (headerPreview) {
-            if (hBlock) headerPreview.innerHTML = hBlock;
-            else headerPreview.innerHTML = '<span class="text-slate-400 text-sm">Load a template to add header</span>';
+            headerPreview.innerHTML = hBlock || '<div class="p-4 text-center text-slate-300 text-xs italic">No header template loaded</div>';
         }
         var fBlock = buildBlockWithAbsoluteUrls(typeof composeFooterLogo !== 'undefined' ? composeFooterLogo : '', typeof composeDesignFooter !== 'undefined' ? composeDesignFooter : '', composeDesignFooterBg, composeBlockTextColor, typeof composeFooterMode !== 'undefined' ? composeFooterMode : 'text_only');
         if (footerPreview) {
-            if (fBlock) { footerPreview.innerHTML = fBlock; }
-            else { footerPreview.innerHTML = '<span class="text-slate-400 text-sm">Load a template to add footer</span>'; }
+            footerPreview.innerHTML = fBlock || '<div class="p-4 text-center text-slate-300 text-xs italic">No footer template loaded</div>';
         }
         if (outlineWrap) {
             if (typeof composeBodyOutline !== 'undefined' && composeBodyOutline) {
@@ -285,19 +283,17 @@ $composeFooterMode = 'text_only';
         }
     }
     var outlineWrap = document.getElementById('compose-body-outline-wrap');
-    if (outlineWrap && typeof composeBodyOutline !== 'undefined' && composeBodyOutline) {
-        outlineWrap.style.border = '2px solid ' + composeBodyOutline;
-        outlineWrap.style.borderRadius = '12px';
-    }
+    refreshDesignPreviews();
+
     var loadTemplateBtn = document.getElementById('load-template-btn');
     var loadTemplateDropdown = document.getElementById('load-template-dropdown');
     var loadTemplateList = document.getElementById('load-template-list');
     var loadTemplateEmpty = document.getElementById('load-template-empty');
     var loadedTemplatesList = [];
+
     function composeBasePath() {
         var base = (window.location.pathname.indexOf('/compose') !== -1) ? window.location.pathname.replace(/\/compose.*$/, '') : window.location.pathname.replace(/\/[^/]*$/, '');
-        if (!base) base = '';
-        return base;
+        return base || '';
     }
     function applyLoadedTemplate(d) {
         if (!d) return;
@@ -323,117 +319,65 @@ $composeFooterMode = 'text_only';
         loadedTemplatesList.forEach(function(tpl, idx) {
             var row = document.createElement('div');
             row.className = 'flex items-center gap-0.5 px-2 py-1';
-
             var btn = document.createElement('button');
             btn.type = 'button';
-            btn.className = 'load-template-option flex-1 text-left px-2 py-2 text-sm font-bold uppercase tracking-wide text-slate-700 rounded-lg hover:bg-slate-50';
+            btn.className = 'load-template-option flex-1 text-left px-3 py-2 text-sm font-bold text-slate-700 rounded-lg hover:bg-blue-50 transition-colors';
             btn.textContent = tpl.name;
-            btn.setAttribute('data-idx', String(idx));
             btn.onclick = function() {
                 loadTemplateDropdown.classList.add('hidden');
                 applyLoadedTemplate(loadedTemplatesList[idx]);
             };
-
-            var editBtn = document.createElement('button');
-            editBtn.type = 'button';
-            editBtn.className = 'shrink-0 p-1.5 text-slate-500 rounded-lg hover:bg-slate-100 hover:text-[#02396E]';
-            editBtn.setAttribute('aria-label', 'Edit template ' + tpl.name);
-            editBtn.setAttribute('title', 'Edit template');
-            editBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
-            editBtn.onclick = function(e) {
-                e.stopPropagation();
-                var current = loadedTemplatesList[idx];
-                if (!current || !current.id) return;
-                window.location.href = composeBasePath() + '/design?edit_template=' + encodeURIComponent(String(current.id));
-            };
-
-            var delBtn = document.createElement('button');
-            delBtn.type = 'button';
-            delBtn.className = 'shrink-0 p-1.5 text-red-600 rounded-lg hover:bg-red-50';
-            delBtn.setAttribute('aria-label', 'Delete template ' + tpl.name);
-            delBtn.setAttribute('title', 'Delete template');
-            delBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>';
-            delBtn.onclick = function(e) {
-                e.stopPropagation();
-                var current = loadedTemplatesList[idx];
-                if (!current || !current.id) return;
-                if (!window.confirm('Delete template "' + current.name + '"?')) return;
-                delBtn.disabled = true;
-                fetch(composeBasePath() + '/api/v1/design/templates/delete', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id: current.id })
-                }).then(function(r) {
-                    return r.json().then(function(data) {
-                        if (!r.ok) throw new Error((data && data.error) ? data.error : 'Could not delete template.');
-                        return data;
-                    });
-                }).then(function() {
-                    loadedTemplatesList = loadedTemplatesList.filter(function(item) { return item.id !== current.id; });
-                    renderLoadTemplateList();
-                }).catch(function(err) {
-                    alert(err && err.message ? err.message : 'Could not delete template.');
-                    delBtn.disabled = false;
-                });
-            };
-
             row.appendChild(btn);
-            row.appendChild(editBtn);
-            row.appendChild(delBtn);
             loadTemplateList.appendChild(row);
         });
     }
-    if (loadTemplateBtn && loadTemplateDropdown) {
+    if (loadTemplateBtn) {
         loadTemplateBtn.onclick = function(e) {
             e.stopPropagation();
             loadTemplateDropdown.classList.toggle('hidden');
-            if (!loadTemplateDropdown.classList.contains('hidden') && loadTemplateList) {
-                fetch(composeBasePath() + '/api/v1/design/templates').then(function(r) { return r.json(); }).then(function(data) {
+            if (!loadTemplateDropdown.classList.contains('hidden')) {
+                fetch(composeBasePath() + '/api/v1/design/templates').then(r => r.json()).then(data => {
                     loadedTemplatesList = data.templates || [];
                     renderLoadTemplateList();
-                }).catch(function() { if (loadTemplateList) loadTemplateList.innerHTML = ''; if (loadTemplateEmpty) loadTemplateEmpty.classList.remove('hidden'); });
+                });
             }
         };
-        document.addEventListener('click', function() { loadTemplateDropdown.classList.add('hidden'); });
-        loadTemplateDropdown.addEventListener('click', function(e) { e.stopPropagation(); });
+        document.addEventListener('click', () => loadTemplateDropdown.classList.add('hidden'));
     }
-    if (outlineWrap) { outlineWrap.style.border = ''; outlineWrap.style.borderRadius = ''; outlineWrap.style.background = ''; }
+
     var quill = new Quill('#compose-body-editor', { 
         theme: 'snow', 
-        placeholder: 'Hello there! We are excited to share our latest updates...',
+        placeholder: 'Compose your marketing masterpiece...',
         modules: { toolbar: [[{header:[1,2,3,false]}], ['bold','italic','underline'], [{list:'ordered'},{list:'bullet'}], ['link'], ['clean']] } 
     });
-    window.quill = quill;
-    if (ta.value) {
-        // Only populate visual editor if it's NOT the default example text or an empty paragraph
-        if (ta.value.indexOf("<h1>Hello there!</h1>") === -1 && ta.value !== '<p><br></p>') {
-            quill.root.innerHTML = ta.value;
-        }
+    if (ta.value && ta.value.indexOf("<h1>Hello there!</h1>") === -1 && ta.value !== '<p><br></p>') {
+        quill.root.innerHTML = ta.value;
     }
-    quill.on('text-change', function() { ta.value = quill.root.innerHTML; });
+    quill.on('text-change', () => ta.value = quill.root.innerHTML);
+
     function setVisual(v) {
         isVisualMode = !!v;
         if (v) {
             quill.root.innerHTML = ta.value;
-            if (wrap) wrap.classList.remove('hidden');
-            if (htmlWrap) htmlWrap.classList.add('hidden');
-            visualBtn.className = 'px-3 py-1.5 text-sm font-medium rounded-md bg-[#02396E] text-white';
-            htmlBtn.className = 'px-3 py-1.5 text-sm font-medium rounded-md text-slate-600 hover:bg-slate-200';
+            wrap.classList.remove('hidden');
+            htmlWrap.classList.add('hidden');
+            visualBtn.className = 'px-3 py-1.5 text-xs font-bold rounded-md bg-[#02396E] text-white';
+            htmlBtn.className = 'px-3 py-1.5 text-xs font-bold rounded-md text-slate-600 hover:bg-slate-200';
         } else {
             ta.value = quill.root.innerHTML;
-            if (wrap) wrap.classList.add('hidden');
-            if (htmlWrap) htmlWrap.classList.remove('hidden');
-            htmlBtn.className = 'px-3 py-1.5 text-sm font-medium rounded-md bg-[#02396E] text-white';
-            visualBtn.className = 'px-3 py-1.5 text-sm font-medium rounded-md text-slate-600 hover:bg-slate-200';
+            wrap.classList.add('hidden');
+            htmlWrap.classList.remove('hidden');
+            htmlBtn.className = 'px-3 py-1.5 text-xs font-bold rounded-md bg-[#02396E] text-white';
+            visualBtn.className = 'px-3 py-1.5 text-xs font-bold rounded-md text-slate-600 hover:bg-slate-200';
         }
     }
-    visualBtn.onclick = function() { setVisual(true); };
-    htmlBtn.onclick = function() { ta.value = quill.root.innerHTML; setVisual(false); };
-    setVisual(true);
+    visualBtn.onclick = () => setVisual(true);
+    htmlBtn.onclick = () => setVisual(false);
+
     form.onsubmit = function() {
         var middle = isVisualMode ? quill.root.innerHTML : ta.value;
         if (!middle || middle.replace(/<[^>]*>|&nbsp;/g, '').trim() === '') {
-            alert('Please enter a message in the body.');
+            alert('Please enter a message.');
             return false;
         }
         var headerBlock = buildBlockWithAbsoluteUrls(composeHeaderLogo || '', composeDesignHeader || '', composeDesignFooterBg, composeBlockTextColor, typeof composeHeaderMode !== 'undefined' ? composeHeaderMode : 'text_only');
