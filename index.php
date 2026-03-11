@@ -831,12 +831,12 @@ $contactsCount = (int) $pdo->query('SELECT COUNT(*) FROM marketing_contacts')->f
 
     <!-- Sidebar -->
     <aside id="mobile-sidebar" class="w-64 flex-shrink-0 bg-slate-900 flex flex-col fixed md:sticky top-0 h-screen z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
-        <div class="p-5 border-b border-slate-700/50 flex items-center justify-between">
-            <a href="<?= url('index') ?>" class="block">
-                <h1 class="text-lg font-semibold text-white tracking-tight">Email Marketing</h1>
-                <p class="text-slate-400 text-xs mt-0.5">Campaigns & contacts</p>
+        <div class="p-6 border-b border-slate-700/50 flex flex-col items-center relative">
+            <a href="<?= url('index') ?>" class="flex flex-col items-center text-center">
+                <img src="/public/images/logo1.png" alt="Logo" class="h-24 w-auto mb-4">
+                <h1 class="text-lg font-semibold text-white tracking-tight">FH Email Marketing</h1>
             </a>
-            <button id="mobile-close-btn" type="button" class="md:hidden p-2 -mr-2 text-slate-400 hover:text-white" aria-label="Close menu">
+            <button id="mobile-close-btn" type="button" class="md:hidden absolute top-5 right-5 p-2 text-slate-400 hover:text-white" aria-label="Close menu">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
