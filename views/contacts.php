@@ -212,13 +212,13 @@ $groupsCount = (int) $pdo->query('SELECT COUNT(*) FROM contact_groups')->fetchCo
                         <td class="px-4 md:px-8 py-4 text-slate-500 text-sm max-w-xs truncate"><?= h($c['notes'] ?? '—') ?></td>
                         <td class="px-4 md:px-8 py-4 text-right">
                             <div class="flex justify-end gap-2">
-                                <a href="<?= url('contact-edit', ['id' => $c['id']]) ?>" class="p-2 text-slate-400 hover:text-[#02396E] hover:bg-blue-50 rounded-lg transition-colors" title="Edit">
+                                <a href="<?= url('contact-edit', ['id' => $c['id']]) ?>" class="p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 hover:text-blue-700 rounded-lg transition-all border border-blue-200" title="Edit">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                                 </a>
                                 <form method="post" action="<?= url('contacts') ?>" class="inline delete-form" data-contact-name="<?= h($c['email']) ?>">
                                     <input type="hidden" name="action" value="contact-delete">
                                     <input type="hidden" name="id" value="<?= (int)$c['id'] ?>">
-                                    <button type="button" class="delete-btn p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
+                                    <button type="button" class="delete-btn p-2 text-red-600 bg-red-50 hover:bg-red-100 hover:text-red-700 rounded-lg transition-all border border-red-200" title="Delete">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                     </button>
                                 </form>
