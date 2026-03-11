@@ -833,7 +833,7 @@ $contactsCount = (int) $pdo->query('SELECT COUNT(*) FROM marketing_contacts')->f
     <aside id="mobile-sidebar" class="w-64 flex-shrink-0 bg-slate-900 flex flex-col fixed md:sticky top-0 h-screen z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
         <div class="p-6 border-b border-slate-700/50 flex flex-col items-center relative">
             <a href="<?= url('index') ?>" class="flex flex-col items-center text-center">
-                <img src="/public/images/logo1.png" alt="Logo" class="h-24 w-auto mb-4">
+                <img src="/public/images/logo1.png" alt="Logo" class="h-12 w-auto mb-3">
                 <h1 class="text-lg font-semibold text-white tracking-tight">FH Email Marketing</h1>
             </a>
             <button id="mobile-close-btn" type="button" class="md:hidden absolute top-5 right-5 p-2 text-slate-400 hover:text-white" aria-label="Close menu">
