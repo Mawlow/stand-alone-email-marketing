@@ -79,22 +79,22 @@
     .auth-back-link {
       display: inline-flex;
       align-items: center;
-      gap: 0.4rem;
-      color: #64748b;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      color: #ffffff;
       text-decoration: none;
-      font-size: 0.8125rem;
-      font-weight: 600;
       margin-bottom: 1.25rem;
       transition: all 0.2s ease;
-      padding: 0.4rem 0.6rem;
-      border-radius: 6px;
-      background: #f1f5f9;
+      border-radius: 8px;
+      background: #2b52a5;
+      box-shadow: 0 4px 6px -1px rgba(43, 82, 165, 0.2);
     }
 
     .auth-back-link:hover {
-      color: #2b52a5;
-      background: #e0e7ff;
+      background: #1e3a8a;
       transform: translateX(-3px);
+      box-shadow: 0 10px 15px -3px rgba(43, 82, 165, 0.3);
     }
 
     .auth-card-header {
@@ -106,9 +106,9 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 48px;
-      height: 48px;
-      margin-bottom: 0.75rem;
+      width: 60px;
+      height: 60px;
+      margin-bottom: 0.50rem;
       color: #2b52a5;
       background: rgba(43, 82, 165, 0.1);
       border-radius: 12px;
@@ -125,7 +125,7 @@
     .auth-subtitle {
       color: #64748b;
       margin: 0.25rem 0 0;
-      font-size: 0.875rem;
+      font-size: 1rem;
       font-weight: 500;
     }
 
@@ -145,7 +145,7 @@
     .auth-card form label {
       display: block;
       font-weight: 600;
-      font-size: 0.8125rem;
+      font-size: 0.95rem;
       color: #334155;
     }
 
@@ -197,6 +197,7 @@
       align-items: center;
       justify-content: space-between;
       margin-top: 0.25rem;
+      font-size: 0.8125rem;
     }
 
     .auth-remember {
@@ -204,7 +205,7 @@
       align-items: center;
       gap: 0.5rem;
       margin: 0;
-      font-size: 0.875rem;
+      font-size: 0.8125rem !important;
       color: #64748b;
       cursor: pointer;
       font-weight: 500;
@@ -277,14 +278,13 @@
         <div class="auth-card">
             <a href="<?= url('landing') ?>" class="auth-back-link">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-                Back to Home
             </a>
             
             <div class="auth-card-header">
                 <div class="auth-icon-wrap" aria-hidden="true">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                 </div>
-                <h1 class="auth-title">Welcome Back</h1>
+                <h1 class="auth-title">Login</h1>
                 <p class="auth-subtitle">Sign in to your account</p>
             </div>
 

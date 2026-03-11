@@ -79,22 +79,22 @@
     .auth-back-link {
       display: inline-flex;
       align-items: center;
-      gap: 0.4rem;
-      color: #64748b;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      color: #ffffff;
       text-decoration: none;
-      font-size: 0.8125rem;
-      font-weight: 600;
       margin-bottom: 1.25rem;
       transition: all 0.2s ease;
-      padding: 0.4rem 0.6rem;
-      border-radius: 6px;
-      background: #f1f5f9;
+      border-radius: 8px;
+      background: #2b52a5;
+      box-shadow: 0 4px 6px -1px rgba(43, 82, 165, 0.2);
     }
 
     .auth-back-link:hover {
-      color: #2b52a5;
-      background: #e0e7ff;
+      background: #1e3a8a;
       transform: translateX(-3px);
+      box-shadow: 0 10px 15px -3px rgba(43, 82, 165, 0.3);
     }
 
     .auth-card-header {
@@ -106,9 +106,9 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 48px;
-      height: 48px;
-      margin-bottom: 0.75rem;
+      width: 60px;
+      height: 60px;
+      margin-bottom: 0.50rem;
       color: #2b52a5;
       background: rgba(43, 82, 165, 0.1);
       border-radius: 12px;
@@ -145,7 +145,7 @@
     .auth-card form label {
       display: block;
       font-weight: 600;
-      font-size: 0.8125rem;
+      font-size: 0.95rem;
       color: #334155;
     }
 
@@ -193,8 +193,8 @@
     }
 
     .auth-footer {
-      margin-top: 1.5rem;
-      padding-top: 1rem;
+      margin-top: 1rem;
+      padding-top: 0.3rem;
       border-top: 1px solid #f1f5f9;
       text-align: center;
       color: #64748b;
@@ -238,12 +238,11 @@
         <div class="auth-card auth-card--wide">
             <a href="<?= url('landing') ?>" class="auth-back-link">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-                Back to Home
             </a>
             
             <div class="auth-card-header">
                 <div class="auth-icon-wrap" aria-hidden="true">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
                 </div>
                 <h1 class="auth-title">Create Account</h1>
                 <p class="auth-subtitle">Join our marketing platform today</p>
@@ -281,10 +280,8 @@
                         <input type="password" name="password_confirmation" placeholder="••••••••" required autocomplete="new-password" />
                     </label>
                 </div>
-
                 <button type="submit">Create Account</button>
             </form>
-
             <p class="auth-footer">
                 Already have an account? <a href="<?= url('login') ?>">Sign in</a>
             </p>

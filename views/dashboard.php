@@ -32,7 +32,7 @@ $campaigns = $pdo->query('SELECT * FROM email_campaigns ORDER BY id DESC LIMIT 1
 </style>
 
 <!-- Dashboard Banner (Desktop) -->
-<div class="dashboard-banner bg-[#02396E] py-6 md:py-8 text-white shadow-lg relative overflow-hidden hidden lg:block">
+<div class="dashboard-banner bg-[#141d2e] py-6 md:py-8 text-white shadow-lg relative overflow-hidden hidden lg:block">
     <div class="px-8 sm:px-24 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div class="relative z-10">
             <h1 class="text-[2.5rem] font-bold leading-tight">Email Marketing</h1>
@@ -128,7 +128,9 @@ document.addEventListener('DOMContentLoaded', () => {
     <!-- Mobile Stats Cards -->
     <div class="lg:hidden grid grid-cols-2 gap-3 mt-4 mb-4">
         <div class="bg-white rounded-xl shadow-md border-2 border-blue-200 p-4 flex flex-col items-center gap-2">
-            <img src="public/images/sender-icon.png" alt="" class="w-12 h-12 opacity-100">
+            <div class="w-12 h-12 flex items-center justify-center text-[#02396E]">
+                <div class="w-10 h-10 bg-current" style="mask: url('public/images/sender-icon.png') no-repeat center; -webkit-mask: url('public/images/sender-icon.png') no-repeat center; mask-size: contain; -webkit-mask-size: contain;"></div>
+            </div>
             <div class="text-center">
                 <p class="text-2xl font-bold text-slate-900"><?= $activeSendersCount ?></p>
                 <p class="text-[10px] font-bold text-slate-500 uppercase">active senders</p>
@@ -136,7 +138,9 @@ document.addEventListener('DOMContentLoaded', () => {
             <a href="<?= url('senders') ?>" class="text-[#ff8904] text-xs font-medium">View →</a>
         </div>
         <div class="bg-white rounded-xl shadow-md border-2 border-blue-200 p-4 flex flex-col items-center gap-2">
-            <img src="public/images/list.png" alt="" class="w-12 h-12 opacity-100">
+            <div class="w-12 h-12 flex items-center justify-center text-[#02396E]">
+                <div class="w-10 h-10 bg-current" style="mask: url('public/images/list.png') no-repeat center; -webkit-mask: url('public/images/list.png') no-repeat center; mask-size: contain; -webkit-mask-size: contain;"></div>
+            </div>
             <div class="text-center">
                 <p class="text-2xl font-bold text-slate-900"><?= $contactsCount ?></p>
                 <p class="text-[10px] font-bold text-slate-500 uppercase">contacts</p>
@@ -149,7 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
     <div class="hidden lg:grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
         <div class="bg-white rounded-xl shadow-md border-2 border-blue-200 p-4 md:p-6 flex items-center gap-6 hover:bg-slate-50 transition-colors">
             <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-[#02396E] shrink-0">
-                <div class="w-8 h-8 bg-current" style="mask: url('public/images/sender-icon.png') no-repeat center; -webkit-mask: url('public/images/sender-icon.png') no-repeat center; mask-size: contain; -webkit-mask-size: contain;"></div>
+                <div class="w-8 h-8 bg-current" style="mask: url('public/images/sender-icon.png') no-repeat center; -webkit-mask: url('public/images/sender-icon.png') no-repeat center; mask-size: contain; -webkit-mask-size: contain; filter: drop-shadow(1px 0 0 currentColor) drop-shadow(-1px 0 0 currentColor) drop-shadow(0 1px 0 currentColor) drop-shadow(0 -1px 0 currentColor) drop-shadow(0.5px 0.5px 0 currentColor) drop-shadow(-0.5px -0.5px 0 currentColor);"></div>
             </div>
             <div class="flex-1 flex justify-between items-end">
                 <div>
@@ -168,8 +172,8 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         </div>
         <div class="bg-white rounded-xl shadow-md border-2 border-blue-200 p-4 md:p-6 flex items-center gap-6 hover:bg-slate-50 transition-colors">
-            <div class="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center text-[#ff8904] shrink-0">
-                <div class="w-8 h-8 bg-current" style="mask: url('public/images/marketlist.png') no-repeat center; -webkit-mask: url('public/images/marketlist.png') no-repeat center; mask-size: contain; -webkit-mask-size: contain;"></div>
+            <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-[#02396E] shrink-0">
+                <div class="w-8 h-8 bg-current" style="mask: url('public/images/marketlist.png') no-repeat center; -webkit-mask: url('public/images/marketlist.png') no-repeat center; mask-size: contain; -webkit-mask-size: contain; filter: drop-shadow(1px 0 0 currentColor) drop-shadow(-1px 0 0 currentColor) drop-shadow(0 1px 0 currentColor) drop-shadow(0 -1px 0 currentColor) drop-shadow(0.5px 0.5px 0 currentColor) drop-shadow(-0.5px -0.5px 0 currentColor);"></div>
             </div>
             <div class="flex-1 flex justify-between items-end">
                 <div>
@@ -193,7 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
     <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">
         <div class="bg-[#02396E] px-4 md:px-8 py-4 md:py-6 border-b border-white/10 flex flex-col sm:flex-row justify-between items-center gap-3">
             <h2 class="text-lg md:text-2xl font-bold text-white">Campaigns</h2>
-            <a href="<?= url('compose') ?>" class="inline-flex items-center px-3.5 py-1.5 bg-white text-[#02396E] text-sm font-bold rounded-xl hover:bg-[#ff8904] hover:text-white transition-colors w-full sm:w-auto justify-center">+ Add Campaigns</a>
+            <a href="<?= url('compose') ?>" class="inline-flex items-center px-3.5 py-1.5 bg-white text-white text-sm font-bold bg-[#ff8904] rounded-xl hover:bg-[#f54a00] hover:text-white transition-colors w-full sm:w-auto justify-center">+ Add Campaigns</a>
         </div>
         
         <!-- Mobile Campaigns Card View -->
