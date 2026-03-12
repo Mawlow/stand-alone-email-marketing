@@ -179,7 +179,7 @@ $groupsCount = (int) $pdo->query('SELECT COUNT(*) FROM contact_groups')->fetchCo
             <?php if (empty($contacts)): ?>
             <div class="pt-6 pb-14 px-4 text-center">
                 <div class="flex flex-col items-center justify-center space-y-4">
-                    <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-300">
+                    <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-400">
                         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                     </div>
                     <div>
@@ -243,7 +243,7 @@ $groupsCount = (int) $pdo->query('SELECT COUNT(*) FROM contact_groups')->fetchCo
                     <tr>
                         <td colspan="5" class="px-4 md:px-8 pt-8 pb-20 text-center">
                             <div class="flex flex-col items-center justify-center space-y-4">
-                                <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-300">
+                                <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-400">
                                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                                 </div>
                                 <div>

@@ -225,7 +225,20 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             <?php endforeach; ?>
             <?php if (empty($campaigns)): ?>
-            <div class="p-8 text-center text-slate-500 text-sm">No campaigns yet. <a href="<?= url('compose') ?>" class="text-[#ff8904] font-bold hover:underline">Compose one</a>.</div>
+            <div class="pt-6 pb-14 px-4 text-center">
+                <div class="flex flex-col items-center justify-center space-y-4">
+                    <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-400">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                    </div>
+                    <div>
+                        <p class="text-xl md:text-2xl font-bold text-slate-400 uppercase tracking-wider">No Campaigns Yet</p>
+                        <p class="text-slate-400 mt-1 text-sm font-medium">Start engaging your audience with your first email campaign</p>
+                    </div>
+                    <a href="<?= url('compose') ?>" class="inline-flex items-center px-8 py-3 bg-[#ff8904] text-white text-sm font-bold rounded-xl hover:bg-orange-600 transition-all shadow-md hover:shadow-lg">
+                        Compose your first one
+                    </a>
+                </div>
+            </div>
             <?php endif; ?>
         </div>
         
@@ -252,7 +265,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     </tr>
                     <?php endforeach; ?>
                     <?php if (empty($campaigns)): ?>
-                    <tr><td colspan="5" class="px-4 md:px-8 py-12 text-center text-slate-500">No campaigns yet. <a href="<?= url('compose') ?>" class="text-[#ff8904] font-bold hover:underline">Compose one</a>.</td></tr>
+                    <tr>
+                        <td colspan="5" class="px-4 md:px-8 pt-8 pb-20 text-center">
+                            <div class="flex flex-col items-center justify-center space-y-4">
+                                <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-400">
+                                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                                </div>
+                                <div>
+                                    <p class="text-xl md:text-2xl font-bold text-slate-400 uppercase tracking-wider">No Campaigns Yet</p>
+                                    <p class="text-slate-400 mt-1 text-sm font-medium">Start engaging your audience with your first email campaign</p>
+                                </div>
+                                <a href="<?= url('compose') ?>" class="inline-flex items-center px-6 py-2.5 bg-[#ff8904] text-white text-sm font-bold rounded-xl hover:bg-orange-600 transition-all shadow-md hover:shadow-lg">
+                                    Compose your first one
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
                     <?php endif; ?>
                 </tbody>
             </table>    

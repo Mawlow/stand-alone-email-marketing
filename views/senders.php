@@ -174,7 +174,7 @@ foreach ($accounts as $a) { if ($a['is_active']) $activeSenders++; }
             <?php if (empty($accounts)): ?>
             <div class="pt-6 pb-14 px-4 text-center">
                 <div class="flex flex-col items-center justify-center space-y-4">
-                    <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-300">
+                    <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-400">
                         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                     </div>
                     <div>
@@ -232,7 +232,7 @@ foreach ($accounts as $a) { if ($a['is_active']) $activeSenders++; }
                     <tr>
                         <td colspan="5" class="px-4 md:px-8 pt-8 pb-20 text-center">
                             <div class="flex flex-col items-center justify-center space-y-4">
-                                <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-300">
+                                <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-400">
                                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                                 </div>
                                 <div>
