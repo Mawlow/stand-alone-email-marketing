@@ -90,7 +90,7 @@ $allGroups = $pdo->query('SELECT id, name FROM contact_groups ORDER BY name')->f
             <div class="px-4 md:px-8 py-6 md:py-8 space-y-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">Email Address *</label>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Email Address <span class="text-red-500">*</span></label>
                         <input type="email" name="email" required class="w-full rounded-xl border-2 border-slate-100 px-4 py-3 focus:ring-2 focus:ring-[#02396E] focus:border-[#02396E] transition-all" value="<?= h($contact['email'] ?? '') ?>" placeholder="hr@company.com">
                     </div>
                     <div>
