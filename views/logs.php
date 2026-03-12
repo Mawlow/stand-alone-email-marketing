@@ -4,7 +4,7 @@ $campaignFilter = isset($_GET['campaign_id']) ? (int) $_GET['campaign_id'] : 0;
 $openedFilter = $_GET['opened'] ?? '';
 $searchQuery = $_GET['search'] ?? '';
 
-$q = 'SELECT l.*, c.subject as campaign_subject FROM email_logs l LEFT JOIN email_campaigns c ON c.id = l.email_campaign_id WHERE 1=1';
+$q = 'SELECT l.*, c.subject as campaign_subject, c.sent_count as campaign_sent, c.failed_count as campaign_failed FROM email_logs l LEFT JOIN email_campaigns c ON c.id = l.email_campaign_id WHERE 1=1';
 $params = [];
 
 if ($statusFilter !== '') { $q .= ' AND l.status = ?'; $params[] = $statusFilter; }
@@ -145,21 +145,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 <div class="grid grid-cols-2 lg:flex lg:flex-row gap-3 lg:gap-2 w-full lg:w-auto">
                     <!-- Status & Opened -->
-                    <select name="status" class="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2.5 lg:py-1.5 text-sm lg:text-xs font-medium text-white focus:ring-2 focus:ring-[#ff8904] focus:outline-none cursor-pointer hover:bg-white/20 transition-colors">
+                    <select name="status" class="w-full lg:w-auto bg-white/10 border border-white/20 rounded-lg px-2 py-2.5 lg:py-1.5 text-sm lg:text-xs font-medium text-white focus:ring-2 focus:ring-[#ff8904] focus:outline-none cursor-pointer hover:bg-white/20 transition-colors">
                         <option value="" class="text-slate-900">All Status</option>
                         <option value="sent" <?= $statusFilter === 'sent' ? 'selected' : '' ?> class="text-slate-900">Sent</option>
                         <option value="failed" <?= $statusFilter === 'failed' ? 'selected' : '' ?> class="text-slate-900">Failed</option>
                         <option value="pending" <?= $statusFilter === 'pending' ? 'selected' : '' ?> class="text-slate-900">Pending</option>
                     </select>
 
-                    <select name="opened" class="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2.5 lg:py-1.5 text-sm lg:text-xs font-medium text-white focus:ring-2 focus:ring-[#ff8904] focus:outline-none cursor-pointer hover:bg-white/20 transition-colors">
+                    <select name="opened" class="w-full lg:w-auto bg-white/10 border border-white/20 rounded-lg px-2 py-2.5 lg:py-1.5 text-sm lg:text-xs font-medium text-white focus:ring-2 focus:ring-[#ff8904] focus:outline-none cursor-pointer hover:bg-white/20 transition-colors">
                         <option value="" class="text-slate-900">Open Status</option>
                         <option value="1" <?= $openedFilter === '1' ? 'selected' : '' ?> class="text-slate-900">Opened</option>
                         <option value="0" <?= $openedFilter === '0' ? 'selected' : '' ?> class="text-slate-900">Unopened</option>
                     </select>
 
                     <!-- Campaign (Col-Span-2 on mobile) -->
-                    <select name="campaign_id" class="col-span-2 lg:col-span-1 w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2.5 lg:py-1.5 text-sm lg:text-xs font-medium text-white focus:ring-2 focus:ring-[#ff8904] focus:outline-none cursor-pointer hover:bg-white/20 transition-colors lg:max-w-[150px]">
+                    <select name="campaign_id" class="col-span-2 lg:col-span-1 w-full lg:w-auto bg-white/10 border border-white/20 rounded-lg px-2 py-2.5 lg:py-1.5 text-sm lg:text-xs font-medium text-white focus:ring-2 focus:ring-[#ff8904] focus:outline-none cursor-pointer hover:bg-white/20 transition-colors lg:max-w-[220px]">
                         <option value="" class="text-slate-900">All Campaigns</option>
                         <?php foreach ($campaigns as $co): ?>
                             <option value="<?= (int)$co['id'] ?>" <?= $campaignFilter === (int)$co['id'] ? 'selected' : '' ?> class="text-slate-900">
@@ -182,24 +182,30 @@ document.addEventListener('DOMContentLoaded', () => {
                         <h3 class="font-semibold text-slate-900 text-sm truncate"><?= h($log['recipient_email']) ?></h3>
                         <p class="text-xs text-slate-500 font-medium truncate"><?= h(mb_substr($log['campaign_subject'] ?? '—', 0, 40)) ?></p>
                     </div>
-                    <span class="shrink-0 px-2 py-0.5 rounded text-[10px] font-bold uppercase <?= $log['status'] === 'sent' ? 'bg-green-100 text-green-800' : ($log['status'] === 'failed' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800') ?>">
+                    <span class="shrink-0 px-2 py-0.5 rounded text-xs font-bold <?= $log['status'] === 'sent' ? 'bg-green-100 text-green-800' : ($log['status'] === 'failed' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800') ?>">
                         <?= h($log['status']) ?>
                     </span>
                 </div>
                 <div class="flex justify-between items-end mt-3">
                     <div>
-                        <p class="text-[10px] font-bold text-slate-400 uppercase mb-0.5">Sent / Failed</p>
-                        <p class="text-xs text-slate-600 font-medium"><?= h($log['sent_at'] ?? '—') ?></p>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Sent / Failed</p>
+                        <div class="flex items-center gap-1 text-xs text-slate-500">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            <span><?= (int)$log['campaign_sent'] ?></span>
+                            <span class="text-slate-300">/</span>
+                            <span><?= (int)$log['campaign_failed'] ?></span>
+                        </div>
+                        <p class="text-[10px] text-slate-500 mt-1.5 font-medium"><?= h($log['sent_at'] ?? '') ?></p>
                     </div>
                     <div class="text-right">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase mb-0.5">Status</p>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase mb-1.5">Engagement</p>
                         <?php if (!empty($log['opened_at'])): ?>
-                            <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-emerald-100 text-emerald-800 italic inline-block">Opened</span>
-                            <span class="text-slate-400 text-[10px] block mt-0.5 font-bold"><?= h($log['opened_at']) ?></span>
+                            <span class="px-2 py-0.5 rounded text-xs font-bold bg-emerald-100 text-emerald-800 inline-block">Opened</span>
+                            <span class="text-slate-400 text-xs block mt-1 font-medium"><?= h($log['opened_at']) ?></span>
                         <?php else: ?>
-                            <span class="text-slate-400 text-xs font-medium">—</span>
+                            <span class="px-2 py-0.5 rounded text-xs font-bold bg-slate-100 text-slate-500 inline-block">Unopened</span>
                             <?php if (!empty($log['open_tracking_token']) && $log['status'] === 'sent'): ?>
-                                <a href="<?= h(trackingBaseUrl() . '/track/email-open/' . $log['open_tracking_token']) ?>" target="_blank" rel="noopener" class="text-[10px] font-bold text-blue-600 hover:underline block mt-0.5">Test tracking</a>
+                                <a href="<?= h(trackingBaseUrl() . '/track/email-open/' . $log['open_tracking_token']) ?>" target="_blank" rel="noopener" class="text-[10px] font-bold text-blue-600 hover:underline block mt-1">Test tracking</a>
                             <?php endif; ?>
                         <?php endif; ?>
                     </div>
@@ -219,29 +225,40 @@ document.addEventListener('DOMContentLoaded', () => {
                         <th class="px-4 md:px-8 py-3 text-xs font-black text-slate-700 uppercase">Recipient</th>
                         <th class="px-4 md:px-8 py-3 text-xs font-black text-slate-700 uppercase">Campaign</th>
                         <th class="px-4 md:px-8 py-3 text-xs font-black text-slate-700 uppercase">Status</th>
-                        <th class="px-4 md:px-8 py-3 text-xs font-black text-slate-700 uppercase">sent/failed</th>
+                        <th class="px-4 md:px-8 py-3 text-xs font-black text-slate-700 uppercase">Sent / Failed</th>
                         <th class="px-4 md:px-8 py-3 text-xs font-black text-slate-700 uppercase">Opened</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php foreach ($logs as $log): ?>
                     <tr class="border-t border-slate-100 hover:bg-slate-50">
-                        <td class="px-4 md:px-8 py-4 font-semibold text-slate-900"><?= h($log['recipient_email']) ?></td>
-                        <td class="px-4 md:px-8 py-4 text-slate-600 text-sm font-medium"><?= h(mb_substr($log['campaign_subject'] ?? '—', 0, 40)) ?></td>
-                        <td class="px-4 md:px-8 py-4">
-                            <span class="px-2 py-1 rounded text-[10px] font-bold uppercase <?= $log['status'] === 'sent' ? 'bg-green-100 text-green-800' : ($log['status'] === 'failed' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800') ?>">
+                        <td class="px-4 md:px-8 py-4 align-top">
+                            <div class="text-sm font-medium text-slate-900 mt-1"><?= h($log['recipient_email']) ?></div>
+                        </td>
+                        <td class="px-4 md:px-8 py-4 align-top">
+                            <div class="text-sm font-medium text-slate-600 mt-1"><?= h(mb_substr($log['campaign_subject'] ?? '—', 0, 40)) ?></div>
+                        </td>
+                        <td class="px-4 md:px-8 py-4 align-top">
+                            <span class="px-2 py-1 rounded text-xs font-bold <?= $log['status'] === 'sent' ? 'bg-green-100 text-green-800' : ($log['status'] === 'failed' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800') ?>">
                                 <?= h($log['status']) ?>
                             </span>
                         </td>
-                        <td class="px-4 md:px-8 py-4 text-slate-500 text-sm font-medium"><?= h($log['sent_at'] ?? '—') ?></td>
-                        <td class="px-4 md:px-8 py-4">
+                        <td class="px-4 md:px-8 py-4 align-top">
+                            <div class="text-slate-600 mt-1">
+                                <span><?= (int)$log['campaign_sent'] ?></span>
+                                <span class="mx-1">/</span>
+                                <span><?= (int)$log['campaign_failed'] ?></span>
+                            </div>
+                            <div class="text-[10px] text-slate-400 font-medium block mt-1"><?= h($log['sent_at'] ?? '') ?></div>
+                        </td>
+                        <td class="px-4 md:px-8 py-4 align-top">
                             <?php if (!empty($log['opened_at'])): ?>
-                                <span class="px-2 py-1 rounded text-[10px] font-bold uppercase bg-emerald-100 text-emerald-800 italic">Opened</span>
-                                <span class="text-slate-400 text-[10px] block mt-1 font-bold"><?= h($log['opened_at']) ?></span>
+                                <span class="px-2 py-1 rounded text-xs font-bold bg-emerald-100 text-emerald-800">Opened</span>
+                                <div class="text-slate-400 text-xs font-medium block mt-1"><?= h($log['opened_at']) ?></div>
                             <?php else: ?>
-                                <span class="text-slate-300 text-sm">—</span>
+                                <span class="px-2 py-1 rounded text-xs font-bold bg-slate-100 text-slate-500">Not yet opened</span>
                                 <?php if (!empty($log['open_tracking_token']) && $log['status'] === 'sent'): ?>
-                                    <a href="<?= h(trackingBaseUrl() . '/track/email-open/' . $log['open_tracking_token']) ?>" target="_blank" rel="noopener" class="text-[10px] font-bold text-blue-600 hover:underline block mt-1">Test tracking</a>
+                                    <a href="<?= h(trackingBaseUrl() . '/track/email-open/' . $log['open_tracking_token']) ?>" target="_blank" rel="noopener" class="text-[10px] font-bold text-blue-600 hover:underline mt-1 block">Test tracking</a>
                                 <?php endif; ?>
                             <?php endif; ?>
                         </td>
