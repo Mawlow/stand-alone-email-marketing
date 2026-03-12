@@ -83,18 +83,18 @@ if ($senderId) {
             <div class="px-4 md:px-8 py-6 md:py-8 space-y-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">Display Name</label>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Display Name <span class="text-red-500">*</span></label>
                         <input type="text" name="name" required class="w-full rounded-xl border-2 border-slate-100 px-4 py-3 focus:ring-2 focus:ring-[#02396E] focus:border-[#02396E] transition-all" value="<?= h($account['name'] ?? '') ?>" placeholder="e.g. Gmail Primary">
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">Email Address</label>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Email Address <span class="text-red-500">*</span></label>
                         <input type="email" name="email" required class="w-full rounded-xl border-2 border-slate-100 px-4 py-3 focus:ring-2 focus:ring-[#02396E] focus:border-[#02396E] transition-all" value="<?= h($account['email'] ?? '') ?>" placeholder="sender@example.com">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">Password <?= $account ? '<span class="text-xs text-slate-400 font-normal ml-1">(leave blank to keep)</span>' : '' ?></label>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Password <span class="text-red-500">*</span> <?= $account ? '<span class="text-xs text-slate-400 font-normal ml-1">(leave blank to keep)</span>' : '' ?></label>
                         <input type="password" name="password" class="w-full rounded-xl border-2 border-slate-100 px-4 py-3 focus:ring-2 focus:ring-[#02396E] focus:border-[#02396E] transition-all" placeholder="App password" <?= $account ? '' : 'required' ?>>
                     </div>
                     <div>

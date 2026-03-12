@@ -101,10 +101,10 @@ $apiBaseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https'
                             <td class="px-4 py-3 text-sm font-bold text-slate-800"><?= h($k['name']) ?></td>
                             <td class="px-4 py-3 text-xs text-slate-500 font-medium"><?= h(date('M d, Y', strtotime($k['created_at']))) ?></td>
                             <td class="px-4 py-3 text-right">
-                                <form method="post" action="<?= url('api') ?>" class="inline" onsubmit="return confirm('Delete this API key?');">
+                                <form method="post" action="<?= url('api') ?>" class="inline delete-form" data-key-name="<?= h($k['name']) ?>">
                                     <input type="hidden" name="action" value="api-key-delete">
                                     <input type="hidden" name="id" value="<?= (int)$k['id'] ?>">
-                                    <button type="submit" class="text-red-600 hover:text-red-800 font-bold text-xs uppercase tracking-tighter hover:underline">Delete</button>
+                                    <button type="button" class="delete-btn text-red-600 hover:text-red-800 font-bold text-xs uppercase tracking-tighter hover:underline">Delete</button>
                                 </form>
                             </td>
                         </tr>
@@ -158,3 +158,90 @@ $apiBaseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https'
         </div>
     </div>
 </div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-[1px] flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 transform transition-all">
+        <div class="p-6">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                    <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-slate-900">Delete API Key</h3>
+                    <p class="text-sm text-slate-500">This action cannot be undone</p>
+                </div>
+            </div>
+            <p class="text-slate-700 mb-6">Are you sure you want to delete the API key for <span id="keyName" class="font-semibold text-slate-900"></span>? External integrations using this key will stop working.</p>
+            <div class="flex gap-3">
+                <button type="button" id="cancelDelete" class="flex-1 px-4 py-2 bg-white text-slate-600 font-medium rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors">Cancel</button>
+                <button type="button" id="confirmDelete" class="flex-1 px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors">Delete Key</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Initialize modal functionality immediately
+(function() {
+    const deleteModal = document.getElementById('deleteModal');
+    const keyNameSpan = document.getElementById('keyName');
+    const cancelDeleteBtn = document.getElementById('cancelDelete');
+    const confirmDeleteBtn = document.getElementById('confirmDelete');
+    let currentForm = null;
+
+    // Handle delete button clicks - use event delegation
+    document.addEventListener('click', function(e) {
+        const deleteBtn = e.target.closest('.delete-btn');
+        if (deleteBtn) {
+            e.preventDefault();
+            const form = deleteBtn.closest('.delete-form');
+            const keyName = form.dataset.keyName;
+            
+            currentForm = form;
+            keyNameSpan.textContent = keyName;
+            deleteModal.classList.remove('hidden');
+            deleteModal.classList.add('flex');
+            return false;
+        }
+    });
+
+    // Handle cancel button
+    if (cancelDeleteBtn) {
+        cancelDeleteBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            deleteModal.classList.add('hidden');
+            deleteModal.classList.remove('flex');
+            currentForm = null;
+            return false;
+        });
+    }
+
+    // Handle confirm delete
+    if (confirmDeleteBtn) {
+        confirmDeleteBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (currentForm) {
+                currentForm.submit();
+            }
+            return false;
+        });
+    }
+
+    // Close modal on escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && !deleteModal.classList.contains('hidden')) {
+            cancelDeleteBtn.click();
+        }
+    });
+
+    // Close modal on backdrop click
+    deleteModal.addEventListener('click', function(e) {
+        if (e.target === deleteModal) {
+            cancelDeleteBtn.click();
+        }
+    });
+})();
+</script>
