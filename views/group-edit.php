@@ -124,7 +124,7 @@ if ($groupId) {
         </div>
         <div>
             <h1 class="text-[2.5rem] font-bold leading-tight"><?= $group ? 'Edit Group' : 'Add New Group' ?></h1>
-            <p class="text-blue-100/80 mt-1 text-sm font-medium">Define and organize your contact segments.</p>
+            <p class="text-blue-100/80 mt-1 text-sm font-medium">Define and organize your contact segments</p>
         </div>
     </div>
     <!-- Decorative element -->
@@ -142,7 +142,7 @@ if ($groupId) {
     <div class="flex items-center justify-between">
         <h1 class="text-xl font-bold"><?= $group ? 'Edit Group' : 'Add New Group' ?></h1>
     </div>
-    <p class="text-blue-100/80 text-xs mt-1">Define and organize your contact segments.</p>
+    <p class="text-blue-100/80 text-xs mt-1">Define and organize your contact segments</p>
 </div>
 
 <div id="toastContainer" class="toast-container"></div>
@@ -235,7 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <input type="hidden" name="action" value="group-remove-member">
                                 <input type="hidden" name="group_id" value="${formData.get('group_id')}">
                                 <input type="hidden" name="contact_id" value="${result.data.id}">
-                                <button type="button" class="text-red-600 hover:text-red-800 text-xs font-bold uppercase tracking-wider transition-colors remove-trigger" data-email="${result.data.email}">Remove</button>
+                                <button type="button" class="text-red-500 hover:text-red-700 text-xs font-bold uppercase tracking-wider transition-colors remove-trigger" data-email="${result.data.email}">Remove</button>
                             </form>
                         </td>
                     `;
@@ -270,10 +270,10 @@ document.addEventListener('DOMContentLoaded', () => {
             <input type="hidden" name="action" value="group-save">
             <?php if ($group): ?><input type="hidden" name="id" value="<?= (int)$group['id'] ?>"><?php endif; ?>
             
-            <div class="p-8 space-y-6">
+            <div class="p-6 space-y-6">
                 <div>
-                    <label class="block text-sm font-bold text-slate-700 mb-2">Group Name *</label>
-                    <input type="text" name="name" required class="w-full rounded-xl border border-slate-200 px-4 py-3 text-slate-900 focus:ring-2 focus:ring-[#02396E] focus:outline-none transition-all" value="<?= h($group['name'] ?? '') ?>" placeholder="e.g. Newsletter, VIP, Customers">
+                    <label class="block text-xl font-bold text-slate-700 mb-2">Group Name *</label>
+                    <input type="text" name="name" required class="w-full rounded-xl border border-slate-200 px-4 py-2 text-slate-900 text-sm focus:ring-2 focus:ring-[#02396E] focus:outline-none transition-all" value="<?= h($group['name'] ?? '') ?>" placeholder="e.g. Newsletter, VIP, Customers">
                     <p class="mt-2 text-xs text-slate-400">Choose a unique name to easily identify this segment.</p>
                 </div>
             </div>
@@ -299,29 +299,29 @@ document.addEventListener('DOMContentLoaded', () => {
         <!-- Membership Actions -->
         <div class="grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-slate-100 bg-slate-50 border-b border-slate-100">
             <!-- Add Existing Section -->
-            <div class="p-6">
-                <h4 class="text-[10px] font-black text-slate-700 uppercase tracking-widest mb-4">Add Existing Contact</h4>
+            <div class="p-4">
+                <h4 class="text-xs font-bold text-slate-700 uppercase tracking-widest mb-2">Add Existing Contact</h4>
                 <form method="post" action="<?= url('group-edit', ['id' => $groupId]) ?>" class="flex gap-2">
                     <input type="hidden" name="action" value="group-add-member">
                     <input type="hidden" name="group_id" value="<?= (int)$group['id'] ?>">
-                    <select name="contact_id" class="flex-1 rounded-xl border border-slate-200 px-4 py-[5px] text-slate-900 focus:ring-2 focus:ring-[#02396E] focus:outline-none transition-all bg-white text-sm">
+                    <select name="contact_id" class="flex-1 rounded-xl border border-slate-200 px-4 py-2 text-slate-900 focus:ring-2 focus:ring-[#02396E] focus:outline-none transition-all bg-white text-sm">
                         <option value="">-- Select existing --</option>
                         <?php foreach ($nonMembers as $nm): ?>
                             <option value="<?= (int)$nm['id'] ?>"><?= h($nm['email']) ?></option>
                         <?php endforeach; ?>
                     </select>
-                    <button type="submit" class="px-4 py-[5px] bg-[#ff8904] text-white font-bold rounded-xl hover:bg-[#f54a00] transition-all text-sm">Add</button>
+                    <button type="submit" class="px-4 py-2 bg-[#ff8904] text-white font-bold rounded-xl border border-transparent hover:bg-[#f54a00] transition-all text-sm">Add</button>
                 </form>
             </div>
             <!-- Quick Create New Section -->
-            <div class="p-6">
-                <h4 class="text-[10px] font-black text-slate-700 uppercase tracking-widest mb-4">Quick Create & Add</h4>
+            <div class="p-4">
+                <h4 class="text-xs font-bold text-slate-700 uppercase tracking-widest mb-2">Quick Create & Add</h4>
                 <form id="quickCreateForm" method="post" action="<?= url('group-edit', ['id' => $groupId]) ?>" class="flex flex-col sm:flex-row gap-2">
                     <input type="hidden" name="action" value="group-create-add-member">
                     <input type="hidden" name="group_id" value="<?= (int)$group['id'] ?>">
-                    <input type="email" name="email" required placeholder="New email address" class="flex-1 rounded-xl border border-slate-200 px-4 py-[5px] text-sm focus:ring-2 focus:ring-[#ff8904] outline-none transition-all">
-                    <input type="text" name="company_name" placeholder="Name/Company" class="flex-1 rounded-xl border border-slate-200 px-4 py-[5px] text-sm focus:ring-2 focus:ring-[#ff8904] outline-none transition-all">
-                    <button type="submit" class="px-4 py-1.5 bg-[#ff8904] text-white font-bold rounded-lg hover:bg-[#f54a00] transition-all text-xs whitespace-nowrap">Create & Add</button>
+                    <input type="email" name="email" required placeholder="New email address" class="flex-1 rounded-xl border border-slate-200 px-4 py-2 text-sm placeholder:text-xs focus:ring-2 focus:ring-[#ff8904] outline-none transition-all">
+                    <input type="text" name="company_name" placeholder="Name/Company" class="flex-1 rounded-xl border border-slate-200 px-4 py-2 text-sm placeholder:text-xs focus:ring-2 focus:ring-[#ff8904] outline-none transition-all">
+                    <button type="submit" class="px-4 py-2 bg-[#ff8904] text-white font-bold rounded-xl border border-transparent hover:bg-[#f54a00] transition-all text-sm whitespace-nowrap">Create & Add</button>
                 </form>
             </div>
         </div>
@@ -346,7 +346,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <input type="hidden" name="action" value="group-remove-member">
                                 <input type="hidden" name="group_id" value="<?= (int)$group['id'] ?>">
                                 <input type="hidden" name="contact_id" value="<?= (int)$member['id'] ?>">
-                                <button type="button" class="text-red-600 hover:text-red-800 text-xs font-bold uppercase tracking-wider transition-colors remove-trigger" data-email="<?= h($member['email']) ?>">Remove</button>
+                                <button type="button" class="text-red-500 hover:text-red-700 text-xs font-bold uppercase tracking-wider transition-colors remove-trigger" data-email="<?= h($member['email']) ?>">Remove</button>
                             </form>
                         </td>
                     </tr>

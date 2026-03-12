@@ -199,7 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
     <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">
         <div class="bg-[#02396E] px-4 md:px-8 py-6 border-b border-white/10 flex justify-between items-center">
             <h2 class="text-xl md:text-2xl font-bold text-white">Groups</h2>
-            <a href="<?= url('group-edit') ?>" class="inline-flex items-center px-3.5 py-1.5 bg-white text-[#02396E] text-sm font-bold rounded-xl hover:bg-[#ff8904] hover:text-white transition-colors">+ Add Group</a>
+            <a href="<?= url('group-edit') ?>" class="inline-flex items-center px-3.5 py-1.5 bg-[#ff8904] text-white text-sm font-bold rounded-xl hover:bg-[#f54a00] transition-colors">Add Group</a>
         </div>
         <div class="overflow-x-auto">
             <table class="w-full text-left">
@@ -222,7 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 </a>
                                 <form method="post" action="<?= url('groups') ?>" class="inline">
                                     <input type="hidden" name="action" value="group-delete"><input type="hidden" name="id" value="<?= (int)$g['id'] ?>">
-                                    <button type="button" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors delete-trigger" data-group-name="<?= h($g['name']) ?>" title="Delete">
+                                    <button type="button" class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors delete-trigger" data-group-name="<?= h($g['name']) ?>" title="Delete">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                     </button>
                                 </form>
@@ -243,14 +243,14 @@ document.addEventListener('DOMContentLoaded', () => {
 <div id="deleteModal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-slate-900/50 backdrop-blur-sm">
     <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden modal-animate">
         <div class="p-6 text-center">
-            <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center text-red-600 mb-4 mx-auto">
+            <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center text-red-500 mb-4 mx-auto">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
             </div>
             <h3 class="text-xl font-bold text-slate-900 mb-2">Delete Group?</h3>
             <p class="text-slate-600">Are you sure you want to delete <span id="deleteGroupName" class="font-bold text-slate-900"></span>? Contacts in this group will not be removed from your list.</p>
         </div>
         <div class="bg-slate-50 px-6 py-4 flex flex-col sm:flex-row-reverse gap-3">
-            <button id="confirmDeleteBtn" type="button" class="w-full sm:w-auto px-6 py-2.5 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition-colors shadow-lg shadow-red-200">Delete Group</button>
+            <button id="confirmDeleteBtn" type="button" class="w-full sm:w-auto px-6 py-2.5 bg-red-500 text-white font-bold rounded-xl hover:bg-red-700 transition-colors shadow-lg shadow-red-200">Delete Group</button>
             <button id="cancelDeleteBtn" type="button" class="w-full sm:w-auto px-6 py-2.5 bg-white text-slate-600 font-bold rounded-xl border border-slate-200 hover:bg-slate-100 transition-colors">Cancel</button>
         </div>
     </div>

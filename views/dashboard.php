@@ -157,7 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div>
                     <p class="text-lg font-bold text-black uppercase tracking-wide mb-1">Sender Accounts</p>
                     <div class="flex items-center gap-2 flex-wrap">
-                        <p class="text-slate-500 text-sm font-medium">Power your campaigns with trusted senders.</p>
+                        <p class="text-slate-500 text-sm font-medium">Power your campaigns with trusted senders</p>
                         <a href="<?= url('senders') ?>" class="inline-flex items-center justify-center p-1 border-2 border-[#ff8904] text-[#ff8904] rounded-full hover:bg-orange-50 transition-colors shrink-0" title="View senders">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
                         </a>
@@ -177,7 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div>
                     <p class="text-lg font-bold text-black uppercase tracking-wide mb-1">Marketing list</p>
                     <div class="flex items-center gap-2 flex-wrap">
-                        <p class="text-slate-500 text-sm font-medium">Smart lists, smarter campaigns.</p>
+                        <p class="text-slate-500 text-sm font-medium">Smart lists, smarter campaigns</p>
                         <a href="<?= url('contacts') ?>" class="inline-flex items-center justify-center p-1 border-2 border-[#ff8904] text-[#ff8904] rounded-full hover:bg-orange-50 transition-colors shrink-0" title="View contacts">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
                         </a>
@@ -195,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
     <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">
         <div class="bg-[#02396E] px-4 md:px-8 py-4 md:py-6 border-b border-white/10 flex flex-col sm:flex-row justify-between items-center gap-3">
             <h2 class="text-lg md:text-2xl font-bold text-white">Campaigns</h2>
-            <a href="<?= url('compose') ?>" class="inline-flex items-center px-3.5 py-1.5 bg-white text-white text-sm font-bold bg-[#ff8904] rounded-xl hover:bg-[#f54a00] hover:text-white transition-colors w-full sm:w-auto justify-center">+ Add Campaigns</a>
+            <a href="<?= url('compose') ?>" class="inline-flex items-center px-3.5 py-1.5 text-white text-sm font-bold bg-[#ff8904] rounded-xl hover:bg-[#f54a00] hover:text-white transition-colors w-full sm:w-auto justify-center">Add Campaigns</a>
         </div>
         
         <!-- Mobile Campaigns Card View -->
