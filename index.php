@@ -1151,7 +1151,7 @@ $contactsCount = (int) $pdo->query('SELECT COUNT(*) FROM marketing_contacts')->f
         </nav>
         <!-- START: Isolated Logout Section -->
         <div id="logout-section-isolated" class="mt-auto p-3 border-t border-slate-700/50 bg-slate-800">
-            <button type="button" class="logout-btn-isolated logout-btn flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium bg-transparent text-red-400 border border-red-400/20 hover:bg-red-500/20 hover:text-white hover:border-red-400 transition-all w-full text-left">
+            <button type="button" class="logout-btn-isolated logout-btn flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium bg-transparent text-red-400 border border-red-500 hover:bg-red-500/20 hover:text-white hover:border-red-400 transition-all w-full text-left">
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
                 <span>LOG OUT</span>
             </button>
