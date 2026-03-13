@@ -102,6 +102,9 @@ $composeFooterMode = 'text_only';
                         <div class="max-w-[600px] w-full mx-auto">
                             <div id="compose-body-visual-wrap">
                                 <div id="compose-body-outline-wrap" class="p-4">
+                                    <div class="flex justify-end mb-2">
+                                        <button type="button" id="ai-generate-btn" class="px-3 py-1.5 text-xs font-bold rounded-lg border-2 border-[#02396E] text-[#02396E] hover:bg-[#02396E] hover:text-white transition-colors">AI generate</button>
+                                    </div>
                                     <div id="compose-body-editor" class="min-h-[350px] text-slate-800" style="min-height:350px"></div>
                                 </div>
                             </div>
@@ -171,6 +174,24 @@ $composeFooterMode = 'text_only';
                 <a href="<?= url('index') ?>" class="px-6 py-3 bg-slate-200 text-slate-700 text-sm font-bold rounded-xl hover:bg-slate-300 transition-colors">Cancel</a>
             </div>
         </form>
+
+        <!-- AI Generate modal -->
+        <div id="ai-generate-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 hidden">
+            <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-hidden flex flex-col">
+                <div class="p-6 border-b border-slate-100">
+                    <h3 class="text-lg font-bold text-slate-900">AI generate</h3>
+                    <p class="text-sm text-slate-500 mt-1">Describe the email content you want (e.g. &ldquo;professional welcome email for new subscribers&rdquo;).</p>
+                </div>
+                <div class="p-6 flex-1 overflow-auto">
+                    <textarea id="ai-generate-prompt" rows="4" class="w-full rounded-xl border-2 border-slate-200 px-4 py-3 text-slate-800 focus:ring-2 focus:ring-[#02396E] focus:border-[#02396E] outline-none resize-none" placeholder="e.g. Professional welcome email for new subscribers..."></textarea>
+                    <p id="ai-generate-status" class="mt-2 text-sm text-slate-500 hidden"></p>
+                </div>
+                <div class="p-6 border-t border-slate-100 flex gap-3 justify-end">
+                    <button type="button" id="ai-generate-cancel" class="px-4 py-2.5 bg-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-300">Cancel</button>
+                    <button type="button" id="ai-generate-submit" class="px-4 py-2.5 bg-[#02396E] text-white font-bold rounded-xl hover:bg-[#034a8c]">Generate</button>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -263,11 +284,12 @@ $composeFooterMode = 'text_only';
         return buildBlock(logoUrl, absText, bg, textColor, mode);
     }
     function refreshDesignPreviews() {
-        var hBlock = buildBlockWithAbsoluteUrls(typeof composeHeaderLogo !== 'undefined' ? composeHeaderLogo : '', typeof composeDesignHeader !== 'undefined' ? composeDesignHeader : '', composeDesignFooterBg, composeBlockTextColor, typeof composeHeaderMode !== 'undefined' ? composeHeaderMode : 'text_only');
+        var previewBg = '#f1f5f9'; /* light gray so preview is not so white */
+        var hBlock = buildBlockWithAbsoluteUrls(typeof composeHeaderLogo !== 'undefined' ? composeHeaderLogo : '', typeof composeDesignHeader !== 'undefined' ? composeDesignHeader : '', previewBg, composeBlockTextColor, typeof composeHeaderMode !== 'undefined' ? composeHeaderMode : 'text_only');
         if (headerPreview) {
             headerPreview.innerHTML = hBlock || '<div class="p-4 text-center text-slate-300 text-xs italic">No header template loaded</div>';
         }
-        var fBlock = buildBlockWithAbsoluteUrls(typeof composeFooterLogo !== 'undefined' ? composeFooterLogo : '', typeof composeDesignFooter !== 'undefined' ? composeDesignFooter : '', composeDesignFooterBg, composeBlockTextColor, typeof composeFooterMode !== 'undefined' ? composeFooterMode : 'text_only');
+        var fBlock = buildBlockWithAbsoluteUrls(typeof composeFooterLogo !== 'undefined' ? composeFooterLogo : '', typeof composeDesignFooter !== 'undefined' ? composeDesignFooter : '', previewBg, composeBlockTextColor, typeof composeFooterMode !== 'undefined' ? composeFooterMode : 'text_only');
         if (footerPreview) {
             footerPreview.innerHTML = fBlock || '<div class="p-4 text-center text-slate-300 text-xs italic">No footer template loaded</div>';
         }
@@ -385,5 +407,60 @@ $composeFooterMode = 'text_only';
         ta.value = headerBlock + bodyWrapped + footerBlock;
         return true;
     };
+
+    var aiModal = document.getElementById('ai-generate-modal');
+    var aiPrompt = document.getElementById('ai-generate-prompt');
+    var aiStatus = document.getElementById('ai-generate-status');
+    var aiSubmit = document.getElementById('ai-generate-submit');
+    var aiCancel = document.getElementById('ai-generate-cancel');
+    if (document.getElementById('ai-generate-btn')) {
+        document.getElementById('ai-generate-btn').onclick = function() {
+            aiPrompt.value = '';
+            aiStatus.classList.add('hidden');
+            aiStatus.textContent = '';
+            aiModal.classList.remove('hidden');
+            aiPrompt.focus();
+        };
+    }
+    if (aiCancel) {
+        aiCancel.onclick = function() { aiModal.classList.add('hidden'); };
+    }
+    aiModal.onclick = function(e) {
+        if (e.target === aiModal) aiModal.classList.add('hidden');
+    };
+    if (aiSubmit) {
+        aiSubmit.onclick = function() {
+            var promptText = (aiPrompt.value || '').trim();
+            if (!promptText) {
+                aiStatus.classList.remove('hidden');
+                aiStatus.textContent = 'Please enter a prompt.';
+                aiStatus.className = 'mt-2 text-sm text-amber-600';
+                return;
+            }
+            aiStatus.classList.remove('hidden');
+            aiStatus.textContent = 'Generating...';
+            aiStatus.className = 'mt-2 text-sm text-slate-500';
+            aiSubmit.disabled = true;
+            fetch('/api/v1/compose/ai-generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt: promptText })
+            }).then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); }).then(function(result) {
+                aiSubmit.disabled = false;
+                if (result.ok && result.data.content) {
+                    quill.root.innerHTML = result.data.content;
+                    ta.value = quill.root.innerHTML;
+                    aiModal.classList.add('hidden');
+                } else {
+                    aiStatus.textContent = result.data.error || 'Something went wrong.';
+                    aiStatus.className = 'mt-2 text-sm text-red-600';
+                }
+            }).catch(function() {
+                aiSubmit.disabled = false;
+                aiStatus.textContent = 'Network error. Try again.';
+                aiStatus.className = 'mt-2 text-sm text-red-600';
+            });
+        };
+    }
 })();
 </script>

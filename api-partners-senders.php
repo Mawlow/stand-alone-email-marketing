@@ -1,7 +1,7 @@
 <?php
 /**
- * API: GET /api/v1/senders – list active sender accounts for selection by external sites.
- * Auth: X-API-Key or Authorization: Bearer <key>
+ * GET /api/v1/send/partners/{slug}/senders
+ * List senders for API-link partners (no API key header). So their system can choose sender_id.
  */
 declare(strict_types=1);
 
@@ -13,15 +13,18 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     exit;
 }
 
-// Bootstrap (same as api.php)
-$envPath = __DIR__ . '/.env';
-if (!is_file($envPath) && is_file(__DIR__ . '/.env.example')) {
-    copy(__DIR__ . '/.env.example', $envPath);
+$slug = isset($_GET['link_slug']) ? trim((string)$_GET['link_slug']) : '';
+if ($slug === '') {
+    http_response_code(404);
+    echo json_encode(['error' => 'Not found.']);
+    exit;
 }
+
+$envPath = __DIR__ . '/.env';
+if (!is_file($envPath) && is_file(__DIR__ . '/.env.example')) copy(__DIR__ . '/.env.example', $envPath);
 $config = [];
 if (is_file($envPath)) {
-    $lines = file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    foreach ($lines as $line) {
+    foreach (file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
         $line = trim($line);
         if ($line === '' || strpos($line, '#') === 0) continue;
         $eq = strpos($line, '=');
@@ -35,42 +38,27 @@ if (is_file($envPath)) {
             $last = strtolower($parts[count($parts) - 1]);
             if (!isset($config[$prefix])) $config[$prefix] = [];
             $config[$prefix][$last] = $value;
-        } else {
-            $config[strtolower($key)] = $value;
         }
     }
 }
 $mysql = $config['db_mysql'] ?? null;
 if (empty($mysql) || empty($mysql['database'])) {
     http_response_code(500);
-    echo json_encode(['error' => 'Server misconfiguration. Set DB_MYSQL_* in .env.']);
+    echo json_encode(['error' => 'Server misconfiguration.']);
     exit;
 }
 $dsn = 'mysql:host=' . ($mysql['host'] ?? '127.0.0.1') . ';port=' . ($mysql['port'] ?? 3306) . ';dbname=' . $mysql['database'] . ';charset=' . ($mysql['charset'] ?? 'utf8mb4');
 $pdo = new PDO($dsn, $mysql['username'] ?? 'root', $mysql['password'] ?? '', [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
 
-// API key
-$apiKey = null;
-if (!empty($_SERVER['HTTP_X_API_KEY'])) {
-    $apiKey = trim($_SERVER['HTTP_X_API_KEY']);
-} elseif (!empty($_SERVER['HTTP_AUTHORIZATION']) && preg_match('/^\s*Bearer\s+(.+)$/i', $_SERVER['HTTP_AUTHORIZATION'], $m)) {
-    $apiKey = trim($m[1]);
-}
-if ($apiKey === null || $apiKey === '') {
-    http_response_code(401);
-    echo json_encode(['error' => 'Missing API key. Send X-API-Key or Authorization: Bearer <key>.']);
-    exit;
-}
-$stmt = $pdo->prepare('SELECT id, name, default_sender_ids FROM api_keys WHERE api_key = ?');
-$stmt->execute([$apiKey]);
+$stmt = $pdo->prepare('SELECT id, default_sender_ids FROM api_keys WHERE link_slug = ? AND link_slug IS NOT NULL');
+$stmt->execute([$slug]);
 $keyRow = $stmt->fetch(PDO::FETCH_ASSOC);
 if (!$keyRow) {
-    http_response_code(401);
-    echo json_encode(['error' => 'Invalid API key.']);
+    http_response_code(404);
+    echo json_encode(['error' => 'API link not found for this slug.']);
     exit;
 }
 
-// If this key has default senders set, return only those; otherwise all active senders
 $defaultSenderIds = isset($keyRow['default_sender_ids']) && trim((string)$keyRow['default_sender_ids']) !== ''
     ? array_map('intval', array_filter(explode(',', str_replace(' ', '', $keyRow['default_sender_ids']))))
     : [];

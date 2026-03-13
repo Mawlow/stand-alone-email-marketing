@@ -1,6 +1,6 @@
 <?php
 /**
- * API: GET /api/v1/senders – list active sender accounts for selection by external sites.
+ * API: GET /api/v1/contacts – list marketing contacts for use as recipients by external sites.
  * Auth: X-API-Key or Authorization: Bearer <key>
  */
 declare(strict_types=1);
@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     exit;
 }
 
-// Bootstrap (same as api.php)
+// Bootstrap (same as api-senders.php)
 $envPath = __DIR__ . '/.env';
 if (!is_file($envPath) && is_file(__DIR__ . '/.env.example')) {
     copy(__DIR__ . '/.env.example', $envPath);
@@ -61,25 +61,13 @@ if ($apiKey === null || $apiKey === '') {
     echo json_encode(['error' => 'Missing API key. Send X-API-Key or Authorization: Bearer <key>.']);
     exit;
 }
-$stmt = $pdo->prepare('SELECT id, name, default_sender_ids FROM api_keys WHERE api_key = ?');
+$stmt = $pdo->prepare('SELECT id, name FROM api_keys WHERE api_key = ?');
 $stmt->execute([$apiKey]);
-$keyRow = $stmt->fetch(PDO::FETCH_ASSOC);
-if (!$keyRow) {
+if (!$stmt->fetch(PDO::FETCH_ASSOC)) {
     http_response_code(401);
     echo json_encode(['error' => 'Invalid API key.']);
     exit;
 }
 
-// If this key has default senders set, return only those; otherwise all active senders
-$defaultSenderIds = isset($keyRow['default_sender_ids']) && trim((string)$keyRow['default_sender_ids']) !== ''
-    ? array_map('intval', array_filter(explode(',', str_replace(' ', '', $keyRow['default_sender_ids']))))
-    : [];
-if (!empty($defaultSenderIds)) {
-    $placeholders = implode(',', array_fill(0, count($defaultSenderIds), '?'));
-    $stmt = $pdo->prepare("SELECT id, name, email FROM sender_accounts WHERE is_active = 1 AND id IN ($placeholders) ORDER BY name, id");
-    $stmt->execute($defaultSenderIds);
-    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-} else {
-    $rows = $pdo->query('SELECT id, name, email FROM sender_accounts WHERE is_active = 1 ORDER BY name, id')->fetchAll(PDO::FETCH_ASSOC);
-}
-echo json_encode(['senders' => $rows]);
+$rows = $pdo->query('SELECT id, email, company_name, notes, created_at FROM marketing_contacts ORDER BY email')->fetchAll(PDO::FETCH_ASSOC);
+echo json_encode(['contacts' => $rows]);
