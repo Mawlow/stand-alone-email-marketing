@@ -76,6 +76,9 @@ $mysqlSchema = [
     "CREATE TABLE IF NOT EXISTS email_design (id INT PRIMARY KEY, header_html TEXT NOT NULL DEFAULT '', footer_html TEXT NOT NULL DEFAULT '', footer_bg_color VARCHAR(32) NOT NULL DEFAULT '#f1f5f9', block_text_color VARCHAR(32) NOT NULL DEFAULT '#1e293b', header_logo_url VARCHAR(500) DEFAULT '', header_mode VARCHAR(20) NOT NULL DEFAULT 'text_only', footer_logo_url VARCHAR(500) DEFAULT '', footer_mode VARCHAR(20) NOT NULL DEFAULT 'text_only', body_outline_color VARCHAR(32) DEFAULT '')",
     "INSERT IGNORE INTO email_design (id, header_html, footer_html, footer_bg_color, block_text_color, header_logo_url, header_mode, footer_logo_url, footer_mode, body_outline_color) VALUES (1, '', '', '#f1f5f9', '#1e293b', '', 'text_only', '', 'text_only', '')",
     "CREATE TABLE IF NOT EXISTS api_keys (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) NOT NULL, api_key VARCHAR(64) NOT NULL UNIQUE, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)",
+    "CREATE TABLE IF NOT EXISTS sms_groups (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) NOT NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)",
+    "CREATE TABLE IF NOT EXISTS sms_recipients (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) NOT NULL, phone_number VARCHAR(32) NOT NULL, group_id INT NOT NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (group_id) REFERENCES sms_groups(id) ON DELETE CASCADE)",
+    "CREATE TABLE IF NOT EXISTS sms_logs (id INT AUTO_INCREMENT PRIMARY KEY, group_id INT NOT NULL, group_name VARCHAR(255) NOT NULL, recipient_name VARCHAR(255) NOT NULL, phone_number VARCHAR(32) NOT NULL, message TEXT NOT NULL, status VARCHAR(32) NOT NULL DEFAULT 'sent', error_message TEXT DEFAULT NULL, sent_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)",
 ];
 foreach ($mysqlSchema as $i => $sql) {
     if ($i >= count($mysqlSchema) - 2) {
@@ -84,6 +87,9 @@ foreach ($mysqlSchema as $i => $sql) {
     $pdo->exec($sql);
 }
 foreach (["ALTER TABLE email_design ADD COLUMN header_logo_url VARCHAR(500) DEFAULT ''", "ALTER TABLE email_design ADD COLUMN header_mode VARCHAR(20) NOT NULL DEFAULT 'text_only'", "ALTER TABLE email_design ADD COLUMN footer_logo_url VARCHAR(500) DEFAULT ''", "ALTER TABLE email_design ADD COLUMN footer_mode VARCHAR(20) NOT NULL DEFAULT 'text_only'", "ALTER TABLE email_design ADD COLUMN body_outline_color VARCHAR(32) DEFAULT ''"] as $alterSql) {
+    try { $pdo->exec($alterSql); } catch (Throwable $e) { /* column exists */ }
+}
+foreach (["ALTER TABLE api_keys ADD COLUMN default_template_id INT NULL DEFAULT NULL", "ALTER TABLE api_keys ADD COLUMN default_sender_ids VARCHAR(255) NULL DEFAULT NULL", "ALTER TABLE api_keys ADD COLUMN link_slug VARCHAR(64) NULL DEFAULT NULL", "ALTER TABLE api_keys ADD UNIQUE KEY api_keys_link_slug (link_slug)"] as $alterSql) {
     try { $pdo->exec($alterSql); } catch (Throwable $e) { /* column exists */ }
 }
 $pdo->exec("CREATE TABLE IF NOT EXISTS email_design_templates (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) NOT NULL UNIQUE, header_html TEXT NOT NULL DEFAULT '', footer_html TEXT NOT NULL DEFAULT '', footer_bg_color VARCHAR(32) NOT NULL DEFAULT '#f1f5f9', block_text_color VARCHAR(32) NOT NULL DEFAULT '#1e293b', header_logo_url VARCHAR(500) DEFAULT '', header_mode VARCHAR(20) NOT NULL DEFAULT 'text_only', footer_logo_url VARCHAR(500) DEFAULT '', footer_mode VARCHAR(20) NOT NULL DEFAULT 'text_only', body_outline_color VARCHAR(32) DEFAULT '', created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)");
@@ -134,8 +140,11 @@ $cleanPaths = [
     'groups' => '/groups',
     'group-edit' => '/group-edit',
     'design' => '/design',
+    'template-html' => '/template-html',
     'api' => '/api',
     'logs' => '/logs',
+    'sms-logs' => '/sms-logs',
+    'sms' => '/sms',
 ];
 
 function baseUrl(): string {
@@ -186,7 +195,9 @@ function navClass(string $page): string {
     if ($page === 'groups' && ($current === 'groups' || $current === 'group-edit')) return 'bg-[#f54a00] text-white';
     if ($page === 'contacts' && in_array($current, ['contacts', 'contact-edit', 'contacts-import'])) return 'bg-[#f54a00] text-white';
     if ($page === 'senders' && ($current === 'senders' || $current === 'sender-edit')) return 'bg-[#f54a00] text-white';
-    
+    if ($page === 'sms' && $current === 'sms') return 'bg-[#f54a00] text-white';
+    if ($page === 'logs' && in_array($current, ['logs', 'sms-logs'], true)) return 'bg-[#f54a00] text-white';
+
     return $current === $page
         ? 'bg-[#f54a00] text-white'
         : 'text-slate-300 hover:bg-white/10 hover:text-white';
@@ -562,6 +573,258 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 exit;
             }
             header('Location: ' . url('group-edit', ['id' => $gid, 'success' => 'Member removed.']));
+                exit;
+            }
+        }
+
+    // ---------- SMS Notification ----------
+    if ($action === 'sms-group-create') {
+        $name = trim($_POST['sms_group_name'] ?? '');
+        if ($name === '') {
+            header('Location: ' . url('sms', ['error' => 'Group name is required.']));
+            exit;
+        }
+        $pdo->prepare('INSERT INTO sms_groups (name) VALUES (?)')->execute([$name]);
+        header('Location: ' . url('sms', ['success' => 'SMS group created.']));
+        exit;
+    }
+
+    if ($action === 'sms-group-delete' && isset($_POST['id'])) {
+        $gid = (int) $_POST['id'];
+        $pdo->prepare('DELETE FROM sms_groups WHERE id=?')->execute([$gid]);
+        header('Location: ' . url('sms', ['success' => 'SMS group deleted.']));
+        exit;
+    }
+
+    if ($action === 'sms-recipient-add') {
+        $names = isset($_POST['recipient_name']) && is_array($_POST['recipient_name'])
+            ? array_map('trim', $_POST['recipient_name'])
+            : [trim($_POST['recipient_name'] ?? '')];
+        $phones = isset($_POST['phone_number']) && is_array($_POST['phone_number'])
+            ? array_map(function ($p) { return preg_replace('/\s+/', '', trim($p)); }, $_POST['phone_number'])
+            : [preg_replace('/\s+/', '', trim($_POST['phone_number'] ?? ''))];
+        $pairs = [];
+        $max = max(count($names), count($phones));
+        for ($i = 0; $i < $max; $i++) {
+            $name = $names[$i] ?? '';
+            $phone = $phones[$i] ?? '';
+            if ($name !== '' || $phone !== '') {
+                if ($name === '' || $phone === '') {
+                    header('Location: ' . url('sms', ['error' => 'Each recipient must have both name and phone number.']));
+                    exit;
+                }
+                $pairs[] = [$name, $phone];
+            }
+        }
+        if (empty($pairs)) {
+            header('Location: ' . url('sms', ['error' => 'Add at least one recipient (name and phone number).']));
+            exit;
+        }
+        $groupChoice = trim($_POST['group_id'] ?? '');
+        $newGroupName = trim($_POST['new_group_name'] ?? '');
+        $groupId = null;
+        if ($groupChoice === 'new') {
+            if ($newGroupName === '') {
+                header('Location: ' . url('sms', ['error' => 'Enter a name for the new group.']));
+                exit;
+            }
+            $pdo->prepare('INSERT INTO sms_groups (name) VALUES (?)')->execute([$newGroupName]);
+            $groupId = (int) $pdo->lastInsertId();
+        } else {
+            $groupId = (int) $groupChoice;
+        }
+        if ($groupId < 1) {
+            header('Location: ' . url('sms', ['error' => 'Select a group or create a new one.']));
+            exit;
+        }
+        $ins = $pdo->prepare('INSERT INTO sms_recipients (name, phone_number, group_id) VALUES (?, ?, ?)');
+        foreach ($pairs as $p) {
+            $ins->execute([$p[0], $p[1], $groupId]);
+        }
+        $n = count($pairs);
+        $msg = $n === 1 ? 'Recipient added.' : $n . ' recipients added.';
+        if ($groupChoice === 'new') $msg = 'Group created and ' . strtolower($msg);
+        header('Location: ' . url('sms', ['success' => $msg]));
+        exit;
+    }
+
+    if ($action === 'sms-recipient-delete' && isset($_POST['id'])) {
+        $pdo->prepare('DELETE FROM sms_recipients WHERE id=?')->execute([(int) $_POST['id']]);
+        header('Location: ' . url('sms', ['success' => 'Recipient removed.']));
+        exit;
+    }
+
+    if ($action === 'sms-send') {
+        $groupId = (int) ($_POST['group_id'] ?? 0);
+        $message = trim($_POST['message'] ?? '');
+        $apiKey = trim($config['semaphore_api_key'] ?? '');
+        if ($groupId < 1 || $message === '') {
+            header('Location: ' . url('sms', ['error' => 'Please select a group and enter a message.']));
+            exit;
+        }
+        if ($apiKey === '') {
+            header('Location: ' . url('sms', ['error' => 'Semaphore API key is not configured. Add SEMAPHORE_API_KEY to your .env file.']));
+            exit;
+        }
+        $stmt = $pdo->prepare('SELECT id, name, phone_number FROM sms_recipients WHERE group_id = ? ORDER BY id');
+        $stmt->execute([$groupId]);
+        $recipients = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        if (empty($recipients)) {
+            header('Location: ' . url('sms', ['error' => 'Selected group has no recipients.']));
+            exit;
+        }
+        $singleRecipientId = (int) ($_POST['recipient_id'] ?? 0);
+        if ($singleRecipientId > 0) {
+            $one = null;
+            foreach ($recipients as $r) {
+                if ((int)$r['id'] === $singleRecipientId) { $one = $r; break; }
+            }
+            if ($one) {
+                $recipients = [$one];
+            }
+        }
+        $numbers = array_map(function ($r) {
+            $p = preg_replace('/[^0-9+]/', '', $r['phone_number']);
+            if (strlen($p) === 10 && substr($p, 0, 1) === '9') {
+                $p = '63' . $p;
+            } elseif (strlen($p) === 11 && substr($p, 0, 2) === '09') {
+                $p = '63' . substr($p, 1);
+            }
+            return $p;
+        }, $recipients);
+        $numbers = array_values(array_unique(array_filter($numbers, fn($n) => strlen($n) >= 10)));
+        $sent = 0;
+        $failed = 0;
+        $errors = [];
+        // Send one API request per recipient (single-message) — matches working PHP example and improves delivery
+        $usePriority = in_array(trim(strtolower((string)($config['semaphore_use_priority'] ?? '0'))), ['1', 'true', 'yes'], true);
+        $url = $usePriority ? 'https://api.semaphore.co/api/v4/priority' : 'https://api.semaphore.co/api/v4/messages';
+        $sslVerify = trim(strtolower((string)($config['semaphore_ssl_verify'] ?? '1')));
+        $verifyPeer = !in_array($sslVerify, ['0', 'false', 'no', 'off'], true);
+        $statusByNumber = [];
+        $logDir = __DIR__ . '/data';
+        if (!is_dir($logDir)) @mkdir($logDir, 0755, true);
+        $logFile = $logDir . '/sms-api-response.log';
+
+        foreach ($recipients as $r) {
+            $num = preg_replace('/[^0-9+]/', '', $r['phone_number']);
+            if (strlen($num) === 10 && $num[0] === '9') $num = '63' . $num;
+            elseif (strlen($num) === 11 && substr($num, 0, 2) === '09') $num = '63' . substr($num, 1);
+            $numberForApi = (strlen($num) === 12 && substr($num, 0, 2) === '63') ? '0' . substr($num, 2) : $num;
+            // Semaphore docs: messages starting with "TEST" are silently ignored and not sent
+            // Only include sendername if set in .env; otherwise omit so Semaphore uses account default (avoids "senderName not valid")
+            $params = ['apikey' => $apiKey, 'number' => $numberForApi, 'message' => $message];
+            $senderName = trim((string)($config['semaphore_sender_name'] ?? ''));
+            if ($senderName !== '') $params['sendername'] = $senderName;
+            $postData = http_build_query($params);
+            $response = false;
+            if (function_exists('curl_init')) {
+                $ch = curl_init($url);
+                curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/x-www-form-urlencoded']);
+                curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $verifyPeer);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, $verifyPeer ? 2 : 0);
+                $response = curl_exec($ch);
+                curl_close($ch);
+            }
+            if ($response === false && function_exists('file_get_contents')) {
+                $ctx = stream_context_create([
+                    'http' => ['method' => 'POST', 'header' => 'Content-Type: application/x-www-form-urlencoded', 'content' => $postData, 'timeout' => 30],
+                    'ssl' => ['verify_peer' => $verifyPeer],
+                ]);
+                $response = @file_get_contents($url, false, $ctx);
+            }
+            @file_put_contents($logFile, date('Y-m-d H:i:s') . ' to=' . $numberForApi . ' response=' . ($response ?: '') . "\n---\n", FILE_APPEND | LOCK_EX);
+
+            $st = 'unknown';
+            $err = null;
+            if ($response !== false) {
+                $decoded = json_decode($response, true);
+                $item = is_array($decoded) && isset($decoded['recipient']) ? $decoded : (is_array($decoded) && isset($decoded[0]) ? $decoded[0] : null);
+                if (is_array($item)) {
+                    $st = isset($item['status']) ? strtolower(trim((string)$item['status'])) : 'sent';
+                    $err = isset($item['error_message']) ? $item['error_message'] : null;
+                }
+            }
+            $statusByNumber[$num] = ['status' => $st === 'failed' ? 'failed' : ($st !== 'unknown' ? $st : 'sent'), 'error' => $err];
+            if ($st === 'failed') $failed++; else $sent++;
+        }
+        $responseParsed = true;
+
+        $groupRow = $pdo->prepare('SELECT name FROM sms_groups WHERE id = ?');
+        $groupRow->execute([$groupId]);
+        $groupName = $groupRow->fetchColumn() ?: 'Unknown';
+        $insertSmsLog = $pdo->prepare('INSERT INTO sms_logs (group_id, group_name, recipient_name, phone_number, message, status, error_message, sent_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
+        $sentAt = date('Y-m-d H:i:s');
+        foreach ($recipients as $r) {
+            $norm = preg_replace('/[^0-9+]/', '', $r['phone_number']);
+            if (strlen($norm) === 10 && $norm[0] === '9') $norm = '63' . $norm;
+            elseif (strlen($norm) === 11 && substr($norm, 0, 2) === '09') $norm = '63' . substr($norm, 1);
+            $info = $statusByNumber[$norm] ?? ['status' => $responseParsed ? 'sent' : 'unknown', 'error' => null];
+            $insertSmsLog->execute([
+                $groupId,
+                $groupName,
+                $r['name'],
+                $r['phone_number'],
+                $message,
+                $info['status'],
+                $info['error'],
+                $sentAt,
+            ]);
+        }
+
+        $msg = $sent . ' message(s) sent.';
+        if ($failed > 0) $msg .= ' ' . $failed . ' failed.';
+        header('Location: ' . url('sms', ['success' => $msg]));
+        exit;
+    }
+
+    if ($action === 'api-key-update-defaults' && isset($_POST['id'])) {
+        $keyId = (int) $_POST['id'];
+        $defaultTemplateId = isset($_POST['default_template_id']) ? (int) $_POST['default_template_id'] : 0;
+        $defaultSenderIds = '';
+        if (!empty($_POST['default_sender_ids']) && is_array($_POST['default_sender_ids'])) {
+            $defaultSenderIds = implode(',', array_map('intval', array_filter($_POST['default_sender_ids'], fn($x) => (int)$x > 0)));
+        } elseif (!empty($_POST['default_sender_ids']) && is_string($_POST['default_sender_ids'])) {
+            $defaultSenderIds = implode(',', array_filter(array_map('intval', explode(',', str_replace(' ', '', $_POST['default_sender_ids']))), fn($x) => $x > 0));
+        }
+        $linkSlug = isset($_POST['link_slug']) ? preg_replace('/[^a-zA-Z0-9_-]/', '', trim((string)$_POST['link_slug'])) : '';
+        if ($linkSlug !== '' && strlen($linkSlug) < 2) $linkSlug = '';
+        $linkSlugFinal = null;
+        if ($linkSlug !== '') {
+            $other = $pdo->prepare('SELECT id FROM api_keys WHERE link_slug = ? AND id != ?');
+            $other->execute([$linkSlug, $keyId]);
+            if (!$other->fetch()) $linkSlugFinal = $linkSlug;
+        }
+        $pdo->prepare('UPDATE api_keys SET default_template_id = ?, default_sender_ids = ?, link_slug = ? WHERE id = ?')
+            ->execute([$defaultTemplateId > 0 ? $defaultTemplateId : null, $defaultSenderIds !== '' ? $defaultSenderIds : null, $linkSlugFinal, $keyId]);
+        header('Location: ' . url('api') . '&success=' . urlencode('Defaults and API link saved.'));
+        exit;
+    }
+
+    if ($action === 'api-key-set-link' && isset($_POST['id'])) {
+        $keyId = (int) $_POST['id'];
+        $linkSlug = isset($_POST['link_slug']) ? preg_replace('/[^a-zA-Z0-9_-]/', '', trim((string)$_POST['link_slug'])) : '';
+        if ($linkSlug !== '' && strlen($linkSlug) < 2) {
+            $flashError = 'API link slug must be at least 2 characters.';
+            $_GET['page'] = 'api';
+        } elseif ($linkSlug !== '') {
+            $other = $pdo->prepare('SELECT id FROM api_keys WHERE link_slug = ? AND id != ?');
+            $other->execute([$linkSlug, $keyId]);
+            if ($other->fetch()) {
+                $flashError = 'That API link slug is already used by another key.';
+                $_GET['page'] = 'api';
+            } else {
+                $pdo->prepare('UPDATE api_keys SET link_slug = ? WHERE id = ?')->execute([$linkSlug, $keyId]);
+                header('Location: ' . url('api') . '&success=' . urlencode('API link saved.'));
+                exit;
+            }
+        } else {
+            $pdo->prepare('UPDATE api_keys SET link_slug = NULL WHERE id = ?')->execute([$keyId]);
+            header('Location: ' . url('api') . '&success=' . urlencode('API link cleared.'));
             exit;
         }
     }
@@ -771,7 +1034,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $flashSuccess = $_GET['success'] ?? null;
-$flashError = $flashError ?? null;
+$flashError = $flashError ?? $_GET['error'] ?? null;
 $page = currentPage();
 
 // Sender count for nav
@@ -871,9 +1134,19 @@ $contactsCount = (int) $pdo->query('SELECT COUNT(*) FROM marketing_contacts')->f
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
                 <span>API</span>
             </a>
-            <a href="<?= url('logs') ?>" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors <?= navClass('logs') ?>">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
-                <span>Logs</span>
+            <div class="space-y-0.5">
+                <a href="<?= url('logs') ?>" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors <?= currentPage() === 'logs' ? 'bg-[#f54a00] text-white' : 'text-slate-300 hover:bg-white/10 hover:text-white' ?>">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                    <span>Email Logs</span>
+                </a>
+                <a href="<?= url('sms-logs') ?>" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors <?= currentPage() === 'sms-logs' ? 'bg-[#f54a00] text-white' : 'text-slate-300 hover:bg-white/10 hover:text-white' ?>">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                    <span>SMS Logs</span>
+                </a>
+            </div>
+            <a href="<?= url('sms') ?>" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors <?= navClass('sms') ?>">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                <span>SMS</span>
             </a>
         </nav>
         <!-- START: Isolated Logout Section -->
@@ -891,7 +1164,7 @@ $contactsCount = (int) $pdo->query('SELECT COUNT(*) FROM marketing_contacts')->f
     <main class="flex-1 overflow-auto pt-14 md:pt-0">
         <div class="<?= in_array(currentPage(), $publicPages) ? '' : 'max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 md:py-8' ?> <?= !in_array(currentPage(), $publicPages) ? 'no-horizontal-scroll' : '' ?>">
             <?php if (!in_array(currentPage(), $publicPages)): ?>
-                <?php if (!in_array($page, ['api', 'design', 'compose', 'senders', 'contacts', 'group-edit', 'groups', 'logs', 'contact-edit', 'sender-edit', 'contacts-import', 'index'])): ?>
+                <?php if (!in_array($page, ['api', 'design', 'compose', 'senders', 'contacts', 'group-edit', 'groups', 'logs', 'sms-logs', 'contact-edit', 'sender-edit', 'contacts-import', 'index', 'sms'])): ?>
                 <div class="mb-4 md:mb-6">
                     <h2 class="text-xl md:text-2xl font-semibold text-slate-900"><?= $page === 'index' ? 'Dashboard' : ucfirst(str_replace('-', ' ', $page)) ?></h2>
                     <p class="text-slate-500 text-xs md:text-sm mt-0.5"><?= $page === 'index' ? 'Overview and recent campaigns' : 'Manage your email marketing' ?></p>
@@ -899,10 +1172,10 @@ $contactsCount = (int) $pdo->query('SELECT COUNT(*) FROM marketing_contacts')->f
                 <?php endif; ?>
             <?php endif; ?>
 
-            <?php if ($flashSuccess): ?>
+            <?php if (currentPage() !== 'sms' && $flashSuccess): ?>
             <div class="mb-4 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 font-medium <?= in_array(currentPage(), $publicPages) ? 'max-w-md mx-auto mt-4' : '' ?>"><?= h($flashSuccess) ?></div>
             <?php endif; ?>
-            <?php if (!empty($flashError)): ?>
+            <?php if (currentPage() !== 'sms' && !empty($flashError)): ?>
             <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 font-medium <?= in_array(currentPage(), $publicPages) ? 'max-w-md mx-auto mt-4' : '' ?>"><?= h($flashError) ?></div>
             <?php endif; ?>
 

@@ -1,25 +1,30 @@
 <?php
 /**
- * GET /api/v1/design/templates – return all named design templates (for Load template dropdown).
+ * GET /api/v1/send/partners/{slug}/templates
+ * List templates for API-link partners (no API key). If the key has default_template_id, returns only that template.
  */
 declare(strict_types=1);
 
 header('Content-Type: application/json; charset=utf-8');
 
-if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'GET') {
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     http_response_code(405);
     echo json_encode(['error' => 'Method not allowed. Use GET.']);
     exit;
 }
 
-$envPath = __DIR__ . '/.env';
-if (!is_file($envPath) && is_file(__DIR__ . '/.env.example')) {
-    copy(__DIR__ . '/.env.example', $envPath);
+$slug = isset($_GET['link_slug']) ? trim((string)$_GET['link_slug']) : '';
+if ($slug === '') {
+    http_response_code(404);
+    echo json_encode(['error' => 'Not found.']);
+    exit;
 }
+
+$envPath = __DIR__ . '/.env';
+if (!is_file($envPath) && is_file(__DIR__ . '/.env.example')) copy(__DIR__ . '/.env.example', $envPath);
 $config = [];
 if (is_file($envPath)) {
-    $lines = file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    foreach ($lines as $line) {
+    foreach (file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
         $line = trim($line);
         if ($line === '' || strpos($line, '#') === 0) continue;
         $eq = strpos($line, '=');
@@ -45,24 +50,18 @@ if (empty($mysql) || empty($mysql['database'])) {
 $dsn = 'mysql:host=' . ($mysql['host'] ?? '127.0.0.1') . ';port=' . ($mysql['port'] ?? 3306) . ';dbname=' . $mysql['database'] . ';charset=' . ($mysql['charset'] ?? 'utf8mb4');
 $pdo = new PDO($dsn, $mysql['username'] ?? 'root', $mysql['password'] ?? '', [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
 
-// Optional: when X-API-Key or Bearer is sent and that key has default_template_id, return only that template
-$filterTemplateId = null;
-$apiKey = null;
-if (!empty($_SERVER['HTTP_X_API_KEY'])) {
-    $apiKey = trim($_SERVER['HTTP_X_API_KEY']);
-} elseif (!empty($_SERVER['HTTP_AUTHORIZATION']) && preg_match('/^\s*Bearer\s+(.+)$/i', $_SERVER['HTTP_AUTHORIZATION'], $m)) {
-    $apiKey = trim($m[1]);
-}
-if ($apiKey !== null && $apiKey !== '') {
-    $stmt = $pdo->prepare('SELECT default_template_id FROM api_keys WHERE api_key = ?');
-    $stmt->execute([$apiKey]);
-    $keyRow = $stmt->fetch(PDO::FETCH_ASSOC);
-    if ($keyRow && isset($keyRow['default_template_id']) && (int)$keyRow['default_template_id'] > 0) {
-        $filterTemplateId = (int)$keyRow['default_template_id'];
-    }
+$stmt = $pdo->prepare('SELECT id, default_template_id FROM api_keys WHERE link_slug = ? AND link_slug IS NOT NULL');
+$stmt->execute([$slug]);
+$keyRow = $stmt->fetch(PDO::FETCH_ASSOC);
+if (!$keyRow) {
+    http_response_code(404);
+    echo json_encode(['error' => 'API link not found for this slug.']);
+    exit;
 }
 
-/** Split combined header+footer by <!-- FOOTER --> for display when DB has same in both columns. */
+$filterTemplateId = isset($keyRow['default_template_id']) && (int)$keyRow['default_template_id'] > 0
+    ? (int)$keyRow['default_template_id'] : null;
+
 $splitHeaderFooterForDisplay = function (string $header, string $footer): array {
     if ($header !== $footer || trim($header) === '') return [$header, $footer];
     if (!preg_match('#\s*<!--\s*FOOTER\s*-->\s*#is', $header, $m, PREG_OFFSET_CAPTURE)) return [$header, $footer];

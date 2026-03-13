@@ -144,7 +144,7 @@ if ($apiKey === null || $apiKey === '') {
     exit;
 }
 
-$stmt = $pdo->prepare('SELECT id, name FROM api_keys WHERE api_key = ?');
+$stmt = $pdo->prepare('SELECT id, name, default_template_id, default_sender_ids FROM api_keys WHERE api_key = ?');
 $stmt->execute([$apiKey]);
 $apiKeyRow = $stmt->fetch(PDO::FETCH_ASSOC);
 if (!$apiKeyRow) {
@@ -169,6 +169,39 @@ $templateName = isset($input['template_name']) ? trim((string)$input['template_n
 $recipientsInput = $input['recipients'] ?? [];
 $senderIdInput = $input['sender_id'] ?? null;
 $senderIdsInput = $input['sender_ids'] ?? null;
+
+// Apply API-key defaults when request does not specify template or senders
+if ($templateId <= 0 && ($templateName === null || $templateName === '')) {
+    $keyTemplateId = isset($apiKeyRow['default_template_id']) ? (int)$apiKeyRow['default_template_id'] : 0;
+    if ($keyTemplateId > 0) {
+        $templateId = $keyTemplateId;
+    } else {
+        // If no explicit default template and caller did not request use_design,
+        // try to auto-pick a template whose name matches the API key name
+        if (!$useDesign) {
+            $keyName = trim((string)($apiKeyRow['name'] ?? ''));
+            $matchTerm = $keyName !== '' ? strtolower(trim(preg_replace('/\.(com|net|ph|org|io|co\.uk)$/i', '', $keyName))) : '';
+            if ($matchTerm !== '' && strlen($matchTerm) >= 2) {
+                $pattern = '%' . $matchTerm . '%';
+                $stmt = $pdo->prepare('SELECT id FROM email_design_templates WHERE LOWER(name) LIKE ? ORDER BY id LIMIT 1');
+                $stmt->execute([$pattern]);
+                $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                if ($row && !empty($row['id'])) {
+                    $templateId = (int)$row['id'];
+                }
+            }
+        }
+    }
+}
+if ($senderIdsInput === null && $senderIdInput === null) {
+    $keySenderIds = isset($apiKeyRow['default_sender_ids']) ? trim((string)$apiKeyRow['default_sender_ids']) : '';
+    if ($keySenderIds !== '') {
+        $senderIdsInput = array_map('intval', array_filter(explode(',', str_replace(' ', '', $keySenderIds)), fn($id) => $id > 0));
+        if (empty($senderIdsInput)) {
+            $senderIdsInput = null;
+        }
+    }
+}
 
 if ($subject === '' || $body === '') {
     http_response_code(400);
@@ -256,8 +289,19 @@ if ($templateId !== null && $templateId > 0 || $templateName !== null && $templa
     }
 }
 
+// When no senders chosen: use key default_sender_ids, or filter by API key name (e.g. "bayanihan.com" → only senders matching "bayanihan"), or all active
 if (empty($senders)) {
-    $senders = $pdo->query('SELECT id FROM sender_accounts WHERE is_active=1 ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+    $keyName = trim((string)($apiKeyRow['name'] ?? ''));
+    $matchTerm = $keyName !== '' ? strtolower(trim(preg_replace('/\.(com|net|ph|org|io|co\.uk)$/i', '', $keyName))) : '';
+    if ($matchTerm !== '' && strlen($matchTerm) >= 2) {
+        $pattern = '%' . $matchTerm . '%';
+        $stmt = $pdo->prepare('SELECT id FROM sender_accounts WHERE is_active = 1 AND (LOWER(name) LIKE ? OR LOWER(email) LIKE ?) ORDER BY id');
+        $stmt->execute([$pattern, $pattern]);
+        $senders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    if (empty($senders)) {
+        $senders = $pdo->query('SELECT id FROM sender_accounts WHERE is_active=1 ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
 $pdo->prepare('INSERT INTO email_campaigns (subject, body, recipient_filter, rotate_senders, status, total_recipients) VALUES (?,?,?,?,?,?)')
     ->execute([$subject, $body, 'api', 1, 'sending', count($recipients)]);

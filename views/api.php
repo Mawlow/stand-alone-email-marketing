@@ -1,11 +1,18 @@
 <?php
-$apiKeys = $pdo->query('SELECT id, name, created_at FROM api_keys ORDER BY id DESC')->fetchAll(PDO::FETCH_ASSOC);
+$apiKeys = $pdo->query('SELECT id, name, created_at, default_template_id, default_sender_ids, link_slug FROM api_keys ORDER BY id DESC')->fetchAll(PDO::FETCH_ASSOC);
 $newKey = $_SESSION['new_api_key'] ?? null;
 $newKeyName = $_SESSION['new_api_key_name'] ?? '';
 if ($newKey !== null) {
     unset($_SESSION['new_api_key'], $_SESSION['new_api_key_name']);
 }
 $apiBaseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . (dirname($_SERVER['SCRIPT_NAME'] ?? '') !== '/' ? rtrim(dirname($_SERVER['SCRIPT_NAME'] ?? ''), '/') : '');
+$templatesForApi = $pdo->query('SELECT id, name FROM email_design_templates ORDER BY name')->fetchAll(PDO::FETCH_ASSOC);
+$sendersForApi = $pdo->query('SELECT id, name FROM sender_accounts WHERE is_active = 1 ORDER BY name')->fetchAll(PDO::FETCH_ASSOC);
+$editKeyId = isset($_GET['edit_key']) ? (int)$_GET['edit_key'] : 0;
+$editKeyRow = null;
+if ($editKeyId > 0) {
+    foreach ($apiKeys as $k) { if ((int)$k['id'] === $editKeyId) { $editKeyRow = $k; break; } }
+}
 ?>
 <style>
     /* Hide the default title area from index.php */
@@ -78,6 +85,46 @@ $apiBaseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https'
             </div>
             <?php endif; ?>
 
+            <?php if ($editKeyRow): ?>
+            <!-- Set defaults for this key -->
+            <div class="border-t border-slate-200 p-4 md:p-6 bg-amber-50/50 rounded-xl border-2 border-amber-200/50">
+                <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wide mb-3">Set default template &amp; senders for &ldquo;<?= h($editKeyRow['name']) ?>&rdquo;</h3>
+                <p class="text-slate-600 text-sm mb-4">When this site sends via the API without specifying a template or senders, these defaults are used automatically.</p>
+                <form method="post" action="<?= url('api') ?>">
+                    <input type="hidden" name="action" value="api-key-update-defaults">
+                    <input type="hidden" name="id" value="<?= (int)$editKeyRow['id'] ?>">
+                    <div class="mb-4">
+                        <label class="block text-sm font-bold text-slate-700 mb-1">Default template</label>
+                        <select name="default_template_id" class="rounded-xl border border-slate-200 px-4 py-2.5 focus:ring-2 focus:ring-[#02396E] min-w-[200px]">
+                            <option value="0">&mdash; None (caller must send template_id or use_design) &mdash;</option>
+                            <?php foreach ($templatesForApi as $t): ?>
+                            <option value="<?= (int)$t['id'] ?>" <?= (isset($editKeyRow['default_template_id']) && (int)$editKeyRow['default_template_id'] === (int)$t['id']) ? 'selected' : '' ?>><?= h($t['name']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Default senders (leave empty = all active senders)</label>
+                        <div class="flex flex-wrap gap-3">
+                            <?php
+                            $keySenderIds = isset($editKeyRow['default_sender_ids']) && $editKeyRow['default_sender_ids'] !== '' ? array_map('intval', explode(',', str_replace(' ', '', $editKeyRow['default_sender_ids']))) : [];
+                            foreach ($sendersForApi as $s):
+                            ?><label class="inline-flex items-center gap-2 cursor-pointer"><input type="checkbox" name="default_sender_ids[]" value="<?= (int)$s['id'] ?>" <?= in_array((int)$s['id'], $keySenderIds, true) ? 'checked' : '' ?> class="rounded border-slate-300"> <span class="text-sm"><?= h($s['name']) ?></span></label><?php endforeach; ?>
+                            <?php if (empty($sendersForApi)): ?><span class="text-slate-500 text-sm">No active senders. Add senders first.</span><?php endif; ?>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-bold text-slate-700 mb-1">API link slug (optional)</label>
+                        <p class="text-slate-500 text-xs mb-1">Set a slug to give this partner an <strong>API link</strong> (a single URL they call &mdash; no API key header). Example: <code>bayanihan</code> &rarr; link is <code>POST <?= h($apiBaseUrl) ?>/api/v1/send/partners/bayanihan</code></p>
+                        <input type="text" name="link_slug" value="<?= h(isset($editKeyRow['link_slug']) ? $editKeyRow['link_slug'] : '') ?>" placeholder="e.g. bayanihan" pattern="[a-zA-Z0-9_-]+" maxlength="64" class="rounded-xl border border-slate-200 px-4 py-2.5 focus:ring-2 focus:ring-[#02396E] min-w-[200px]">
+                    </div>
+                    <div class="flex gap-2">
+                        <button type="submit" class="px-4 py-2.5 bg-[#02396E] text-white font-bold rounded-xl hover:bg-[#034a8c]">Save defaults</button>
+                        <a href="<?= url('api') ?>" class="px-4 py-2.5 bg-slate-200 text-slate-700 font-bold rounded-xl">Cancel</a>
+                    </div>
+                </form>
+            </div>
+            <?php endif; ?>
+
             <!-- List Section -->
             <div>
                 <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Active Credentials</h3>
@@ -91,16 +138,33 @@ $apiBaseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https'
                         <thead class="bg-slate-50">
                             <tr>
                                 <th class="px-4 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Name</th>
+                                <th class="px-4 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">API link</th>
+                                <th class="px-4 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Default template</th>
+                                <th class="px-4 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Default senders</th>
                                 <th class="px-4 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Created</th>
                                 <th class="px-4 py-2 text-right text-[10px] font-bold text-slate-500 uppercase tracking-widest">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
-                        <?php foreach ($apiKeys as $k): ?>
+                        <?php
+                        foreach ($apiKeys as $k):
+                            $defTplId = isset($k['default_template_id']) ? (int)$k['default_template_id'] : 0;
+                            $defTplName = '';
+                            if ($defTplId > 0) { foreach ($templatesForApi as $t) { if ((int)$t['id'] === $defTplId) { $defTplName = $t['name']; break; } } }
+                            $defSenderIds = isset($k['default_sender_ids']) && $k['default_sender_ids'] !== '' ? explode(',', str_replace(' ', '', $k['default_sender_ids'])) : [];
+                            $defSenderNames = [];
+                            foreach ($defSenderIds as $sid) { $sid = (int)$sid; foreach ($sendersForApi as $s) { if ((int)$s['id'] === $sid) { $defSenderNames[] = $s['name']; break; } } }
+                            $linkSlug = isset($k['link_slug']) ? trim((string)$k['link_slug']) : '';
+                            $apiLinkUrl = $linkSlug !== '' ? $apiBaseUrl . '/api/v1/send/partners/' . $linkSlug : '';
+                        ?>
                         <tr class="hover:bg-slate-50/50 transition-colors">
                             <td class="px-4 py-3 text-sm font-bold text-slate-800"><?= h($k['name']) ?></td>
+                            <td class="px-4 py-3 text-slate-600 text-xs"><?php if ($apiLinkUrl !== ''): ?><code class="text-[10px] break-all"><?= h($apiLinkUrl) ?></code><?php else: ?>&mdash;<?php endif; ?></td>
+                            <td class="px-4 py-3 text-slate-600 text-xs"><?= $defTplName !== '' ? h($defTplName) : '&mdash;' ?></td>
+                            <td class="px-4 py-3 text-slate-600 text-xs"><?= !empty($defSenderNames) ? h(implode(', ', $defSenderNames)) : 'All active' ?></td>
                             <td class="px-4 py-3 text-xs text-slate-500 font-medium"><?= h(date('M d, Y', strtotime($k['created_at']))) ?></td>
                             <td class="px-4 py-3 text-right">
+                                <a href="<?= url('api', ['edit_key' => $k['id']]) ?>" class="text-[#02396E] hover:underline text-xs font-bold mr-2">Set defaults</a>
                                 <form method="post" action="<?= url('api') ?>" class="inline delete-form" data-key-name="<?= h($k['name']) ?>">
                                     <input type="hidden" name="action" value="api-key-delete">
                                     <input type="hidden" name="id" value="<?= (int)$k['id'] ?>">
@@ -127,32 +191,6 @@ $apiBaseUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https'
                         </div>
                         <button type="submit" class="inline-flex items-center px-8 py-2.5 bg-[#ff8904] text-white text-sm font-bold rounded-xl hover:bg-[#f54a00] transition-colors shadow-md">Generate Key</button>
                     </form>
-                </div>
-            </div>
-        </div>
-
-        <!-- Documentation -->
-        <div class="bg-slate-900 p-6 md:p-8 text-white border-t border-slate-800">
-            <h3 class="text-xs font-bold uppercase tracking-widest mb-6 border-b border-white/5 pb-2">Quick Integration Guide</h3>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Header</label>
-                        <code class="block p-3 bg-white/5 border border-white/10 rounded-xl text-blue-100 font-mono text-xs">X-API-Key: YOUR_TOKEN</code>
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Endpoint</label>
-                        <code class="block p-3 bg-white/5 border border-white/10 rounded-xl text-blue-100 font-mono text-xs break-all">POST <?= h($apiBaseUrl) ?>/api/v1/send</code>
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">JSON Payload</label>
-                    <pre class="bg-black/40 border border-white/10 p-4 rounded-xl font-mono text-[10px] text-blue-100 overflow-x-auto leading-relaxed">{
-  "subject": "System Campaign",
-  "body": "&lt;p&gt;HTML Content&lt;/p&gt;",
-  "recipients": ["user@domain.com"],
-  "use_design": true
-}</pre>
                 </div>
             </div>
         </div>
