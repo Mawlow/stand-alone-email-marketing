@@ -47,6 +47,16 @@ $campaigns = $pdo->query('SELECT id, subject FROM email_campaigns ORDER BY id DE
     .logs-banner {
         margin-bottom: 2rem;
     }
+
+    /* Content Wrapper matching api.php */
+    .logs-content-wrapper {
+        max-width: 72rem; /* 6xl */
+        margin: 0 auto;
+        padding: 0 1rem 2rem 1rem;
+    }
+    @media (max-width: 1023px) { .logs-content-wrapper { margin-top: 1.5rem; } }
+    @media (min-width: 640px) { .logs-content-wrapper { padding: 0 1.5rem 2rem 1.5rem; } }
+    @media (min-width: 1024px) { .logs-content-wrapper { padding: 0 2rem 2rem 2rem; } }
 </style>
 
 <!-- Logs Banner -->
@@ -133,13 +143,13 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
-<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 text-left">
+<div class="logs-content-wrapper">
     <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">
-        <div class="bg-[#02396E] px-4 md:px-8 py-4 border-b border-white/10 flex flex-col lg:flex-row justify-between lg:items-center gap-4">
-            <h2 class="text-xl font-bold text-white shrink-0">Activities</h2>
+        <div class="bg-[#02396E] px-4 md:px-8 py-4 md:py-6 border-b border-white/10 flex flex-col lg:flex-row justify-between lg:items-center gap-4">
+            <h2 class="text-lg md:text-2xl font-bold text-white shrink-0">Activities</h2>
             
             <!-- Proper Mobile Grid Layout for Filters -->
-            <form method="get" action="<?= url('logs') ?>" class="flex flex-col lg:flex-row gap-3 w-full lg:w-auto mt-4 lg:mt-0">
+            <form method="get" action="<?= url('logs') ?>" class="flex flex-col lg:flex-row gap-3 w-full lg:w-auto mt-2 lg:mt-0">
                 <input type="hidden" name="page" value="logs">
                 <?php if ($searchQuery): ?><input type="hidden" name="search" value="<?= h($searchQuery) ?>"><?php endif; ?>
                 

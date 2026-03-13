@@ -1150,10 +1150,10 @@ $contactsCount = (int) $pdo->query('SELECT COUNT(*) FROM marketing_contacts')->f
             </a>
         </nav>
         <!-- START: Isolated Logout Section -->
-        <div id="logout-section-isolated" class="mt-auto p-3 border border-black bg-[#132440]">
-            <button type="button" class="logout-btn-isolated logout-btn flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-black text-white hover:bg-[#C3110C] transition-colors w-full text-left uppercase tracking-widest">
+        <div id="logout-section-isolated" class="mt-auto p-3 border-t border-slate-700/50 bg-slate-800">
+            <button type="button" class="logout-btn-isolated logout-btn flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium bg-transparent text-red-400 border border-red-500 hover:bg-red-500/20 hover:text-white hover:border-red-400 transition-all w-full text-left">
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                <span>Logout</span>
+                <span>LOG OUT</span>
             </button>
         </div>
         <!-- END: Isolated Logout Section -->
@@ -1220,24 +1220,24 @@ $contactsCount = (int) $pdo->query('SELECT COUNT(*) FROM marketing_contacts')->f
 </script>
 
 <!-- Logout Confirmation Modal -->
-<div id="logoutModal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-[1px] flex items-center justify-center z-50 hidden">
-    <div class="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 transform transition-all">
+<div id="logoutModal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-[2px] flex items-center justify-center z-50 hidden">
+    <div class="bg-slate-800 rounded-xl shadow-2xl max-w-md w-full mx-4 transform transition-all border border-slate-700/50">
         <div class="p-6">
             <div class="flex items-center gap-3 mb-4">
-                <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-                    <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="w-10 h-10 bg-slate-700 rounded-full flex items-center justify-center">
+                    <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
                     </svg>
                 </div>
                 <div>
-                    <h3 class="text-lg font-semibold text-slate-900">Logout</h3>
-                    <p class="text-sm text-slate-500">Confirm your action</p>
+                    <h3 class="text-lg font-semibold text-red-400">LOG OUT</h3>
+                    <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Confirm your action</p>
                 </div>
             </div>
-            <p class="text-slate-700 mb-6">Are you sure you want to logout from your account?</p>
-            <div class="flex gap-3">
-                <button type="button" id="cancelLogout" class="flex-1 px-4 py-2 bg-white text-slate-600 font-bold rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors">Cancel</button>
-                <a href="<?= url('logout') ?>" id="confirmLogout" class="flex-1 px-4 py-2 bg-[#8B0000] text-white font-black rounded-lg hover:bg-red-500 transition-colors text-center uppercase tracking-widest text-sm shadow-lg">Logout</a>
+            <p class="text-slate-300 mb-6">Are you sure you want to LOG OUT from your account?</p>
+            <div class="flex items-center justify-center gap-3">
+                <button type="button" id="cancelLogout" class="flex-1 px-4 py-2 bg-slate-700 text-slate-300 font-bold rounded-lg border border-slate-600 hover:bg-slate-600 transition-colors">Cancel</button>
+                <a href="<?= url('logout') ?>" id="confirmLogout" class="flex-1 inline-flex items-center justify-center px-4 py-2 bg-transparent text-red-400 font-black rounded-lg border border-red-400/20 hover:bg-red-500/20 hover:text-white hover:border-red-400 transition-all text-center uppercase tracking-widest text-sm shadow-lg">LOG OUT</a>
             </div>
         </div>
     </div>
