@@ -163,7 +163,6 @@ $cleanPaths = [
     'template-html' => '/template-html',
     'api' => '/api',
     'logs' => '/logs',
-    'sms-logs' => '/sms-logs',
     'sms' => '/sms',
 ];
 
@@ -219,7 +218,7 @@ function navClass(string $page): string {
     if ($page === 'contacts' && in_array($current, ['contacts', 'contact-edit', 'contacts-import'])) return 'bg-[#f54a00] text-white';
     if ($page === 'senders' && ($current === 'senders' || $current === 'sender-edit')) return 'bg-[#f54a00] text-white';
     if ($page === 'sms' && $current === 'sms') return 'bg-[#f54a00] text-white';
-    if ($page === 'logs' && in_array($current, ['logs', 'sms-logs'], true)) return 'bg-[#f54a00] text-white';
+    if ($page === 'logs' && in_array($current, ['logs', 'sms-logs', 'whatsapp-logs'], true)) return 'bg-[#f54a00] text-white';
 
     return $current === $page
         ? 'bg-[#f54a00] text-white'
@@ -1165,16 +1164,10 @@ $contactsCount = (int) $navCountStmt->fetchColumn();
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
                 <span>API</span>
             </a>
-            <div class="space-y-0.5">
-                <a href="<?= url('logs') ?>" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors <?= currentPage() === 'logs' ? 'bg-[#f54a00] text-white' : 'text-slate-300 hover:bg-white/10 hover:text-white' ?>">
-                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                    <span>Email Logs</span>
-                </a>
-                <a href="<?= url('sms-logs') ?>" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors <?= currentPage() === 'sms-logs' ? 'bg-[#f54a00] text-white' : 'text-slate-300 hover:bg-white/10 hover:text-white' ?>">
-                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-                    <span>SMS Logs</span>
-                </a>
-            </div>
+            <a href="<?= url('logs') ?>" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors <?= navClass('logs') ?>">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                <span>Logs</span>
+            </a>
             <a href="<?= url('sms') ?>" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors <?= navClass('sms') ?>">
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
                 <span>SMS</span>
@@ -1195,7 +1188,7 @@ $contactsCount = (int) $navCountStmt->fetchColumn();
     <main class="flex-1 overflow-auto pt-14 md:pt-0">
         <div class="<?= in_array(currentPage(), $publicPages) ? '' : 'max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 md:py-8' ?> <?= !in_array(currentPage(), $publicPages) ? 'no-horizontal-scroll' : '' ?>">
             <?php if (!in_array(currentPage(), $publicPages)): ?>
-                <?php if (!in_array($page, ['api', 'design', 'compose', 'senders', 'contacts', 'group-edit', 'groups', 'logs', 'sms-logs', 'contact-edit', 'sender-edit', 'contacts-import', 'index', 'sms'])): ?>
+                <?php if (!in_array($page, ['api', 'design', 'compose', 'senders', 'contacts', 'group-edit', 'groups', 'logs', 'contact-edit', 'sender-edit', 'contacts-import', 'index', 'sms'])): ?>
                 <div class="mb-4 md:mb-6">
                     <h2 class="text-xl md:text-2xl font-semibold text-slate-900"><?= $page === 'index' ? 'Dashboard' : ucfirst(str_replace('-', ' ', $page)) ?></h2>
                     <p class="text-slate-500 text-xs md:text-sm mt-0.5"><?= $page === 'index' ? 'Overview and recent campaigns' : 'Manage your email marketing' ?></p>
