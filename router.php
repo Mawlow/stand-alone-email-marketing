@@ -114,12 +114,15 @@ $pageMap = [
     '/template-html' => 'template-html',
     '/api' => 'api',
     '/logs' => 'logs',
-    '/sms-logs' => 'sms-logs',
+    '/sms-logs' => 'logs',
     '/sms' => 'sms',
 ];
 
 if (isset($pageMap[$path])) {
     $_GET['page'] = $pageMap[$path];
+    if ($path === '/sms-logs') {
+        $_GET['type'] = 'sms';
+    }
 }
 
 if ($path === '/index.php' || isset($pageMap[$path])) {
