@@ -54,7 +54,7 @@ $allGroups = $allGroupsStmt->fetchAll(PDO::FETCH_ASSOC);
 
 <!-- Header Banner (Desktop) -->
 <div class="page-banner bg-[#141d2e] py-6 md:py-8 text-white shadow-lg relative overflow-hidden hidden lg:block">
-    <div class="px-8 sm:px-24 flex flex-col md:flex-row md:items-end justify-between gap-6">
+    <div class="px-3 sm:px-4 md:px-6 lg:px-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div class="relative z-10">
             <div class="flex items-center gap-2 mb-2">
                 <a href="<?= url('contacts') ?>" class="text-[#ff8904] hover:text-orange-600 text-sm font-bold flex items-center gap-1 transition-colors">

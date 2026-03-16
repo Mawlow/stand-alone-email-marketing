@@ -45,7 +45,7 @@ $composeFooterMode = 'text_only';
 
 <!-- Banner (Desktop) - Restored Dark Design -->
 <div class="compose-banner bg-[#141d2e] py-6 md:py-8 text-white shadow-lg relative overflow-hidden hidden lg:block">
-    <div class="px-8 sm:px-24 flex flex-col md:flex-row md:items-end justify-between gap-6">
+    <div class="pl-6 pr-8 lg:pl-8 lg:pr-24 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div class="relative z-10">
             <h1 class="text-[2.5rem] font-bold leading-tight">Compose</h1>
             <p class="text-blue-100/80 mt-1 text-sm font-medium">Create and send email campaigns</p>
@@ -55,7 +55,7 @@ $composeFooterMode = 'text_only';
 </div>
 
 <!-- Sub-Navigation Bar - Floating Segmented Control -->
-<div class="sticky top-4 z-20 flex justify-start mb-8 px-4 sm:px-24">
+<div class="sticky top-4 z-20 flex justify-start mb-8 px-4 sm:px-6 lg:px-8">
     <div class="inline-flex p-1.5 bg-white/90 backdrop-blur-xl rounded-2xl border border-slate-200 shadow-2xl">
         <a href="<?= url('compose') ?>" class="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all <?= currentPage() === 'compose' ? 'bg-[#f54a00] text-white shadow-lg' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' ?>">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>

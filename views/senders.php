@@ -36,7 +36,7 @@ foreach ($accounts as $a) { if ($a['is_active']) $activeSenders++; }
 
 <!-- Senders Banner (Desktop) -->
 <div class="page-banner bg-[#141d2e] py-6 md:py-8 text-white shadow-lg relative overflow-hidden hidden lg:block">
-    <div class="px-8 sm:px-24 flex flex-col md:flex-row md:items-end justify-between gap-6">
+    <div class="px-3 sm:px-4 md:px-6 lg:px-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div class="relative z-10">
             <h1 class="text-[2.5rem] font-bold leading-tight">Sender Accounts</h1>
             <p class="text-blue-100/80 mt-1 text-sm font-medium">Manage the identities powering your email delivery.</p>
