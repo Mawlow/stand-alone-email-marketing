@@ -116,6 +116,7 @@ $pageMap = [
     '/logs' => 'logs',
     '/sms-logs' => 'sms-logs',
     '/sms' => 'sms',
+    '/admin' => 'admin',
 ];
 
 if (isset($pageMap[$path])) {

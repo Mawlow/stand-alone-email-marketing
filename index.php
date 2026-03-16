@@ -115,6 +115,17 @@ try { $pdo->exec('UPDATE email_design_templates SET user_id = 1 WHERE user_id IS
 try { $pdo->exec('ALTER TABLE email_design_templates ADD INDEX idx_user_id (user_id)'); } catch (Throwable $e) { }
 try { $pdo->exec('ALTER TABLE email_design_templates DROP INDEX name'); } catch (Throwable $e) { }
 try { $pdo->exec('ALTER TABLE email_design_templates ADD UNIQUE KEY user_name (user_id, name)'); } catch (Throwable $e) { }
+try { $pdo->exec('ALTER TABLE users ADD COLUMN is_admin TINYINT NOT NULL DEFAULT 0'); } catch (Throwable $e) { }
+// Ensure default admin from .env exists and only that account has admin. All other users (e.g. company user id 1) are non-admin.
+try {
+    $defaultAdminEmail = trim($config['admin_email'] ?? 'admin@example.com');
+    $defaultAdminPassword = $config['admin_password'] ?? 'admin123';
+    if ($defaultAdminEmail !== '') {
+        $defaultAdminHash = password_hash($defaultAdminPassword, PASSWORD_DEFAULT);
+        $pdo->prepare('INSERT INTO users (email, password, name, is_admin) VALUES (?, ?, ?, 1) ON DUPLICATE KEY UPDATE password = VALUES(password), is_admin = 1, name = VALUES(name)')->execute([$defaultAdminEmail, $defaultAdminHash, 'Admin']);
+        $pdo->prepare('UPDATE users SET is_admin = 0 WHERE email != ?')->execute([$defaultAdminEmail]);
+    }
+} catch (Throwable $e) { }
 
 function h($s): string {
     return htmlspecialchars((string) $s, ENT_QUOTES, 'UTF-8');
@@ -164,6 +175,7 @@ $cleanPaths = [
     'api' => '/api',
     'logs' => '/logs',
     'sms' => '/sms',
+    'admin' => '/admin',
 ];
 
 function baseUrl(): string {
@@ -193,6 +205,10 @@ function currentPage(): string {
 
 function isLoggedIn(): bool {
     return isset($_SESSION['user_id']);
+}
+
+function isAdmin(): bool {
+    return !empty($_SESSION['is_admin']);
 }
 
 // Redirect if not logged in
@@ -446,13 +462,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'login') {
         $email = trim($_POST['email'] ?? '');
         $password = $_POST['password'] ?? '';
-        $stmt = $pdo->prepare('SELECT id, password, name FROM users WHERE email = ?');
+        $stmt = $pdo->prepare('SELECT id, password, name, COALESCE(is_admin, 0) AS is_admin FROM users WHERE email = ?');
         $stmt->execute([$email]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($user && password_verify($password, $user['password'])) {
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['user_name'] = $user['name'];
-            header('Location: ' . url('index'));
+            $_SESSION['is_admin'] = (bool) ($user['is_admin'] ?? 0);
+            header('Location: ' . (($_SESSION['is_admin'] ?? false) ? url('admin') : url('index')));
             exit;
         } else {
             $flashError = 'Invalid email or password.';
@@ -1071,6 +1088,13 @@ $flashSuccess = $_GET['success'] ?? null;
 $flashError = $flashError ?? $_GET['error'] ?? null;
 $page = currentPage();
 
+// Admin-only pages: only users with is_admin can access
+$adminOnlyPages = ['admin', 'senders', 'design', 'api', 'sender-edit'];
+if (isLoggedIn() && !isAdmin() && in_array($page, $adminOnlyPages, true)) {
+    header('Location: ' . url('index'));
+    exit;
+}
+
 // Sender count for nav (shared); contacts per user
 $sendersCount = (int) $pdo->query('SELECT COUNT(*) FROM sender_accounts')->fetchColumn();
 $activeSendersCount = (int) $pdo->query('SELECT COUNT(*) FROM sender_accounts WHERE is_active=1')->fetchColumn();
@@ -1083,10 +1107,18 @@ $contactsCount = (int) $navCountStmt->fetchColumn();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title><?= h($page === 'index' ? 'Email Marketing' : ucfirst(str_replace('-', ' ', $page))) ?> - <?= h($appName) ?></title>
+    <title><?= h($page === 'index' ? 'Email Marketing' : ($page === 'admin' ? 'Admin' : ucfirst(str_replace('-', ' ', $page)))) ?> - <?= h($appName) ?></title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
     <style>
+        /* Hide all scrollbars while keeping scroll behavior */
+        * {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        *::-webkit-scrollbar {
+            display: none;
+        }
         @media (max-width: 767px) {
             .mobile-nav-open { overflow: hidden; }
             body { overflow-x: hidden; }
@@ -1142,12 +1174,14 @@ $contactsCount = (int) $navCountStmt->fetchColumn();
             </button>
         </div>
         <nav class="flex-1 p-3 space-y-0.5 overflow-y-auto" aria-label="Main">
+            <?php if (!isAdmin()): ?>
+            <!-- Company nav: only for non-admin users -->
             <a href="<?= url('index') ?>" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors <?= currentPage() === 'index' ? 'bg-[#f54a00] text-white' : 'text-slate-300 hover:bg-white/10 hover:text-white' ?>">
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
                 <span>Dashboard</span>
             </a>
 
-            <a href="<?= url('compose') ?>" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors <?= in_array(currentPage(), ['compose', 'senders', 'contacts']) ? 'bg-[#f54a00] text-white' : 'text-slate-300 hover:bg-white/10 hover:text-white' ?>">
+            <a href="<?= url('compose') ?>" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors <?= in_array(currentPage(), ['compose', 'contacts']) ? 'bg-[#f54a00] text-white' : 'text-slate-300 hover:bg-white/10 hover:text-white' ?>">
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path></svg>
                 <span>Email Marketing</span>
             </a>
@@ -1155,14 +1189,6 @@ $contactsCount = (int) $navCountStmt->fetchColumn();
             <a href="<?= url('groups') ?>" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors <?= navClass('groups') ?>">
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
                 <span>Groups</span>
-            </a>
-            <a href="<?= url('design') ?>" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors <?= navClass('design') ?>">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path></svg>
-                <span>Design</span>
-            </a>
-            <a href="<?= url('api') ?>" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors <?= navClass('api') ?>">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
-                <span>API</span>
             </a>
             <a href="<?= url('logs') ?>" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors <?= navClass('logs') ?>">
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
@@ -1172,6 +1198,29 @@ $contactsCount = (int) $navCountStmt->fetchColumn();
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
                 <span>SMS</span>
             </a>
+            <?php endif; ?>
+
+            <?php if (isAdmin()): ?>
+            <div class="pt-4">
+                <p class="px-3 mb-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Admin</p>
+                <a href="<?= url('admin') ?>" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors <?= currentPage() === 'admin' ? 'bg-[#f54a00] text-white' : 'text-slate-300 hover:bg-white/10 hover:text-white' ?>">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                    <span>Admin</span>
+                </a>
+                <a href="<?= url('senders') ?>" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors <?= navClass('senders') ?>">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                    <span>Senders</span>
+                </a>
+                <a href="<?= url('design') ?>" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors <?= navClass('design') ?>">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path></svg>
+                    <span>Design</span>
+                </a>
+                <a href="<?= url('api') ?>" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors <?= navClass('api') ?>">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                    <span>API</span>
+                </a>
+            </div>
+            <?php endif; ?>
         </nav>
         <!-- START: Isolated Logout Section -->
         <div id="logout-section-isolated" class="mt-auto p-3 border-t border-slate-700/50 bg-slate-800">
@@ -1186,9 +1235,9 @@ $contactsCount = (int) $navCountStmt->fetchColumn();
 
     <!-- Main content -->
     <main class="flex-1 overflow-auto pt-14 md:pt-0">
-        <div class="<?= in_array(currentPage(), $publicPages) ? '' : 'max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 md:py-8' ?> <?= !in_array(currentPage(), $publicPages) ? 'no-horizontal-scroll' : '' ?>">
+        <div class="<?= in_array(currentPage(), $publicPages) ? '' : 'max-w-6xl mx-auto pl-12 pr-3 sm:pl-16 sm:pr-4 md:pl-20 md:pr-6 lg:pl-24 lg:pr-8 py-4 md:py-8' ?> <?= !in_array(currentPage(), $publicPages) ? 'no-horizontal-scroll' : '' ?>">
             <?php if (!in_array(currentPage(), $publicPages)): ?>
-                <?php if (!in_array($page, ['api', 'design', 'compose', 'senders', 'contacts', 'group-edit', 'groups', 'logs', 'contact-edit', 'sender-edit', 'contacts-import', 'index', 'sms'])): ?>
+                <?php if (!in_array($page, ['api', 'design', 'compose', 'senders', 'contacts', 'group-edit', 'groups', 'logs', 'contact-edit', 'sender-edit', 'contacts-import', 'index', 'sms', 'admin'])): ?>
                 <div class="mb-4 md:mb-6">
                     <h2 class="text-xl md:text-2xl font-semibold text-slate-900"><?= $page === 'index' ? 'Dashboard' : ucfirst(str_replace('-', ' ', $page)) ?></h2>
                     <p class="text-slate-500 text-xs md:text-sm mt-0.5"><?= $page === 'index' ? 'Overview and recent campaigns' : 'Manage your email marketing' ?></p>
