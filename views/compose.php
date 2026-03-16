@@ -54,7 +54,8 @@ $composeFooterMode = 'text_only';
     <div class="absolute top-0 right-0 -mt-4 -mr-4 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
 </div>
 
-<!-- Sub-Navigation Bar - Floating Segmented Control (Compose & Contacts only; Senders moved to Admin) -->
+<?php if (!isAdmin()): ?>
+<!-- Sub-Navigation Bar - Floating Segmented Control (Compose & Contacts) -->
 <div class="sticky top-4 z-20 flex justify-start mb-8 px-4 sm:px-6 lg:px-8">
     <div class="inline-flex p-1.5 bg-white/90 backdrop-blur-xl rounded-2xl border border-slate-200 shadow-2xl">
         <a href="<?= url('compose') ?>" class="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all <?= currentPage() === 'compose' ? 'bg-[#f54a00] text-white shadow-lg' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' ?>">
@@ -67,6 +68,7 @@ $composeFooterMode = 'text_only';
         </a>
     </div>
 </div>
+<?php endif; ?>
 
 <div class="compose-content-wrapper mt-6 lg:mt-0">
     <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">

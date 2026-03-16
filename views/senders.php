@@ -62,7 +62,8 @@ foreach ($accounts as $a) { if ($a['is_active']) $activeSenders++; }
     <div class="absolute top-0 right-0 -mt-4 -mr-4 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
 </div>
 
-<!-- Sub-Navigation Bar - Floating Segmented Control -->
+<?php if (!isAdmin()): ?>
+<!-- Sub-Navigation Bar - Floating Segmented Control (hidden for admin) -->
 <div class="sticky top-4 z-20 flex justify-start mb-8 px-4 sm:px-24">
     <div class="inline-flex p-1.5 bg-white/90 backdrop-blur-xl rounded-2xl border border-slate-200 shadow-2xl">
         <a href="<?= url('compose') ?>" class="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all <?= currentPage() === 'compose' ? 'bg-[#f54a00] text-white shadow-lg' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' ?>">
@@ -79,6 +80,7 @@ foreach ($accounts as $a) { if ($a['is_active']) $activeSenders++; }
         </a>
     </div>
 </div>
+<?php endif; ?>
 
 <!-- Mobile Header -->
 <div class="lg:hidden bg-[#141d2e] px-4 py-4 text-white">
