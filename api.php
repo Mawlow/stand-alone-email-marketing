@@ -90,7 +90,7 @@ function splitHeaderFooterApi(string $header, string $footer): array {
     return [$before, $after];
 }
 
-/** Load a template by id or name; return [header_html, footer_html] (normalized, split if same). */
+/** Load a template by id or name; return [header_html, footer_html] (normalized, split if same). Templates are shared. */
 function loadTemplateForApi(PDO $pdo, ?int $templateId, ?string $templateName): ?array {
     if ($templateId !== null && $templateId > 0) {
         $stmt = $pdo->prepare('SELECT header_html, footer_html FROM email_design_templates WHERE id = ?');
@@ -144,7 +144,7 @@ if ($apiKey === null || $apiKey === '') {
     exit;
 }
 
-$stmt = $pdo->prepare('SELECT id, name, default_template_id, default_sender_ids FROM api_keys WHERE api_key = ?');
+$stmt = $pdo->prepare('SELECT id, name, default_template_id, default_sender_ids, user_id FROM api_keys WHERE api_key = ?');
 $stmt->execute([$apiKey]);
 $apiKeyRow = $stmt->fetch(PDO::FETCH_ASSOC);
 if (!$apiKeyRow) {
@@ -152,6 +152,7 @@ if (!$apiKeyRow) {
     echo json_encode(['error' => 'Invalid API key.']);
     exit;
 }
+$apiKeyUserId = isset($apiKeyRow['user_id']) ? (int)$apiKeyRow['user_id'] : 0;
 
 $raw = file_get_contents('php://input');
 $input = json_decode($raw, true);
@@ -289,7 +290,7 @@ if ($templateId !== null && $templateId > 0 || $templateName !== null && $templa
     }
 }
 
-// When no senders chosen: use key default_sender_ids, or filter by API key name (e.g. "bayanihan.com" → only senders matching "bayanihan"), or all active
+// When no senders chosen: use key default_sender_ids, or filter by API key name, or all active (shared)
 if (empty($senders)) {
     $keyName = trim((string)($apiKeyRow['name'] ?? ''));
     $matchTerm = $keyName !== '' ? strtolower(trim(preg_replace('/\.(com|net|ph|org|io|co\.uk)$/i', '', $keyName))) : '';
@@ -303,8 +304,8 @@ if (empty($senders)) {
         $senders = $pdo->query('SELECT id FROM sender_accounts WHERE is_active=1 ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
     }
 }
-$pdo->prepare('INSERT INTO email_campaigns (subject, body, recipient_filter, rotate_senders, status, total_recipients) VALUES (?,?,?,?,?,?)')
-    ->execute([$subject, $body, 'api', 1, 'sending', count($recipients)]);
+$pdo->prepare('INSERT INTO email_campaigns (subject, body, recipient_filter, rotate_senders, status, total_recipients, user_id) VALUES (?,?,?,?,?,?,?)')
+    ->execute([$subject, $body, 'api', 1, 'sending', count($recipients), $apiKeyUserId]);
 $campaignId = (int)$pdo->lastInsertId();
 
 $insertLog = $pdo->prepare('INSERT INTO email_logs (email_campaign_id, sender_account_id, recipient_email, status, open_tracking_token) VALUES (?,?,?,?,?)');

@@ -1,7 +1,11 @@
 <?php
-$contacts = $pdo->query("SELECT c.*, (SELECT GROUP_CONCAT(g.name) FROM contact_group_members m JOIN contact_groups g ON g.id = m.group_id WHERE m.contact_id = c.id) as group_names FROM marketing_contacts c ORDER BY c.email")->fetchAll(PDO::FETCH_ASSOC);
+$contactsStmt = $pdo->prepare("SELECT c.*, (SELECT GROUP_CONCAT(g.name) FROM contact_group_members m JOIN contact_groups g ON g.id = m.group_id AND g.user_id = ? WHERE m.contact_id = c.id) as group_names FROM marketing_contacts c WHERE c.user_id = ? ORDER BY c.email");
+$contactsStmt->execute([$userId, $userId]);
+$contacts = $contactsStmt->fetchAll(PDO::FETCH_ASSOC);
 $totalContacts = count($contacts);
-$groupsCount = (int) $pdo->query('SELECT COUNT(*) FROM contact_groups')->fetchColumn();
+$groupsStmt = $pdo->prepare('SELECT COUNT(*) FROM contact_groups WHERE user_id = ?');
+$groupsStmt->execute([$userId]);
+$groupsCount = (int) $groupsStmt->fetchColumn();
 ?>
 <style>
     /* Hide the default title area from index.php when on the contacts page */

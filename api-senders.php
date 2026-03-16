@@ -70,7 +70,7 @@ if (!$keyRow) {
     exit;
 }
 
-// If this key has default senders set, return only those; otherwise all active senders
+// If this key has default senders set, return only those; otherwise all active senders (shared)
 $defaultSenderIds = isset($keyRow['default_sender_ids']) && trim((string)$keyRow['default_sender_ids']) !== ''
     ? array_map('intval', array_filter(explode(',', str_replace(' ', '', $keyRow['default_sender_ids']))))
     : [];

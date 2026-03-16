@@ -1,5 +1,7 @@
 <?php
-$apiKeys = $pdo->query('SELECT id, name, created_at, default_template_id, default_sender_ids, link_slug FROM api_keys ORDER BY id DESC')->fetchAll(PDO::FETCH_ASSOC);
+$apiKeysStmt = $pdo->prepare('SELECT id, name, created_at, default_template_id, default_sender_ids, link_slug FROM api_keys WHERE user_id = ? ORDER BY id DESC');
+$apiKeysStmt->execute([$userId]);
+$apiKeys = $apiKeysStmt->fetchAll(PDO::FETCH_ASSOC);
 $newKey = $_SESSION['new_api_key'] ?? null;
 $newKeyName = $_SESSION['new_api_key_name'] ?? '';
 if ($newKey !== null) {

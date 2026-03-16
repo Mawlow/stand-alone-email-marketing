@@ -3,8 +3,8 @@ $contactId = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 $contact = null;
 $contactGroupIds = [];
 if ($contactId) {
-    $st = $pdo->prepare('SELECT * FROM marketing_contacts WHERE id=?');
-    $st->execute([$contactId]);
+    $st = $pdo->prepare('SELECT * FROM marketing_contacts WHERE id=? AND user_id=?');
+    $st->execute([$contactId, $userId]);
     $contact = $st->fetch(PDO::FETCH_ASSOC) ?: null;
     if ($contact) {
         $st2 = $pdo->prepare('SELECT group_id FROM contact_group_members WHERE contact_id=?');
@@ -12,7 +12,9 @@ if ($contactId) {
         $contactGroupIds = array_column($st2->fetchAll(PDO::FETCH_ASSOC), 'group_id');
     }
 }
-$allGroups = $pdo->query('SELECT id, name FROM contact_groups ORDER BY name')->fetchAll(PDO::FETCH_ASSOC);
+$allGroupsStmt = $pdo->prepare('SELECT id, name FROM contact_groups WHERE user_id = ? ORDER BY name');
+$allGroupsStmt->execute([$userId]);
+$allGroups = $allGroupsStmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <style>
     /* Hide the default title area from index.php */

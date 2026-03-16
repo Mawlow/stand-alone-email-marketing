@@ -5,18 +5,17 @@ $members = [];
 $nonMembers = [];
 
 if ($groupId) {
-    $st = $pdo->prepare('SELECT * FROM contact_groups WHERE id = ?');
-    $st->execute([$groupId]);
+    $st = $pdo->prepare('SELECT * FROM contact_groups WHERE id = ? AND user_id = ?');
+    $st->execute([$groupId, $userId]);
     $group = $st->fetch(PDO::FETCH_ASSOC) ?: null;
 
     if ($group) {
-        $stMembers = $pdo->prepare('SELECT c.* FROM marketing_contacts c INNER JOIN contact_group_members m ON m.contact_id = c.id WHERE m.group_id = ? ORDER BY c.email');
-        $stMembers->execute([$groupId]);
+        $stMembers = $pdo->prepare('SELECT c.* FROM marketing_contacts c INNER JOIN contact_group_members m ON m.contact_id = c.id WHERE m.group_id = ? AND c.user_id = ? ORDER BY c.email');
+        $stMembers->execute([$groupId, $userId]);
         $members = $stMembers->fetchAll(PDO::FETCH_ASSOC);
 
-        // Fetch contacts not in this group for the dropdown
-        $stNonMembers = $pdo->prepare('SELECT * FROM marketing_contacts WHERE id NOT IN (SELECT contact_id FROM contact_group_members WHERE group_id = ?) ORDER BY email');
-        $stNonMembers->execute([$groupId]);
+        $stNonMembers = $pdo->prepare('SELECT * FROM marketing_contacts WHERE user_id = ? AND id NOT IN (SELECT contact_id FROM contact_group_members WHERE group_id = ?) ORDER BY email');
+        $stNonMembers->execute([$userId, $groupId]);
         $nonMembers = $stNonMembers->fetchAll(PDO::FETCH_ASSOC);
     }
 }

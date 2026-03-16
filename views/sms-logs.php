@@ -3,29 +3,31 @@ $statusFilter = $_GET['status'] ?? '';
 $groupFilter = isset($_GET['group_id']) ? (int) $_GET['group_id'] : 0;
 $searchQuery = $_GET['search'] ?? '';
 
-$q = 'SELECT * FROM sms_logs WHERE 1=1';
-$params = [];
+$q = 'SELECT l.* FROM sms_logs l INNER JOIN sms_groups g ON g.id = l.group_id AND g.user_id = ? WHERE 1=1';
+$params = [$userId];
 if ($statusFilter !== '') {
-    $q .= ' AND status = ?';
+    $q .= ' AND l.status = ?';
     $params[] = $statusFilter;
 }
 if ($groupFilter > 0) {
-    $q .= ' AND group_id = ?';
+    $q .= ' AND l.group_id = ?';
     $params[] = $groupFilter;
 }
 if ($searchQuery !== '') {
-    $q .= ' AND (recipient_name LIKE ? OR phone_number LIKE ? OR message LIKE ? OR group_name LIKE ?)';
+    $q .= ' AND (l.recipient_name LIKE ? OR l.phone_number LIKE ? OR l.message LIKE ? OR l.group_name LIKE ?)';
     $like = "%$searchQuery%";
     $params[] = $like;
     $params[] = $like;
     $params[] = $like;
     $params[] = $like;
 }
-$q .= ' ORDER BY id DESC LIMIT 200';
+$q .= ' ORDER BY l.id DESC LIMIT 200';
 $stmt = $pdo->prepare($q);
 $stmt->execute($params);
 $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
-$groupsForFilter = $pdo->query('SELECT id, name FROM sms_groups ORDER BY name')->fetchAll(PDO::FETCH_ASSOC);
+$groupsForFilterStmt = $pdo->prepare('SELECT id, name FROM sms_groups WHERE user_id = ? ORDER BY name');
+$groupsForFilterStmt->execute([$userId]);
+$groupsForFilter = $groupsForFilterStmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <style>
     main > div.max-w-6xl { max-width: none !important; padding: 0 !important; margin: 0 !important; }

@@ -1,5 +1,7 @@
 <?php
-$campaigns = $pdo->query('SELECT * FROM email_campaigns ORDER BY id DESC LIMIT 10')->fetchAll(PDO::FETCH_ASSOC);
+$campaignsStmt = $pdo->prepare('SELECT * FROM email_campaigns WHERE user_id = ? ORDER BY id DESC LIMIT 10');
+$campaignsStmt->execute([$userId]);
+$campaigns = $campaignsStmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <style>
     /* Hide the default title area from index.php when on the dashboard */

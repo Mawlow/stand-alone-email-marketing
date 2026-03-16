@@ -1,9 +1,9 @@
 <?php
 $searchQuery = $_GET['search'] ?? '';
-$q = 'SELECT g.*, (SELECT COUNT(*) FROM contact_group_members WHERE group_id = g.id) as member_count FROM contact_groups g';
-$params = [];
+$q = 'SELECT g.*, (SELECT COUNT(*) FROM contact_group_members WHERE group_id = g.id) as member_count FROM contact_groups g WHERE g.user_id = ?';
+$params = [$userId];
 if ($searchQuery !== '') {
-    $q .= ' WHERE g.name LIKE ?';
+    $q .= ' AND g.name LIKE ?';
     $params[] = "%$searchQuery%";
 }
 $q .= ' ORDER BY g.name';

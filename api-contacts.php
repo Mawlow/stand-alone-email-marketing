@@ -61,13 +61,20 @@ if ($apiKey === null || $apiKey === '') {
     echo json_encode(['error' => 'Missing API key. Send X-API-Key or Authorization: Bearer <key>.']);
     exit;
 }
-$stmt = $pdo->prepare('SELECT id, name FROM api_keys WHERE api_key = ?');
+$stmt = $pdo->prepare('SELECT id, name, user_id FROM api_keys WHERE api_key = ?');
 $stmt->execute([$apiKey]);
-if (!$stmt->fetch(PDO::FETCH_ASSOC)) {
+$keyRow = $stmt->fetch(PDO::FETCH_ASSOC);
+if (!$keyRow) {
     http_response_code(401);
     echo json_encode(['error' => 'Invalid API key.']);
     exit;
 }
-
-$rows = $pdo->query('SELECT id, email, company_name, notes, created_at FROM marketing_contacts ORDER BY email')->fetchAll(PDO::FETCH_ASSOC);
+$keyUserId = isset($keyRow['user_id']) ? (int)$keyRow['user_id'] : 0;
+if ($keyUserId < 1) {
+    $rows = [];
+} else {
+    $stmt = $pdo->prepare('SELECT id, email, company_name, notes, created_at FROM marketing_contacts WHERE user_id = ? ORDER BY email');
+    $stmt->execute([$keyUserId]);
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
 echo json_encode(['contacts' => $rows]);

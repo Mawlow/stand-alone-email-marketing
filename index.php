@@ -96,6 +96,26 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS email_design_templates (id INT AUTO_INCRE
 $pdo->exec($mysqlSchema[count($mysqlSchema) - 2]);
 $pdo->exec($mysqlSchema[count($mysqlSchema) - 1]);
 
+// Per-user dashboard: add user_id to all data tables so each user sees only their own data
+foreach (['sender_accounts', 'email_campaigns', 'contact_groups', 'api_keys', 'sms_groups'] as $tbl) {
+    try { $pdo->exec("ALTER TABLE $tbl ADD COLUMN user_id INT NULL DEFAULT NULL"); } catch (Throwable $e) { /* exists */ }
+    try { $pdo->exec("UPDATE $tbl SET user_id = 1 WHERE user_id IS NULL"); } catch (Throwable $e) { }
+    try { $pdo->exec("ALTER TABLE $tbl ADD INDEX idx_user_id (user_id)"); } catch (Throwable $e) { /* exists */ }
+}
+try { $pdo->exec('ALTER TABLE marketing_contacts ADD COLUMN user_id INT NULL DEFAULT NULL'); } catch (Throwable $e) { }
+try { $pdo->exec('UPDATE marketing_contacts SET user_id = 1 WHERE user_id IS NULL'); } catch (Throwable $e) { }
+try { $pdo->exec('ALTER TABLE marketing_contacts ADD INDEX idx_user_id (user_id)'); } catch (Throwable $e) { }
+try { $pdo->exec('ALTER TABLE marketing_contacts DROP INDEX email'); } catch (Throwable $e) { }
+try { $pdo->exec('ALTER TABLE marketing_contacts ADD UNIQUE KEY user_email (user_id, email)'); } catch (Throwable $e) { }
+try { $pdo->exec('ALTER TABLE email_design ADD COLUMN user_id INT NULL DEFAULT NULL'); } catch (Throwable $e) { }
+try { $pdo->exec('UPDATE email_design SET user_id = 1 WHERE user_id IS NULL'); } catch (Throwable $e) { }
+try { $pdo->exec('ALTER TABLE email_design ADD INDEX idx_user_id (user_id)'); } catch (Throwable $e) { }
+try { $pdo->exec('ALTER TABLE email_design_templates ADD COLUMN user_id INT NULL DEFAULT NULL'); } catch (Throwable $e) { }
+try { $pdo->exec('UPDATE email_design_templates SET user_id = 1 WHERE user_id IS NULL'); } catch (Throwable $e) { }
+try { $pdo->exec('ALTER TABLE email_design_templates ADD INDEX idx_user_id (user_id)'); } catch (Throwable $e) { }
+try { $pdo->exec('ALTER TABLE email_design_templates DROP INDEX name'); } catch (Throwable $e) { }
+try { $pdo->exec('ALTER TABLE email_design_templates ADD UNIQUE KEY user_name (user_id, name)'); } catch (Throwable $e) { }
+
 function h($s): string {
     return htmlspecialchars((string) $s, ENT_QUOTES, 'UTF-8');
 }
@@ -182,6 +202,9 @@ if (!isLoggedIn() && !in_array(currentPage(), $publicPages)) {
     header('Location: ' . url('login'));
     exit;
 }
+
+// Current user id for per-user dashboard (all data scoped to this user)
+$userId = isLoggedIn() ? (int) $_SESSION['user_id'] : 0;
 
 if (currentPage() === 'logout') {
     $_SESSION = [];
@@ -302,7 +325,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($id) {
                 $stmt = $pdo->prepare('UPDATE sender_accounts SET name=?, email=?, host=?, port=?, encryption=?, is_active=? WHERE id=?');
                 $stmt->execute([$name, $email, $host, $port, $encryption, $isActive ? 1 : 0, $id]);
-                if ($pwStore !== null) {
+                if ($stmt->rowCount() && $pwStore !== null) {
                     $pdo->prepare('UPDATE sender_accounts SET password=? WHERE id=?')->execute([$pwStore, $id]);
                 }
             } else {
@@ -336,10 +359,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             try {
                 if ($id) {
-                    $pdo->prepare('UPDATE marketing_contacts SET email=?, company_name=?, notes=? WHERE id=?')->execute([$email, $companyName, $notes, $id]);
+                    $pdo->prepare('UPDATE marketing_contacts SET email=?, company_name=?, notes=? WHERE id=? AND user_id=?')->execute([$email, $companyName, $notes, $id, $userId]);
                     $contactId = $id;
                 } else {
-                    $pdo->prepare('INSERT INTO marketing_contacts (email, company_name, notes) VALUES (?,?,?)')->execute([$email, $companyName, $notes]);
+                    $pdo->prepare('INSERT INTO marketing_contacts (email, company_name, notes, user_id) VALUES (?,?,?,?)')->execute([$email, $companyName, $notes, $userId]);
                     $contactId = (int) $pdo->lastInsertId();
                 }
                 $pdo->prepare('DELETE FROM contact_group_members WHERE contact_id=?')->execute([$contactId]);
@@ -364,7 +387,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'contact-delete' && isset($_POST['id'])) {
         $cid = (int) $_POST['id'];
         $pdo->prepare('DELETE FROM contact_group_members WHERE contact_id=?')->execute([$cid]);
-        $pdo->prepare('DELETE FROM marketing_contacts WHERE id=?')->execute([$cid]);
+        $pdo->prepare('DELETE FROM marketing_contacts WHERE id=? AND user_id=?')->execute([$cid, $userId]);
         header('Location: ' . url('contacts', ['success' => 'Contact removed.']));
         exit;
     }
@@ -377,7 +400,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $key = bin2hex(random_bytes(32));
             try {
-                $pdo->prepare('INSERT INTO api_keys (name, api_key) VALUES (?, ?)')->execute([$name, $key]);
+                $pdo->prepare('INSERT INTO api_keys (name, api_key, user_id) VALUES (?, ?, ?)')->execute([$name, $key, $userId]);
                 $_SESSION['new_api_key'] = $key;
                 $_SESSION['new_api_key_name'] = $name;
                 header('Location: ' . url('api', ['created' => 1]));
@@ -390,7 +413,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($action === 'api-key-delete' && isset($_POST['id'])) {
-        $pdo->prepare('DELETE FROM api_keys WHERE id = ?')->execute([(int) $_POST['id']]);
+        $pdo->prepare('DELETE FROM api_keys WHERE id = ? AND user_id = ?')->execute([(int) $_POST['id'], $userId]);
         header('Location: ' . url('api', ['success' => 'API key deleted.']));
         exit;
     }
@@ -452,9 +475,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         } else {
             if ($gid) {
-                $pdo->prepare('UPDATE contact_groups SET name=? WHERE id=?')->execute([$name, $gid]);
+                $pdo->prepare('UPDATE contact_groups SET name=? WHERE id=? AND user_id=?')->execute([$name, $gid, $userId]);
             } else {
-                $pdo->prepare('INSERT INTO contact_groups (name) VALUES (?)')->execute([$name]);
+                $pdo->prepare('INSERT INTO contact_groups (name, user_id) VALUES (?, ?)')->execute([$name, $userId]);
                 $gid = (int)$pdo->lastInsertId();
             }
             header('Location: ' . url('groups', ['success' => 'Group saved.']));
@@ -465,7 +488,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'group-delete' && isset($_POST['id'])) {
         $gid = (int) $_POST['id'];
         $pdo->prepare('DELETE FROM contact_group_members WHERE group_id=?')->execute([$gid]);
-        $pdo->prepare('DELETE FROM contact_groups WHERE id=?')->execute([$gid]);
+        $pdo->prepare('DELETE FROM contact_groups WHERE id=? AND user_id=?')->execute([$gid, $userId]);
         header('Location: ' . url('groups', ['success' => 'Group deleted.']));
         exit;
     }
@@ -506,15 +529,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 $pdo->beginTransaction();
                 // Check if contact exists first
-                $st = $pdo->prepare('SELECT id FROM marketing_contacts WHERE email = ?');
-                $st->execute([$email]);
+                $st = $pdo->prepare('SELECT id FROM marketing_contacts WHERE email = ? AND user_id = ?');
+                $st->execute([$email, $userId]);
                 $contact = $st->fetch();
                 
                 if ($contact) {
                     $cid = (int)$contact['id'];
                 } else {
-                    $pdo->prepare('INSERT INTO marketing_contacts (email, company_name) VALUES (?, ?)')
-                        ->execute([$email, $company ?: null]);
+                    $pdo->prepare('INSERT INTO marketing_contacts (email, company_name, user_id) VALUES (?, ?, ?)')
+                        ->execute([$email, $company ?: null, $userId]);
                     $cid = (int)$pdo->lastInsertId();
                 }
                 
@@ -584,14 +607,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             header('Location: ' . url('sms', ['error' => 'Group name is required.']));
             exit;
         }
-        $pdo->prepare('INSERT INTO sms_groups (name) VALUES (?)')->execute([$name]);
+        $pdo->prepare('INSERT INTO sms_groups (name, user_id) VALUES (?, ?)')->execute([$name, $userId]);
         header('Location: ' . url('sms', ['success' => 'SMS group created.']));
         exit;
     }
 
     if ($action === 'sms-group-delete' && isset($_POST['id'])) {
         $gid = (int) $_POST['id'];
-        $pdo->prepare('DELETE FROM sms_groups WHERE id=?')->execute([$gid]);
+        $pdo->prepare('DELETE FROM sms_groups WHERE id=? AND user_id=?')->execute([$gid, $userId]);
         header('Location: ' . url('sms', ['success' => 'SMS group deleted.']));
         exit;
     }
@@ -628,10 +651,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 header('Location: ' . url('sms', ['error' => 'Enter a name for the new group.']));
                 exit;
             }
-            $pdo->prepare('INSERT INTO sms_groups (name) VALUES (?)')->execute([$newGroupName]);
+            $pdo->prepare('INSERT INTO sms_groups (name, user_id) VALUES (?, ?)')->execute([$newGroupName, $userId]);
             $groupId = (int) $pdo->lastInsertId();
         } else {
             $groupId = (int) $groupChoice;
+            $chk = $pdo->prepare('SELECT id FROM sms_groups WHERE id = ? AND user_id = ?');
+            $chk->execute([$groupId, $userId]);
+            if (!$chk->fetch()) {
+                header('Location: ' . url('sms', ['error' => 'Invalid group.']));
+                exit;
+            }
         }
         if ($groupId < 1) {
             header('Location: ' . url('sms', ['error' => 'Select a group or create a new one.']));
@@ -666,8 +695,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             header('Location: ' . url('sms', ['error' => 'Semaphore API key is not configured. Add SEMAPHORE_API_KEY to your .env file.']));
             exit;
         }
-        $stmt = $pdo->prepare('SELECT id, name, phone_number FROM sms_recipients WHERE group_id = ? ORDER BY id');
-        $stmt->execute([$groupId]);
+        $stmt = $pdo->prepare('SELECT r.id, r.name, r.phone_number FROM sms_recipients r INNER JOIN sms_groups g ON g.id = r.group_id AND g.user_id = ? WHERE r.group_id = ? ORDER BY r.id');
+        $stmt->execute([$userId, $groupId]);
         $recipients = $stmt->fetchAll(PDO::FETCH_ASSOC);
         if (empty($recipients)) {
             header('Location: ' . url('sms', ['error' => 'Selected group has no recipients.']));
@@ -754,8 +783,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $responseParsed = true;
 
-        $groupRow = $pdo->prepare('SELECT name FROM sms_groups WHERE id = ?');
-        $groupRow->execute([$groupId]);
+        $groupRow = $pdo->prepare('SELECT name FROM sms_groups WHERE id = ? AND user_id = ?');
+        $groupRow->execute([$groupId, $userId]);
         $groupName = $groupRow->fetchColumn() ?: 'Unknown';
         $insertSmsLog = $pdo->prepare('INSERT INTO sms_logs (group_id, group_name, recipient_name, phone_number, message, status, error_message, sent_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
         $sentAt = date('Y-m-d H:i:s');
@@ -795,12 +824,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($linkSlug !== '' && strlen($linkSlug) < 2) $linkSlug = '';
         $linkSlugFinal = null;
         if ($linkSlug !== '') {
-            $other = $pdo->prepare('SELECT id FROM api_keys WHERE link_slug = ? AND id != ?');
-            $other->execute([$linkSlug, $keyId]);
+            $other = $pdo->prepare('SELECT id FROM api_keys WHERE link_slug = ? AND id != ? AND user_id = ?');
+            $other->execute([$linkSlug, $keyId, $userId]);
             if (!$other->fetch()) $linkSlugFinal = $linkSlug;
         }
-        $pdo->prepare('UPDATE api_keys SET default_template_id = ?, default_sender_ids = ?, link_slug = ? WHERE id = ?')
-            ->execute([$defaultTemplateId > 0 ? $defaultTemplateId : null, $defaultSenderIds !== '' ? $defaultSenderIds : null, $linkSlugFinal, $keyId]);
+        $pdo->prepare('UPDATE api_keys SET default_template_id = ?, default_sender_ids = ?, link_slug = ? WHERE id = ? AND user_id = ?')
+            ->execute([$defaultTemplateId > 0 ? $defaultTemplateId : null, $defaultSenderIds !== '' ? $defaultSenderIds : null, $linkSlugFinal, $keyId, $userId]);
         header('Location: ' . url('api') . '&success=' . urlencode('Defaults and API link saved.'));
         exit;
     }
@@ -812,18 +841,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $flashError = 'API link slug must be at least 2 characters.';
             $_GET['page'] = 'api';
         } elseif ($linkSlug !== '') {
-            $other = $pdo->prepare('SELECT id FROM api_keys WHERE link_slug = ? AND id != ?');
-            $other->execute([$linkSlug, $keyId]);
+            $other = $pdo->prepare('SELECT id FROM api_keys WHERE link_slug = ? AND id != ? AND user_id = ?');
+            $other->execute([$linkSlug, $keyId, $userId]);
             if ($other->fetch()) {
                 $flashError = 'That API link slug is already used by another key.';
                 $_GET['page'] = 'api';
             } else {
-                $pdo->prepare('UPDATE api_keys SET link_slug = ? WHERE id = ?')->execute([$linkSlug, $keyId]);
+                $pdo->prepare('UPDATE api_keys SET link_slug = ? WHERE id = ? AND user_id = ?')->execute([$linkSlug, $keyId, $userId]);
                 header('Location: ' . url('api') . '&success=' . urlencode('API link saved.'));
                 exit;
             }
         } else {
-            $pdo->prepare('UPDATE api_keys SET link_slug = NULL WHERE id = ?')->execute([$keyId]);
+            $pdo->prepare('UPDATE api_keys SET link_slug = NULL WHERE id = ? AND user_id = ?')->execute([$keyId, $userId]);
             header('Location: ' . url('api') . '&success=' . urlencode('API link cleared.'));
             exit;
         }
@@ -876,13 +905,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($bodyOutline !== '' && !preg_match('/^#[0-9A-Fa-f]{3,8}$/', $bodyOutline)) $bodyOutline = '';
         $templateName = trim((string)($_POST['template_name'] ?? ''));
         $templateEditId = (int)($_POST['template_edit_id'] ?? 0);
-        $pdo->prepare('REPLACE INTO email_design (id, header_html, footer_html, footer_bg_color, block_text_color, header_logo_url, header_mode, footer_logo_url, footer_mode, body_outline_color) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?)')->execute([$headerHtml, $footerHtml, $footerBg, $textColor, $headerLogoUrl, $headerMode, $footerLogoUrl, $footerMode, $bodyOutline]);
+        $upd = $pdo->prepare('UPDATE email_design SET header_html=?, footer_html=?, footer_bg_color=?, block_text_color=?, header_logo_url=?, header_mode=?, footer_logo_url=?, footer_mode=?, body_outline_color=? WHERE id=1');
+        $upd->execute([$headerHtml, $footerHtml, $footerBg, $textColor, $headerLogoUrl, $headerMode, $footerLogoUrl, $footerMode, $bodyOutline]);
+        if ($upd->rowCount() === 0) {
+            $pdo->prepare('INSERT INTO email_design (id, header_html, footer_html, footer_bg_color, block_text_color, header_logo_url, header_mode, footer_logo_url, footer_mode, body_outline_color) VALUES (1,?,?,?,?,?,?,?,?,?,?)')->execute([$headerHtml, $footerHtml, $footerBg, $textColor, $headerLogoUrl, $headerMode, $footerLogoUrl, $footerMode, $bodyOutline]);
+        }
         if ($templateName !== '') {
             if ($templateEditId > 0) {
                 $pdo->prepare('UPDATE email_design_templates SET name=?, header_html=?, footer_html=?, footer_bg_color=?, block_text_color=?, header_logo_url=?, header_mode=?, footer_logo_url=?, footer_mode=?, body_outline_color=? WHERE id=?')
                     ->execute([$templateName, $headerHtml, $footerHtml, $footerBg, $textColor, $headerLogoUrl, $headerMode, $footerLogoUrl, $footerMode, $bodyOutline, $templateEditId]);
             } else {
-                $pdo->prepare('INSERT INTO email_design_templates (name, header_html, footer_html, footer_bg_color, block_text_color, header_logo_url, header_mode, footer_logo_url, footer_mode, body_outline_color) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE header_html=VALUES(header_html), footer_html=VALUES(footer_html), footer_bg_color=VALUES(footer_bg_color), block_text_color=VALUES(block_text_color), header_logo_url=VALUES(header_logo_url), header_mode=VALUES(header_mode), footer_logo_url=VALUES(footer_logo_url), footer_mode=VALUES(footer_mode), body_outline_color=VALUES(body_outline_color)')->execute([$templateName, $headerHtml, $footerHtml, $footerBg, $textColor, $headerLogoUrl, $headerMode, $footerLogoUrl, $footerMode, $bodyOutline]);
+                $pdo->prepare('INSERT INTO email_design_templates (name, header_html, footer_html, footer_bg_color, block_text_color, header_logo_url, header_mode, footer_logo_url, footer_mode, body_outline_color) VALUES (?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE header_html=VALUES(header_html), footer_html=VALUES(footer_html), footer_bg_color=VALUES(footer_bg_color), block_text_color=VALUES(block_text_color), header_logo_url=VALUES(header_logo_url), header_mode=VALUES(header_mode), footer_logo_url=VALUES(footer_logo_url), footer_mode=VALUES(footer_mode), body_outline_color=VALUES(body_outline_color)')->execute([$templateName, $headerHtml, $footerHtml, $footerBg, $textColor, $headerLogoUrl, $headerMode, $footerLogoUrl, $footerMode, $bodyOutline]);
             }
         }
         header('Location: ' . url('design') . '?success=' . urlencode($templateName !== '' ? 'Design saved as template "' . $templateName . '".' : 'Email design saved.'));
@@ -905,12 +938,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (in_array($c, ['email', 'e-mail', 'email address'], true)) $emailIdx = $i;
             if (in_array($c, ['company', 'company name', 'company_name'], true)) $companyIdx = $i;
         }
-        $stmt = $pdo->prepare('INSERT IGNORE INTO marketing_contacts (email, company_name) VALUES (?,?)');
+        $stmt = $pdo->prepare('INSERT IGNORE INTO marketing_contacts (email, company_name, user_id) VALUES (?,?,?)');
         foreach ($rows as $row) {
             $email = trim($row[$emailIdx] ?? '');
             if (!filter_var($email, FILTER_VALIDATE_EMAIL)) { $skipped++; continue; }
             $company = $companyIdx !== null ? trim($row[$companyIdx] ?? '') : null;
-            $stmt->execute([$email, $company ?: null]);
+            $stmt->execute([$email, $company ?: null, $userId]);
             if ($stmt->rowCount()) $added++; else $skipped++;
         }
         header('Location: ' . url('contacts') . '&success=' . urlencode("Import done: $added added, $skipped skipped."));
@@ -936,13 +969,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $_GET['page'] = 'compose';
                 } else {
                     $placeholders = implode(',', array_fill(0, count($recipientGroupIds), '?'));
-                    $stmt = $pdo->prepare("SELECT DISTINCT c.id, c.email FROM marketing_contacts c INNER JOIN contact_group_members m ON m.contact_id = c.id WHERE m.group_id IN ($placeholders) ORDER BY c.email");
-                    $stmt->execute(array_values($recipientGroupIds));
+                    $stmt = $pdo->prepare("SELECT DISTINCT c.id, c.email FROM marketing_contacts c INNER JOIN contact_group_members m ON m.contact_id = c.id AND c.user_id = ? WHERE m.group_id IN ($placeholders) ORDER BY c.email");
+                    $stmt->execute(array_merge([$userId], $recipientGroupIds));
                     $recipients = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 }
             }
             if ($recipients === null) {
-                $recipients = $pdo->query('SELECT id, email FROM marketing_contacts ORDER BY email')->fetchAll(PDO::FETCH_ASSOC);
+                $stmt = $pdo->prepare('SELECT id, email FROM marketing_contacts WHERE user_id = ? ORDER BY email');
+                $stmt->execute([$userId]);
+                $recipients = $stmt->fetchAll(PDO::FETCH_ASSOC);
             }
             if (!isset($flashError)) {
             $composeSender = $_POST['compose_sender'] ?? 'all';
@@ -964,8 +999,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $senders = $pdo->query('SELECT id FROM sender_accounts WHERE is_active=1 ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
             }
             if (!isset($flashError)) {
-            $pdo->prepare('INSERT INTO email_campaigns (subject, body, recipient_filter, rotate_senders, status, total_recipients) VALUES (?,?,?,?,?,?)')
-                ->execute([$subject, $body, $recipientFilter, $rotateSenders ? 1 : 0, 'sending', count($recipients)]);
+            $pdo->prepare('INSERT INTO email_campaigns (subject, body, recipient_filter, rotate_senders, status, total_recipients, user_id) VALUES (?,?,?,?,?,?,?)')
+                ->execute([$subject, $body, $recipientFilter, $rotateSenders ? 1 : 0, 'sending', count($recipients), $userId]);
             $campaignId = (int) $pdo->lastInsertId();
 
             $insertLog = $pdo->prepare('INSERT INTO email_logs (email_campaign_id, sender_account_id, recipient_email, status, open_tracking_token) VALUES (?,?,?,?,?)');
@@ -1037,10 +1072,12 @@ $flashSuccess = $_GET['success'] ?? null;
 $flashError = $flashError ?? $_GET['error'] ?? null;
 $page = currentPage();
 
-// Sender count for nav
+// Sender count for nav (shared); contacts per user
 $sendersCount = (int) $pdo->query('SELECT COUNT(*) FROM sender_accounts')->fetchColumn();
 $activeSendersCount = (int) $pdo->query('SELECT COUNT(*) FROM sender_accounts WHERE is_active=1')->fetchColumn();
-$contactsCount = (int) $pdo->query('SELECT COUNT(*) FROM marketing_contacts')->fetchColumn();
+$navCountStmt = $pdo->prepare('SELECT COUNT(*) FROM marketing_contacts WHERE user_id = ?');
+$navCountStmt->execute([$userId]);
+$contactsCount = (int) $navCountStmt->fetchColumn();
 ?>
 <!DOCTYPE html>
 <html lang="en">

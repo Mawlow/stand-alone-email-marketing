@@ -1,6 +1,10 @@
 <?php
-$smsGroups = $pdo->query('SELECT g.*, (SELECT COUNT(*) FROM sms_recipients WHERE group_id = g.id) as recipient_count FROM sms_groups g ORDER BY g.name')->fetchAll(PDO::FETCH_ASSOC);
-$smsRecipients = $pdo->query('SELECT r.*, g.name as group_name FROM sms_recipients r JOIN sms_groups g ON g.id = r.group_id ORDER BY g.name, r.name')->fetchAll(PDO::FETCH_ASSOC);
+$smsGroupsStmt = $pdo->prepare('SELECT g.*, (SELECT COUNT(*) FROM sms_recipients WHERE group_id = g.id) as recipient_count FROM sms_groups g WHERE g.user_id = ? ORDER BY g.name');
+$smsGroupsStmt->execute([$userId]);
+$smsGroups = $smsGroupsStmt->fetchAll(PDO::FETCH_ASSOC);
+$smsRecipientsStmt = $pdo->prepare('SELECT r.*, g.name as group_name FROM sms_recipients r JOIN sms_groups g ON g.id = r.group_id AND g.user_id = ? ORDER BY g.name, r.name');
+$smsRecipientsStmt->execute([$userId]);
+$smsRecipients = $smsRecipientsStmt->fetchAll(PDO::FETCH_ASSOC);
 $recipientsByGroup = [];
 foreach ($smsRecipients as $r) {
     $recipientsByGroup[(int)$r['group_id']][] = ['id' => (int)$r['id'], 'name' => $r['name'], 'phone_number' => $r['phone_number']];

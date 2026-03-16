@@ -4,8 +4,8 @@ $campaignFilter = isset($_GET['campaign_id']) ? (int) $_GET['campaign_id'] : 0;
 $openedFilter = $_GET['opened'] ?? '';
 $searchQuery = $_GET['search'] ?? '';
 
-$q = 'SELECT l.*, c.subject as campaign_subject, c.sent_count as campaign_sent, c.failed_count as campaign_failed FROM email_logs l LEFT JOIN email_campaigns c ON c.id = l.email_campaign_id WHERE 1=1';
-$params = [];
+$q = 'SELECT l.*, c.subject as campaign_subject, c.sent_count as campaign_sent, c.failed_count as campaign_failed FROM email_logs l LEFT JOIN email_campaigns c ON c.id = l.email_campaign_id WHERE l.email_campaign_id IN (SELECT id FROM email_campaigns WHERE user_id = ?)';
+$params = [$userId];
 
 if ($statusFilter !== '') { $q .= ' AND l.status = ?'; $params[] = $statusFilter; }
 if ($campaignFilter > 0) { $q .= ' AND l.email_campaign_id = ?'; $params[] = $campaignFilter; }
@@ -21,7 +21,9 @@ $q .= ' ORDER BY l.id DESC LIMIT 100';
 $stmt = $pdo->prepare($q);
 $stmt->execute($params);
 $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
-$campaigns = $pdo->query('SELECT id, subject FROM email_campaigns ORDER BY id DESC LIMIT 50')->fetchAll(PDO::FETCH_ASSOC);
+$campaignsStmt = $pdo->prepare('SELECT id, subject FROM email_campaigns WHERE user_id = ? ORDER BY id DESC LIMIT 50');
+$campaignsStmt->execute([$userId]);
+$campaigns = $campaignsStmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <style>

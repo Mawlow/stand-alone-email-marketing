@@ -1,7 +1,9 @@
 <?php
 $templateSubject = 'Simplify your hiring process — Start with us';
 $templateBody = '<p style="margin:0 0 16px; font-size:11px; font-weight:700; color:#ff8904;">Hire smarter. Hire faster.</p><h1 style="margin:0 0 20px; font-size:28px; font-weight:800; color:#0f172a;">Simplify your hiring process</h1><p style="margin:0 0 32px; font-size:15px; color:#64748b;">We streamline recruitment — from posting jobs to managing applicants — in one platform.</p><p><a href="#" style="display:inline-block; padding:14px 28px; background:#0f172a; color:#fff!important; text-decoration:none; font-weight:700; border-radius:12px;">Get started for free →</a></p>';
-$composeGroups = $pdo->query('SELECT g.id, g.name, (SELECT COUNT(*) FROM contact_group_members WHERE group_id = g.id) as cnt FROM contact_groups g ORDER BY g.name')->fetchAll(PDO::FETCH_ASSOC);
+$composeGroupsStmt = $pdo->prepare('SELECT g.id, g.name, (SELECT COUNT(*) FROM contact_group_members WHERE group_id = g.id) as cnt FROM contact_groups g WHERE g.user_id = ? ORDER BY g.name');
+$composeGroupsStmt->execute([$userId]);
+$composeGroups = $composeGroupsStmt->fetchAll(PDO::FETCH_ASSOC);
 $composeSenders = $pdo->query('SELECT id, name, email FROM sender_accounts WHERE is_active=1 ORDER BY name')->fetchAll(PDO::FETCH_ASSOC);
 $composeHeader = '';
 $composeFooter = '';
