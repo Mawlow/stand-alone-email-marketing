@@ -45,30 +45,34 @@ $composeFooterMode = 'text_only';
 
 <!-- Banner (Desktop) - Restored Dark Design -->
 <div class="compose-banner bg-[#141d2e] py-6 md:py-8 text-white shadow-lg relative overflow-hidden hidden lg:block">
-    <div class="pl-6 pr-8 lg:pl-8 lg:pr-24 flex flex-col md:flex-row md:items-end justify-between gap-6">
+    <div class="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div class="relative z-10">
             <h1 class="text-[2.5rem] font-bold leading-tight">Compose</h1>
             <p class="text-blue-100/80 mt-1 text-sm font-medium">Create and send email campaigns</p>
         </div>
+
+        <?php if (!isAdmin()): ?>
+        <!-- Desktop sub-nav (top-right like Logs page) -->
+        <div class="relative z-10 flex gap-2">
+            <a href="<?= url('compose') ?>" class="px-4 py-1.5 rounded-lg text-sm font-bold transition-all border <?= currentPage() === 'compose' ? 'bg-[#f54a00] text-white border-[#f54a00] shadow-lg' : 'bg-white/10 text-white/70 border-white/30 hover:text-white hover:bg-white/20' ?>">Compose</a>
+            <a href="<?= url('contacts') ?>" class="px-4 py-1.5 rounded-lg text-sm font-bold transition-all border <?= currentPage() === 'contacts' ? 'bg-[#f54a00] text-white border-[#f54a00] shadow-lg' : 'bg-white/10 text-white/70 border-white/30 hover:text-white hover:bg-white/20' ?>">Contacts</a>
+        </div>
+        <?php endif; ?>
     </div>
     <div class="absolute top-0 right-0 -mt-4 -mr-4 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
 </div>
 
-<?php if (!isAdmin()): ?>
-<!-- Sub-Navigation Bar - Floating Segmented Control (Compose & Contacts) -->
-<div class="sticky top-4 z-20 flex justify-start mb-8 px-4 sm:px-6 lg:px-8">
-    <div class="inline-flex p-1.5 bg-white/90 backdrop-blur-xl rounded-2xl border border-slate-200 shadow-2xl">
-        <a href="<?= url('compose') ?>" class="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all <?= currentPage() === 'compose' ? 'bg-[#f54a00] text-white shadow-lg' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' ?>">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-            Compose
-        </a>
-        <a href="<?= url('contacts') ?>" class="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all <?= currentPage() === 'contacts' ? 'bg-[#f54a00] text-white shadow-lg' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' ?>">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-            Contacts
-        </a>
+
+<!-- Mobile Sub-Navigation -->
+<div class="lg:hidden bg-[#141d2e] px-4 pt-4 pb-6 text-white mb-2">
+    <div class="flex items-center gap-3">
+        <h1 class="text-base font-black text-white shrink-0">Compose</h1>
+        <div class="flex flex-1 gap-2 justify-end">
+            <a href="<?= url('compose') ?>" class="text-center px-3 py-2 min-h-[34px] rounded-lg text-[11px] font-bold transition-all border whitespace-nowrap <?= currentPage() === 'compose' ? 'bg-[#f54a00] text-white border-[#f54a00] shadow-sm' : 'bg-white/10 text-white/70 border-white/30 hover:text-white' ?>">Compose</a>
+            <a href="<?= url('contacts') ?>" class="text-center px-3 py-2 min-h-[34px] rounded-lg text-[11px] font-bold transition-all border whitespace-nowrap <?= currentPage() === 'contacts' ? 'bg-[#f54a00] text-white border-[#f54a00] shadow-sm' : 'bg-white/10 text-white/70 border-white/30 hover:text-white' ?>">Contacts</a>
+        </div>
     </div>
 </div>
-<?php endif; ?>
 
 <div class="compose-content-wrapper mt-6 lg:mt-0">
     <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">
@@ -181,9 +185,9 @@ $composeFooterMode = 'text_only';
             </div>
             
             <!-- Bottom Action Bar -->
-            <div class="bg-slate-50 px-6 py-4 flex items-center justify-start gap-3 border-t border-slate-100">
-                <button type="submit" class="px-10 py-3 bg-[#ff8904] text-white font-black rounded-xl hover:bg-[#f54a00] transition-all shadow-lg uppercase tracking-widest text-sm">Send Campaign</button>
-                <a href="<?= url('index') ?>" class="px-6 py-3 bg-slate-200 text-slate-700 text-sm font-bold rounded-xl hover:bg-slate-300 transition-colors">Cancel</a>
+            <div class="bg-slate-50 px-6 py-4 flex flex-row items-center gap-3 border-t border-slate-100">
+                <button type="submit" class="flex-1 sm:flex-none px-6 sm:px-10 py-3 bg-[#ff8904] text-white font-black rounded-xl hover:bg-[#f54a00] transition-all shadow-lg uppercase tracking-widest text-sm text-center"><span class="sm:hidden">Send</span><span class="hidden sm:inline">Send Campaign</span></button>
+                <a href="<?= url('index') ?>" class="flex-1 sm:flex-none px-6 py-3 bg-slate-200 text-slate-700 text-sm font-bold rounded-xl hover:bg-slate-300 transition-colors text-center">Cancel</a>
             </div>
         </form>
 

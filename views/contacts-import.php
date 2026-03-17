@@ -32,7 +32,7 @@
 
 <!-- Header Banner -->
 <div class="page-banner bg-[#141d2e] py-6 md:py-8 text-white shadow-lg relative overflow-hidden hidden lg:block">
-    <div class="px-3 sm:px-4 md:px-6 lg:px-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
+    <div class="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div class="relative z-10">
             <div class="flex items-center gap-2 mb-2">
                 <a href="<?= url('contacts') ?>" class="text-[#ff8904] hover:text-orange-600 text-sm font-bold flex items-center gap-1 transition-colors">
@@ -49,19 +49,19 @@
 
 <!-- Mobile Header -->
 <div class="lg:hidden bg-[#141d2e] px-4 py-4 text-white">
-    <div class="flex items-center gap-2 mb-2">
+    <div class="hidden flex items-center gap-2 mb-2">
         <a href="<?= url('contacts') ?>" class="text-[#ff8904] hover:text-orange-300 text-sm font-bold flex items-center gap-1 transition-colors">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
             Back
         </a>
     </div>
-    <div class="flex items-center justify-between">
+    <div class="flex items-center justify-start">
         <h1 class="text-xl font-bold">Contacts Import</h1>
     </div>
     <p class="text-blue-100/80 text-xs mt-1">Bulk upload your audience from CSV files.</p>
 </div>
 
-<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 relative">
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 relative pt-6 md:pt-0">
     <!-- Background element starting from sidebar -->
     <div class="fixed inset-y-0 left-64 right-0 bg-slate-50 -z-10 border-l border-slate-200 hidden lg:block"></div>
 
@@ -84,7 +84,7 @@
                 <p class="text-xs text-[#ff8904]/70 font-medium hidden sm:block">* CSV file required</p>
                 <div class="flex gap-2 w-full sm:w-auto">
                     <a href="<?= url('contacts') ?>" class="flex-1 sm:flex-none px-6 py-3 bg-white text-slate-600 font-bold rounded-xl border-2 border-slate-200 hover:bg-slate-50 transition-colors text-center text-sm touch-manipulation">Cancel</a>
-                    <button type="submit" class="flex-1 sm:flex-none px-8 py-3 bg-[#ff8904] text-white font-bold rounded-xl hover:bg-orange-600 shadow-md transition-all text-sm touch-manipulation">Import Contacts</button>
+                    <button type="submit" class="flex-1 sm:flex-none px-8 py-3 bg-[#ff8904] text-white font-bold rounded-xl hover:bg-orange-600 shadow-md transition-all text-sm touch-manipulation"><span class="sm:hidden">Import</span><span class="hidden sm:inline">Import Contacts</span></button>
                 </div>
             </div>
         </form>

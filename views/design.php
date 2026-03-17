@@ -56,7 +56,7 @@ $designFooterMode = $designRow && in_array($designRow['footer_mode'] ?? '', ['lo
 
 <!-- Banner (Matches Compose Campaign design exactly) -->
 <div class="design-banner bg-[#141d2e] py-6 md:py-8 text-white shadow-lg relative overflow-hidden hidden lg:block">
-<div class="px-3 sm:px-4 md:px-6 lg:px-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div class="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
     <div class="relative z-10">
         <h1 class="text-[2.5rem] font-bold leading-tight">Design</h1>
         <p class="text-blue-100/80 mt-1 text-sm font-medium">Customize and manage email templates</p>
@@ -117,9 +117,9 @@ $designFooterMode = $designRow && in_array($designRow['footer_mode'] ?? '', ['lo
 
             <!-- Redundant "Deploy Design" button removed -->
             <!-- Bottom Action Bar -->
-            <div class="bg-slate-50 px-4 md:px-6 py-4 flex items-center justify-start gap-3 border-t border-slate-100">
-                <button type="submit" class="px-10 py-3 bg-[#ff8904] text-white font-black rounded-xl hover:bg-[#f54a00] transition-all shadow-lg uppercase tracking-widest text-sm">Save Design</button>
-                <a href="<?= url('compose') ?>" class="px-6 py-3 bg-slate-200 text-slate-700 text-sm font-bold rounded-xl hover:bg-slate-300 transition-colors">Go to Compose</a>
+            <div class="bg-slate-50 px-4 md:px-6 py-4 flex items-center justify-start gap-3 border-t border-slate-100 flex-wrap">
+                <button type="submit" class="flex-1 sm:flex-none px-7 sm:px-10 py-3 sm:py-3 bg-[#ff8904] text-white font-black rounded-xl hover:bg-[#f54a00] transition-all shadow-lg uppercase tracking-widest text-sm sm:text-sm text-center"><span class="sm:hidden">Save</span><span class="hidden sm:inline">Save Design</span></button>
+                <a href="<?= url('compose') ?>" class="flex-1 sm:flex-none px-5 sm:px-6 py-3 sm:py-3 bg-slate-200 text-slate-700 text-sm sm:text-sm font-bold rounded-xl hover:bg-slate-300 transition-colors text-center"><span class="sm:hidden">To Compose</span><span class="hidden sm:inline">Go to Compose</span></a>
             </div>
         </form>
     </div>

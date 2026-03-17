@@ -1101,6 +1101,10 @@ $activeSendersCount = (int) $pdo->query('SELECT COUNT(*) FROM sender_accounts WH
 $navCountStmt = $pdo->prepare('SELECT COUNT(*) FROM marketing_contacts WHERE user_id = ?');
 $navCountStmt->execute([$userId]);
 $contactsCount = (int) $navCountStmt->fetchColumn();
+
+$groupsCountStmt = $pdo->prepare('SELECT COUNT(*) FROM contact_groups WHERE user_id = ?');
+$groupsCountStmt->execute([$userId]);
+$groupsCount = (int) $groupsCountStmt->fetchColumn();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -1120,8 +1124,19 @@ $contactsCount = (int) $navCountStmt->fetchColumn();
             display: none;
         }
         @media (max-width: 767px) {
-            .mobile-nav-open { overflow: hidden; }
+            /* Prevent background from scrolling/shifting when the drawer is open */
+            /* Avoid iOS/Android rendering "flip" by not fixing <body>.
+               Instead, lock scrolling via <html> + main container. */
+            html.mobile-nav-open,
+            body.mobile-nav-open {
+                overflow: hidden;
+            }
             body { overflow-x: hidden; }
+            body.mobile-nav-open main {
+                overflow: hidden;
+                overscroll-behavior: contain;
+                touch-action: none;
+            }
             .no-horizontal-scroll { overflow-x: hidden; max-width: 100vw; }
         }
         @media (min-width: 768px) {
@@ -1133,7 +1148,15 @@ $contactsCount = (int) $navCountStmt->fetchColumn();
             inset: 0;
             background: rgba(0,0,0,0.5);
             z-index: 40;
-            backdrop-filter: blur(2px);
+            /* Blur can cause mobile GPU/compositing glitches ("flipped" content). */
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+        }
+        @media (min-width: 768px) {
+            .sidebar-overlay {
+                backdrop-filter: blur(2px);
+                -webkit-backdrop-filter: blur(2px);
+            }
         }
         .sidebar-overlay:not(.hidden) {
             display: block;
@@ -1141,20 +1164,23 @@ $contactsCount = (int) $navCountStmt->fetchColumn();
         .rotate-180 {
             transform: rotate(180deg);
         }
+
     </style>
 </head>
 <body class="min-h-screen bg-slate-100 font-sans text-slate-900 antialiased">
 <div class="flex min-h-screen">
     <?php if (!in_array(currentPage(), $publicPages)): ?>
     <!-- Mobile Header -->
-    <header class="md:hidden fixed top-0 left-0 right-0 bg-slate-900 z-30 h-14 flex items-center justify-between px-4 shadow-lg">
+    <header class="md:hidden fixed top-0 left-0 right-0 bg-slate-900 z-30 h-20 grid grid-cols-3 items-center px-4 shadow-lg">
         <button id="mobile-menu-btn" type="button" class="p-2 -ml-2 text-white hover:bg-white/10 rounded-lg touch-manipulation" aria-label="Open menu">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
             </svg>
         </button>
-        <a href="<?= url('index') ?>" class="text-white font-semibold text-base truncate">Email Marketing</a>
-        <div class="w-10"></div>
+        <div></div>
+        <a href="<?= url('index') ?>" class="flex items-center justify-end">
+            <img src="/public/images/logo1.png" alt="Logo" class="h-12 w-auto">
+        </a>
     </header>
 
     <!-- Mobile Sidebar Overlay -->
@@ -1234,7 +1260,7 @@ $contactsCount = (int) $navCountStmt->fetchColumn();
     <?php endif; ?>
 
     <!-- Main content -->
-    <main class="flex-1 overflow-auto pt-14 md:pt-0">
+    <main class="flex-1 overflow-auto <?= in_array(currentPage(), $publicPages) ? '' : 'pt-20 md:pt-0' ?>">
         <div class="<?= in_array(currentPage(), $publicPages) ? '' : 'max-w-6xl mx-auto pl-12 pr-3 sm:pl-16 sm:pr-4 md:pl-20 md:pr-6 lg:pl-24 lg:pr-8 py-4 md:py-8' ?> <?= !in_array(currentPage(), $publicPages) ? 'no-horizontal-scroll' : '' ?>">
             <?php if (!in_array(currentPage(), $publicPages)): ?>
                 <?php if (!in_array($page, ['api', 'design', 'compose', 'senders', 'contacts', 'group-edit', 'groups', 'logs', 'contact-edit', 'sender-edit', 'contacts-import', 'index', 'sms', 'admin'])): ?>
@@ -1273,12 +1299,14 @@ $contactsCount = (int) $navCountStmt->fetchColumn();
     function openMenu() {
         sidebar.classList.remove('-translate-x-full');
         overlay.classList.remove('hidden');
+        document.documentElement.classList.add('mobile-nav-open');
         document.body.classList.add('mobile-nav-open');
     }
     
     function closeMenu() {
         sidebar.classList.add('-translate-x-full');
         overlay.classList.add('hidden');
+        document.documentElement.classList.remove('mobile-nav-open');
         document.body.classList.remove('mobile-nav-open');
     }
     
@@ -1289,11 +1317,12 @@ $contactsCount = (int) $navCountStmt->fetchColumn();
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') closeMenu();
     });
+
 })();
 </script>
 
 <!-- Logout Confirmation Modal -->
-<div id="logoutModal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-[2px] flex items-center justify-center z-50 hidden">
+<div id="logoutModal" class="fixed inset-0 bg-black bg-opacity-60 md:backdrop-blur-[2px] flex items-center justify-center z-50 hidden">
     <div class="bg-slate-800 rounded-xl shadow-2xl max-w-md w-full mx-4 transform transition-all border border-slate-700/50">
         <div class="p-6">
             <div class="flex items-center gap-3 mb-4">

@@ -47,7 +47,7 @@ if ($editKeyId > 0) {
 
 <!-- Banner (The "Identity") -->
 <div class="api-banner bg-[#141d2e] py-6 md:py-8 text-white shadow-lg relative overflow-hidden hidden lg:block">
-    <div class="px-3 sm:px-4 md:px-6 lg:px-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
+    <div class="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div class="relative z-10">
             <h1 class="text-[2.5rem] font-bold leading-tight">API</h1>
             <p class="text-blue-100/80 mt-1 text-sm font-medium">Integrate with external systems</p>
@@ -135,7 +135,8 @@ if ($editKeyId > 0) {
                     <p class="text-slate-400 text-xs italic">No active API keys discovered.</p>
                 </div>
                 <?php else: ?>
-                <div class="overflow-x-auto rounded-xl border border-slate-200">
+                <!-- Desktop/tablet table -->
+                <div class="hidden sm:block overflow-x-auto rounded-xl border border-slate-200">
                     <table class="w-full text-left">
                         <thead class="bg-slate-50">
                             <tr>
@@ -178,6 +179,64 @@ if ($editKeyId > 0) {
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Mobile cards (no horizontal scrolling) -->
+                <div class="sm:hidden space-y-3">
+                    <?php foreach ($apiKeys as $k):
+                        $defTplId = isset($k['default_template_id']) ? (int)$k['default_template_id'] : 0;
+                        $defTplName = '';
+                        if ($defTplId > 0) { foreach ($templatesForApi as $t) { if ((int)$t['id'] === $defTplId) { $defTplName = $t['name']; break; } } }
+                        $defSenderIds = isset($k['default_sender_ids']) && $k['default_sender_ids'] !== '' ? explode(',', str_replace(' ', '', $k['default_sender_ids'])) : [];
+                        $defSenderNames = [];
+                        foreach ($defSenderIds as $sid) { $sid = (int)$sid; foreach ($sendersForApi as $s) { if ((int)$s['id'] === $sid) { $defSenderNames[] = $s['name']; break; } } }
+                        $linkSlug = isset($k['link_slug']) ? trim((string)$k['link_slug']) : '';
+                        $apiLinkUrl = $linkSlug !== '' ? $apiBaseUrl . '/api/v1/send/partners/' . $linkSlug : '';
+                    ?>
+                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="min-w-0">
+                                <div class="text-sm font-black text-slate-900 truncate"><?= h($k['name']) ?></div>
+                                <div class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">Active Credential</div>
+                            </div>
+                            <div class="shrink-0 text-right">
+                                <div class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Created</div>
+                                <div class="text-xs text-slate-700 font-bold"><?= h(date('M d, Y', strtotime($k['created_at']))) ?></div>
+                            </div>
+                        </div>
+
+                        <div class="mt-3 space-y-2">
+                            <div>
+                                <div class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">API link</div>
+                                <?php if ($apiLinkUrl !== ''): ?>
+                                    <code class="block text-[10px] text-slate-700 break-all bg-slate-50 border border-slate-200 rounded-lg p-2 mt-1"><?= h($apiLinkUrl) ?></code>
+                                <?php else: ?>
+                                    <div class="text-xs text-slate-500 mt-1">—</div>
+                                <?php endif; ?>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2">
+                                <div class="bg-slate-50 border border-slate-200 rounded-lg p-2">
+                                    <div class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Default template</div>
+                                    <div class="text-xs text-slate-700 font-bold mt-0.5 break-words"><?= $defTplName !== '' ? h($defTplName) : '—' ?></div>
+                                </div>
+                                <div class="bg-slate-50 border border-slate-200 rounded-lg p-2">
+                                    <div class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Default senders</div>
+                                    <div class="text-xs text-slate-700 font-bold mt-0.5 break-words"><?= !empty($defSenderNames) ? h(implode(', ', $defSenderNames)) : 'All active' ?></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-3 flex items-center justify-end gap-4">
+                            <a href="<?= url('api', ['edit_key' => $k['id']]) ?>" class="text-[#02396E] text-xs font-black uppercase tracking-widest">Set defaults</a>
+                            <form method="post" action="<?= url('api') ?>" class="inline delete-form" data-key-name="<?= h($k['name']) ?>">
+                                <input type="hidden" name="action" value="api-key-delete">
+                                <input type="hidden" name="id" value="<?= (int)$k['id'] ?>">
+                                <button type="button" class="delete-btn text-red-600 font-black text-xs uppercase tracking-widest">Delete</button>
+                            </form>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
                 <?php endif; ?>
             </div>
 
@@ -191,7 +250,7 @@ if ($editKeyId > 0) {
                             <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Application Name</label>
                             <input type="text" name="api_key_name" required maxlength="255" placeholder="e.g. My Website Signup" class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-[#02396E] outline-none transition-all bg-white">
                         </div>
-                        <button type="submit" class="inline-flex items-center px-8 py-2.5 bg-[#ff8904] text-white text-sm font-bold rounded-xl hover:bg-[#f54a00] transition-colors shadow-md">Generate Key</button>
+                        <button type="submit" class="inline-flex items-center justify-center w-full md:w-auto px-8 py-2.5 bg-[#ff8904] text-white text-sm font-bold rounded-xl hover:bg-[#f54a00] transition-colors shadow-md">Generate Key</button>
                     </form>
                 </div>
             </div>
@@ -200,7 +259,7 @@ if ($editKeyId > 0) {
 </div>
 
 <!-- Delete Confirmation Modal -->
-<div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-[1px] flex items-center justify-center z-50 hidden">
+<div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 md:backdrop-blur-[1px] flex items-center justify-center z-50 hidden">
     <div class="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 transform transition-all">
         <div class="p-6">
             <div class="flex items-center gap-3 mb-4">

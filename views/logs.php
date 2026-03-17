@@ -84,7 +84,7 @@ if ($logType === 'email') {
 
 <!-- Logs Banner -->
 <div class="logs-banner bg-[#141d2e] py-6 md:py-8 text-white shadow-lg relative overflow-hidden hidden lg:block">
-    <div class="px-3 sm:px-4 md:px-6 lg:px-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
+    <div class="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div class="relative z-10">
             <h1 class="text-[2.5rem] font-bold leading-tight">Activity Logs</h1>
             <p class="text-blue-100/80 mt-1 text-sm font-medium">Track every delivery and engagement in real-time.</p>
@@ -102,15 +102,12 @@ if ($logType === 'email') {
 
 <!-- Mobile Header -->
 <div class="lg:hidden bg-[#141d2e] px-4 pt-4 pb-6 text-white mb-2">
-    <div class="flex flex-col gap-3">
-        <div class="flex items-center justify-between">
-            <h1 class="text-xl font-bold">Activity Logs</h1>
-        </div>
-        <p class="text-blue-100/80 text-xs mb-1">Track every delivery and engagement in real-time.</p>
-        <div class="flex gap-2 mt-2">
-            <a href="<?= url('logs', ['type' => 'email']) ?>" class="flex-1 text-center px-2 py-1.5 rounded-lg text-xs font-bold transition-all border <?= $logType === 'email' ? 'bg-[#f54a00] text-white border-[#f54a00] shadow-sm' : 'bg-white/10 text-white/70 border-white/30 hover:text-white' ?>">Email</a>
-            <a href="<?= url('logs', ['type' => 'sms']) ?>" class="flex-1 text-center px-2 py-1.5 rounded-lg text-xs font-bold transition-all border <?= $logType === 'sms' ? 'bg-[#f54a00] text-white border-[#f54a00] shadow-sm' : 'bg-white/10 text-white/70 border-white/30 hover:text-white' ?>">SMS</a>
-            <a href="<?= url('logs', ['type' => 'whatsapp']) ?>" class="flex-1 text-center px-2 py-1.5 rounded-lg text-xs font-bold transition-all border <?= $logType === 'whatsapp' ? 'bg-[#f54a00] text-white border-[#f54a00] shadow-sm' : 'bg-white/10 text-white/70 border-white/30 hover:text-white' ?>">WhatsApp</a>
+    <div class="flex items-center gap-3">
+        <h1 class="text-base font-black text-white shrink-0">Logs</h1>
+        <div class="flex flex-1 gap-2 justify-end">
+            <a href="<?= url('logs', ['type' => 'email']) ?>" class="text-center px-3 py-2 min-h-[34px] rounded-lg text-[11px] font-bold transition-all border whitespace-nowrap <?= $logType === 'email' ? 'bg-[#f54a00] text-white border-[#f54a00] shadow-sm' : 'bg-white/10 text-white/70 border-white/30 hover:text-white' ?>">Email</a>
+            <a href="<?= url('logs', ['type' => 'sms']) ?>" class="text-center px-3 py-2 min-h-[34px] rounded-lg text-[11px] font-bold transition-all border whitespace-nowrap <?= $logType === 'sms' ? 'bg-[#f54a00] text-white border-[#f54a00] shadow-sm' : 'bg-white/10 text-white/70 border-white/30 hover:text-white' ?>">SMS</a>
+            <a href="<?= url('logs', ['type' => 'whatsapp']) ?>" class="text-center px-3 py-2 min-h-[34px] rounded-lg text-[11px] font-bold transition-all border whitespace-nowrap <?= $logType === 'whatsapp' ? 'bg-[#f54a00] text-white border-[#f54a00] shadow-sm' : 'bg-white/10 text-white/70 border-white/30 hover:text-white' ?>">WhatsApp</a>
         </div>
     </div>
 </div>
@@ -254,21 +251,61 @@ if ($logType === 'email') {
         </div>
         <?php endif; ?>
 
-        <!-- Mobile View (Shared pattern) -->
+        <!-- Mobile View -->
+        <?php if ($logType === 'email'): ?>
         <div class="lg:hidden divide-y divide-slate-100">
             <?php foreach ($logs as $log): ?>
-            <div class="p-4">
-                <div class="flex justify-between items-start mb-1">
-                    <div class="font-bold text-slate-900 text-sm"><?= h($log['recipient_email'] ?? $log['recipient_name']) ?></div>
-                    <span class="px-2 py-0.5 rounded text-[10px] font-bold <?= ($log['status'] === 'sent' || $log['status'] === 'pending') ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' ?>">
+            <div class="p-4 hover:bg-slate-50">
+                <div class="flex items-start justify-between gap-2 mb-2">
+                    <div class="min-w-0">
+                        <div class="font-semibold text-slate-900 text-sm truncate"><?= h($log['recipient_email'] ?? '—') ?></div>
+                        <div class="text-xs text-slate-500 mt-0.5 truncate"><?= h($log['campaign_subject'] ?? '—') ?></div>
+                    </div>
+                    <span class="shrink-0 px-2 py-0.5 rounded text-xs font-bold <?= $log['status'] === 'sent' ? 'bg-green-100 text-green-800' : ($log['status'] === 'failed' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800') ?>">
                         <?= h($log['status']) ?>
                     </span>
                 </div>
-                <div class="text-xs text-slate-500 mb-2"><?= h($log['campaign_subject'] ?? $log['message'] ?? '') ?></div>
+                <div class="text-[10px] text-slate-400">
+                    <?= h($log['sent_at'] ?? '') ?>
+                    <?php if (!empty($log['opened_at'])): ?>
+                        <span class="mx-2">•</span>
+                        <span class="text-emerald-600 font-bold">Opened</span>
+                    <?php endif; ?>
+                </div>
+            </div>
+            <?php endforeach; ?>
+        </div>
+        <?php else: ?>
+        <div class="lg:hidden divide-y divide-slate-100">
+            <?php foreach ($logs as $log): ?>
+            <?php
+                $st = strtolower($log['status'] ?? '');
+                $cls = ($st === 'sent' || $st === 'pending' || $st === 'queued') ? 'bg-emerald-100 text-emerald-800' : ($st === 'failed' ? 'bg-red-100 text-red-800' : 'bg-slate-100 text-slate-600');
+            ?>
+            <div class="p-4 hover:bg-slate-50">
+                <div class="flex items-start justify-between gap-2 mb-2">
+                    <div class="min-w-0">
+                        <div class="font-semibold text-slate-900 text-sm truncate"><?= h($log['recipient_name'] ?? '—') ?></div>
+                        <div class="text-xs text-slate-500 mt-0.5 truncate"><?= h($log['phone_number'] ?? '') ?></div>
+                    </div>
+                    <span class="shrink-0 px-2 py-0.5 rounded text-xs font-bold <?= $cls ?>">
+                        <?= h($log['status'] ?? '') ?>
+                    </span>
+                </div>
+
+                <?php if ($logType === 'sms'): ?>
+                <div class="text-xs text-slate-600 mb-2">
+                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Group:</span>
+                    <span class="font-bold"><?= h($log['group_name'] ?? '—') ?></span>
+                </div>
+                <?php endif; ?>
+
+                <div class="text-xs text-slate-600 mb-2"><?= h(mb_substr((string)($log['message'] ?? ''), 0, 160)) ?></div>
                 <div class="text-[10px] text-slate-400"><?= h($log['sent_at'] ?? '') ?></div>
             </div>
             <?php endforeach; ?>
         </div>
+        <?php endif; ?>
 
         <?php if (empty($logs)): ?>
         <div class="p-12 text-center text-slate-500 font-bold">No logs found.</div>
