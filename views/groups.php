@@ -77,7 +77,7 @@ $groups = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <!-- Groups Banner -->
 <div class="groups-banner bg-[#141d2e] py-6 md:py-8 text-white shadow-lg relative overflow-hidden hidden lg:block">
-    <div class="px-3 sm:px-4 md:px-6 lg:px-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
+    <div class="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div class="relative z-10">
             <h1 class="text-[2.5rem] font-bold leading-tight">Contact Groups</h1>
             <p class="text-blue-100/80 mt-1 text-sm font-medium">Organize your contacts for more targeted campaigns.</p>
@@ -108,13 +108,13 @@ $groups = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </div>
 
 <!-- Mobile Header -->
-<div class="lg:hidden bg-[#141d2e] px-4 pt-4 pb-6 text-white mb-2">
-    <div class="flex flex-col gap-3">
-        <div class="flex items-center justify-between">
+<div class="lg:hidden bg-[#141d2e] px-4 py-4 text-white">
+    <div class="flex flex-col gap-1">
+        <div class="flex items-center justify-start">
             <h1 class="text-xl font-bold">Contact Groups</h1>
         </div>
         <p class="text-blue-100/80 text-xs">Organize your contacts for more targeted campaigns.</p>
-        <form method="get" action="<?= url('groups') ?>" class="relative">
+        <form method="get" action="<?= url('groups') ?>" class="relative text-left mt-3">
             <input type="hidden" name="page" value="groups">
             <input type="text" name="search" id="groupsSearchMobile" placeholder="Search groups..." value="<?= h($searchQuery) ?>" class="w-full bg-white rounded-lg py-2 pl-10 pr-16 text-slate-900 text-sm placeholder-slate-400 focus:outline-none">
             <div class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
@@ -195,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
-<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 text-left">
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 text-left mt-3 lg:mt-0">
     <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">
         <div class="bg-[#02396E] px-4 md:px-8 py-6 border-b border-white/10 flex justify-between items-center">
             <h2 class="text-xl md:text-2xl font-bold text-white">Groups</h2>
@@ -255,7 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
 </div>
 
 <!-- Delete Confirmation Modal -->
-<div id="deleteModal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-slate-900/50 backdrop-blur-sm">
+<div id="deleteModal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-slate-900/50 md:backdrop-blur-sm">
     <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden modal-animate">
         <div class="p-6 text-center">
             <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center text-red-500 mb-4 mx-auto">

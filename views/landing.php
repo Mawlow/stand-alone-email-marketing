@@ -1,10 +1,24 @@
 <style>
+    html, body {
+      overflow-x: hidden;
+      height: 100%;
+      overscroll-behavior: none;
+    }
+
+    body.landing-scroll-locked {
+      overflow: hidden;
+      touch-action: none;
+    }
+
+
     .landing-new {
       background: #0f172a;
       min-height: 100vh;
       color: white;
       font-family: 'Outfit', sans-serif;
       position: relative;
+      overflow-x: hidden;
+      max-width: 100vw;
     }
     .landing-content {
       transition: filter 0.3s ease;
@@ -22,9 +36,14 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 1.5rem 2rem;
-      background: linear-gradient(to bottom, rgba(15, 23, 42, 0.8), transparent);
+      padding: 1rem 1.25rem;
+      background: rgba(15, 23, 42, 0.92);
       backdrop-filter: blur(8px);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    @media (min-width: 768px) {
+      .landing-header { padding: 1.5rem 2rem; background: linear-gradient(to bottom, rgba(15, 23, 42, 0.8), transparent); border-bottom: none; }
     }
     .landing-logo {
       height: 60px;
@@ -136,7 +155,7 @@
     .auth-overlay {
       position: fixed;
       inset: 0;
-      z-index: 1000;
+      z-index: 90; /* keep below the fixed landing header (z=100) */
       display: none;
       align-items: center;
       justify-content: center;
@@ -162,6 +181,12 @@
       color: #0f172a;
       display: none;
       margin-top: 50px;
+    }
+
+    @media (max-width: 640px) {
+      /* leave space for the fixed landing header so it doesn't look like it shifts */
+      .auth-overlay { padding: calc(0.75rem + 80px) 0.75rem 0.75rem; align-items: center; background: rgba(15, 23, 42, 0.65); }
+      .auth-card { margin-top: 0; width: 100%; }
     }
     .auth-card.active {
       display: block;
@@ -550,5 +575,84 @@
             openAuth('register');
           <?php endif; ?>
         <?php endif; ?>
+    });
+
+    // Auto scroll until hero text is centered, then lock scroll (mobile-friendly)
+    document.addEventListener('DOMContentLoaded', () => {
+      const heroContent = document.querySelector('.hero-content');
+      const authOverlay = document.getElementById('auth-overlay');
+      if (!heroContent) return;
+
+      let locked = false;
+      let lockY = 0;
+
+      const lockScroll = () => {
+        if (locked) return;
+        if (authOverlay && authOverlay.classList.contains('active')) return;
+        locked = true;
+        lockY = window.scrollY || 0;
+        document.body.classList.add('landing-scroll-locked');
+        // keep visual position stable
+        document.body.style.position = 'fixed';
+        document.body.style.top = `-${lockY}px`;
+        document.body.style.left = '0';
+        document.body.style.right = '0';
+        document.body.style.width = '100%';
+      };
+
+      const unlockScroll = () => {
+        if (!locked) return;
+        locked = false;
+        document.body.classList.remove('landing-scroll-locked');
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.left = '';
+        document.body.style.right = '';
+        document.body.style.width = '';
+        window.scrollTo(0, lockY);
+      };
+
+      const checkAndLock = () => {
+        if (locked) return;
+        const rect = heroContent.getBoundingClientRect();
+        const heroCenter = rect.top + rect.height / 2;
+        const viewportCenter = window.innerHeight / 2;
+        // lock when hero content center is near viewport center
+        if (Math.abs(heroCenter - viewportCenter) <= 20) {
+          lockScroll();
+        }
+      };
+
+      // Try to gently center the hero text on initial load (mobile)
+      const centerHero = () => {
+        const rect = heroContent.getBoundingClientRect();
+        const heroCenter = (window.scrollY || 0) + rect.top + rect.height / 2;
+        const viewportCenter = (window.scrollY || 0) + window.innerHeight / 2;
+        const delta = heroCenter - viewportCenter;
+        if (Math.abs(delta) > 20) {
+          window.scrollTo({ top: Math.max(0, (window.scrollY || 0) + delta), behavior: 'smooth' });
+        }
+        // After the scroll settles, lock.
+        setTimeout(checkAndLock, 450);
+      };
+
+      // Only do this on small screens
+      if (window.matchMedia('(max-width: 640px)').matches) {
+        setTimeout(centerHero, 100);
+        window.addEventListener('scroll', checkAndLock, { passive: true });
+        window.addEventListener('resize', checkAndLock);
+      }
+
+      // If auth overlay opens, temporarily unlock to allow interaction/scrolling inside overlay
+      const observer = authOverlay ? new MutationObserver(() => {
+        if (authOverlay.classList.contains('active')) {
+          unlockScroll();
+        } else {
+          // re-check and lock again after closing
+          setTimeout(checkAndLock, 100);
+        }
+      }) : null;
+
+      if (observer && authOverlay) observer.observe(authOverlay, { attributes: true, attributeFilter: ['class'] });
     });
 </script>

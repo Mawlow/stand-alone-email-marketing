@@ -114,7 +114,7 @@ if ($groupId) {
 
 <!-- Group Edit Banner -->
 <div class="group-edit-banner bg-[#141d2e] py-6 md:py-8 text-white shadow-lg relative overflow-hidden hidden lg:block">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+    <div class="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 relative z-10">
         <div class="mb-4">
             <a href="<?= url('groups') ?>" class="text-[#ff8904] hover:text-orange-600 text-sm font-bold flex items-center gap-1 transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
@@ -132,16 +132,18 @@ if ($groupId) {
 
 <!-- Mobile Header -->
 <div class="lg:hidden bg-[#141d2e] px-4 pt-4 pb-6 text-white mb-2">
-    <div class="flex items-center gap-2 mb-2">
+    <div class="hidden flex items-center gap-2 mb-2">
         <a href="<?= url('groups') ?>" class="text-[#ff8904] hover:text-orange-300 text-sm font-bold flex items-center gap-1 transition-colors">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
             Back
         </a>
     </div>
-    <div class="flex items-center justify-between">
-        <h1 class="text-xl font-bold"><?= $group ? 'Edit Group' : 'Add New Group' ?></h1>
+    <div class="text-left">
+        <div class="flex items-center justify-start">
+            <h1 class="text-xl font-bold"><?= $group ? 'Edit Group' : 'Add New Group' ?></h1>
+        </div>
+        <p class="text-blue-100/80 text-xs mt-1">Define and organize your contact segments</p>
     </div>
-    <p class="text-blue-100/80 text-xs mt-1">Define and organize your contact segments</p>
 </div>
 
 <div id="toastContainer" class="toast-container"></div>
@@ -277,13 +279,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </div>
 
-            <div class="bg-slate-50 px-8 py-4 flex gap-3 border-t border-slate-100">
-                <button type="submit" class="px-5 py-2 bg-[#ff8904] text-white text-sm font-bold rounded-xl hover:bg-[#f54a00] shadow-lg shadow-orange-900/10 transition-all transform hover:-translate-y-0.5 active:translate-y-0">
-                    <?= $group ? 'Update Group' : 'Create Group' ?>
-                </button>
-                <a href="<?= url('groups') ?>" class="px-5 py-2 bg-white text-slate-600 text-sm font-bold rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors text-center">
-                    Cancel
-                </a>
+            <div class="bg-slate-50 px-8 py-4 border-t border-slate-100">
+                <div class="flex flex-row gap-3 sm:w-1/2 sm:justify-start">
+                    <button type="submit" class="flex-1 sm:flex-none px-5 py-3 bg-[#ff8904] text-white text-sm font-bold rounded-xl hover:bg-[#f54a00] shadow-lg shadow-orange-900/10 transition-all transform hover:-translate-y-0.5 active:translate-y-0 text-center">
+                        <?php if ($group): ?>
+                            <span class="sm:hidden">Update</span><span class="hidden sm:inline">Update Group</span>
+                        <?php else: ?>
+                            Create Group
+                        <?php endif; ?>
+                    </button>
+                    <a href="<?= url('groups') ?>" class="flex-1 sm:flex-none px-5 py-3 bg-white text-slate-600 text-sm font-bold rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors text-center">
+                        Cancel
+                    </a>
+                </div>
             </div>
         </form>
     </div>
@@ -325,8 +333,38 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         </div>
         
-        <!-- Members Table -->
-        <div class="overflow-x-auto">
+        <!-- Members (Mobile Cards) -->
+        <div class="md:hidden divide-y divide-slate-100">
+            <?php foreach ($members as $member): ?>
+            <div class="p-4">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                        <div class="text-sm font-bold text-slate-900 break-all"><?= h($member['email']) ?></div>
+                        <div class="text-xs text-slate-500 mt-1">
+                            <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">Company:</span>
+                            <span class="font-semibold text-slate-700"><?= h($member['company_name'] ?: '—') ?></span>
+                        </div>
+                    </div>
+                    <div class="shrink-0">
+                        <form method="post" action="<?= url('group-edit', ['id' => $groupId]) ?>" class="inline remove-member-form">
+                            <input type="hidden" name="action" value="group-remove-member">
+                            <input type="hidden" name="group_id" value="<?= (int)$group['id'] ?>">
+                            <input type="hidden" name="contact_id" value="<?= (int)$member['id'] ?>">
+                            <button type="button" class="px-3 py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-xl text-xs font-black uppercase tracking-widest transition-colors remove-trigger" data-email="<?= h($member['email']) ?>">Remove</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <?php endforeach; ?>
+            <?php if (empty($members)): ?>
+            <div class="px-6 py-12 text-center text-slate-400 font-medium">
+                No contacts in this group yet.
+            </div>
+            <?php endif; ?>
+        </div>
+
+        <!-- Members Table (Desktop/Tablet) -->
+        <div class="hidden md:block overflow-x-auto">
             <table class="w-full text-left">
                 <thead class="bg-slate-50">
                     <tr>
@@ -373,7 +411,7 @@ document.addEventListener('DOMContentLoaded', () => {
 </div>
 
 <!-- Remove Contact Confirmation Modal -->
-<div id="removeModal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-slate-900/50 backdrop-blur-sm">
+<div id="removeModal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-slate-900/50 md:backdrop-blur-sm">
     <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden modal-animate">
         <div class="p-6 text-center">
             <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center text-red-600 mb-4 mx-auto">

@@ -36,7 +36,7 @@ foreach ($accounts as $a) { if ($a['is_active']) $activeSenders++; }
 
 <!-- Senders Banner (Desktop) -->
 <div class="page-banner bg-[#141d2e] py-6 md:py-8 text-white shadow-lg relative overflow-hidden hidden lg:block">
-    <div class="px-3 sm:px-4 md:px-6 lg:px-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
+    <div class="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div class="relative z-10">
             <h1 class="text-[2.5rem] font-bold leading-tight">Sender Accounts</h1>
             <p class="text-blue-100/80 mt-1 text-sm font-medium">Manage the identities powering your email delivery.</p>
@@ -63,8 +63,8 @@ foreach ($accounts as $a) { if ($a['is_active']) $activeSenders++; }
 </div>
 
 <?php if (!isAdmin()): ?>
-<!-- Sub-Navigation Bar - Floating Segmented Control (hidden for admin) -->
-<div class="sticky top-4 z-20 flex justify-start mb-8 px-4 sm:px-24">
+<!-- Sub-Navigation Bar - Floating Segmented Control (Desktop Only) -->
+<div class="sticky top-4 z-20 flex justify-start mb-8 max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 hidden lg:block">
     <div class="inline-flex p-1.5 bg-white/90 backdrop-blur-xl rounded-2xl border border-slate-200 shadow-2xl">
         <a href="<?= url('compose') ?>" class="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all <?= currentPage() === 'compose' ? 'bg-[#f54a00] text-white shadow-lg' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' ?>">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
@@ -82,24 +82,17 @@ foreach ($accounts as $a) { if ($a['is_active']) $activeSenders++; }
 </div>
 <?php endif; ?>
 
-<!-- Mobile Header -->
-<div class="lg:hidden bg-[#141d2e] px-4 py-4 text-white">
-    <div class="flex flex-col gap-3">
-        <div class="flex items-center justify-between">
+<!-- Mobile Sub-Navigation (Tabs Style like logs page) -->
+<div class="lg:hidden bg-[#141d2e] px-4 py-3 text-white pb-4 mb-2">
+    <div class="flex flex-col gap-2">
+        <div class="flex items-center justify-start">
             <h1 class="text-xl font-bold">Sender Accounts</h1>
         </div>
-        <p class="text-blue-100/80 text-xs">Manage your senders</p>
-        <div class="relative">
-            <input type="text" id="senderSearchMobile" placeholder="Search senders..." class="w-full bg-white rounded-lg py-2 pl-10 pr-16 text-slate-900 text-sm placeholder-slate-400 focus:outline-none">
-            <div class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-            </div>
-            <button id="clearSearchMobile" class="absolute right-10 top-1/2 -translate-y-1/2 p-0.5 text-slate-400 hover:text-slate-600 hidden">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-            </button>
-            <button class="absolute right-2 top-1/2 -translate-y-1/2 p-1 bg-[#02396E] text-white rounded-full">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
-            </button>
+        <p class="text-blue-100/80 text-xs mb-1">Manage your senders</p>
+        <div class="hidden flex gap-2 mt-2">
+            <a href="<?= url('compose') ?>" class="flex-1 text-center px-2 py-1.5 rounded-lg text-xs font-bold transition-all border <?= currentPage() === 'compose' ? 'bg-[#f54a00] text-white border-[#f54a00] shadow-sm' : 'bg-white/10 text-white/70 border-white/30 hover:text-white' ?>">Compose</a>
+            <a href="<?= url('senders') ?>" class="flex-1 text-center px-2 py-1.5 rounded-lg text-xs font-bold transition-all border <?= currentPage() === 'senders' ? 'bg-[#f54a00] text-white border-[#f54a00] shadow-sm' : 'bg-white/10 text-white/70 border-white/30 hover:text-white' ?>">Senders</a>
+            <a href="<?= url('contacts') ?>" class="flex-1 text-center px-2 py-1.5 rounded-lg text-xs font-bold transition-all border <?= currentPage() === 'contacts' ? 'bg-[#f54a00] text-white border-[#f54a00] shadow-sm' : 'bg-white/10 text-white/70 border-white/30 hover:text-white' ?>">Contacts</a>
         </div>
     </div>
 </div>
@@ -115,8 +108,10 @@ foreach ($accounts as $a) { if ($a['is_active']) $activeSenders++; }
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
             </div>
             <div class="min-w-0 flex-1">
-                <p class="text-[10px] font-bold text-slate-500 uppercase truncate">Active</p>
-                <p class="text-xl font-bold text-slate-900 leading-none mt-0.5 truncate"><?= $activeSenders ?></p>
+                <div class="flex items-center justify-between gap-2">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase truncate">Active</p>
+                    <p class="text-xl font-bold text-slate-900 leading-none truncate"><?= $activeSenders ?></p>
+                </div>
             </div>
         </div>
         <div class="bg-white rounded-xl shadow border border-gray-200 p-3 flex items-center gap-3">
@@ -124,8 +119,10 @@ foreach ($accounts as $a) { if ($a['is_active']) $activeSenders++; }
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
             </div>
             <div class="min-w-0 flex-1">
-                <p class="text-[10px] font-bold text-slate-500 uppercase truncate">Total</p>
-                <p class="text-xl font-bold text-slate-900 leading-none mt-0.5 truncate"><?= $totalSenders ?></p>
+                <div class="flex items-center justify-between gap-2">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase truncate">Total</p>
+                    <p class="text-xl font-bold text-slate-900 leading-none truncate"><?= $totalSenders ?></p>
+                </div>
             </div>
         </div>
     </div>
@@ -332,7 +329,7 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 <!-- Delete Confirmation Modal -->
-<div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-[1px] flex items-center justify-center z-50 hidden">
+<div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 md:backdrop-blur-[1px] flex items-center justify-center z-50 hidden">
     <div class="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 transform transition-all">
         <div class="p-6">
             <div class="flex items-center gap-3 mb-4">

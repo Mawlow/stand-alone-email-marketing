@@ -36,7 +36,7 @@ foreach ($smsRecipients as $r) {
 
 <!-- Banner (Desktop) -->
 <div class="sms-banner bg-[#141d2e] py-6 md:py-8 text-white shadow-lg relative overflow-hidden hidden lg:block">
-    <div class="px-3 sm:px-4 md:px-6 lg:px-8 relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+    <div class="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
         <div>
             <h1 class="text-[2.5rem] font-bold leading-tight">SMS Notifications</h1>
             <p class="text-blue-100/80 mt-1 text-sm font-medium">Manage groups and recipients, then send SMS messages via Semaphore.</p>
@@ -119,9 +119,15 @@ foreach ($smsRecipients as $r) {
                         </div>
                     </div>
                 </div>
-                <div class="flex flex-wrap gap-3 items-center">
-                    <button type="button" id="add-recipient-row" class="px-4 py-2 border border-slate-300 text-slate-700 font-medium rounded-xl hover:bg-slate-50 transition-colors">Add another recipient</button>
-                    <button type="submit" class="px-4 py-2.5 bg-[#f54a00] text-white font-bold rounded-xl hover:bg-[#e04400] transition-colors">Add Recipient(s)</button>
+                <div class="grid grid-cols-2 gap-2 sm:flex sm:gap-3 sm:w-1/2 sm:justify-start items-center">
+                    <button type="button" id="add-recipient-row" class="w-full sm:w-auto px-3 py-2 border border-slate-300 text-slate-700 font-medium rounded-xl hover:bg-slate-50 transition-colors">
+                        <span class="sm:hidden">Add another</span>
+                        <span class="hidden sm:inline">Add another recipient</span>
+                    </button>
+                    <button type="submit" class="w-full sm:w-auto px-3 py-2.5 bg-[#f54a00] text-white font-bold rounded-xl hover:bg-[#e04400] transition-colors">
+                        <span class="sm:hidden">Add</span>
+                        <span class="hidden sm:inline">Add recipient</span>
+                    </button>
                 </div>
                 <div id="new-group-wrap" class="hidden">
                     <label for="new_group_name" class="block text-sm font-medium text-slate-700 mb-1">New group name</label>
@@ -136,7 +142,39 @@ foreach ($smsRecipients as $r) {
         <div class="bg-[#02396E] px-4 md:px-8 py-4 border-b border-white/10">
             <h2 class="text-lg md:text-xl font-bold text-white">SMS Groups</h2>
         </div>
-        <div class="overflow-x-auto">
+
+        <!-- Mobile Card View (like Email Activities) -->
+        <div class="lg:hidden divide-y divide-slate-100">
+            <?php foreach ($smsGroups as $g): ?>
+            <div class="p-4 hover:bg-slate-50">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                        <div class="font-semibold text-slate-900 text-sm truncate"><?= h($g['name']) ?></div>
+                        <div class="mt-1 text-xs text-slate-500 flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 0 016 0z"></path></svg>
+                            <span class="font-bold text-slate-700"><?= (int)($g['recipient_count'] ?? 0) ?></span>
+                            <span class="text-slate-400">recipients</span>
+                        </div>
+                    </div>
+                    <div class="shrink-0">
+                        <form method="post" action="<?= url('sms') ?>" class="inline sms-delete-group-form">
+                            <input type="hidden" name="action" value="sms-group-delete">
+                            <input type="hidden" name="id" value="<?= (int)$g['id'] ?>">
+                            <button type="button" class="p-2 text-red-500 hover:bg-red-50 rounded-lg sms-delete-group-btn" data-name="<?= h($g['name']) ?>" title="Delete group" aria-label="Delete group <?= h($g['name']) ?>">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <?php endforeach; ?>
+            <?php if (empty($smsGroups)): ?>
+            <div class="p-4 text-center text-slate-500">No SMS groups yet. Use the form above to create a group and add a recipient.</div>
+            <?php endif; ?>
+        </div>
+
+        <!-- Desktop Table -->
+        <div class="hidden lg:block overflow-x-auto">
             <table class="w-full text-left">
                 <thead class="bg-slate-50">
                     <tr>
@@ -171,12 +209,44 @@ foreach ($smsRecipients as $r) {
         </div>
     </div>
 
-    <!-- 3. Recipients Table -->
+    <!-- 3. Recipients -->
     <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">
         <div class="bg-[#02396E] px-4 md:px-8 py-4 border-b border-white/10">
             <h2 class="text-lg md:text-xl font-bold text-white">All Recipients</h2>
         </div>
-        <div class="overflow-x-auto">
+
+        <!-- Mobile Card View (no horizontal scroll) -->
+        <div class="lg:hidden divide-y divide-slate-100">
+            <?php foreach ($smsRecipients as $r): ?>
+            <div class="p-4 hover:bg-slate-50">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                        <div class="font-semibold text-slate-900 text-sm truncate"><?= h($r['name']) ?></div>
+                        <div class="mt-1 text-xs text-slate-500 truncate"><?= h($r['phone_number']) ?></div>
+                        <div class="mt-2 inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 0 016 0z"></path></svg>
+                            <span class="truncate"><?= h($r['group_name']) ?></span>
+                        </div>
+                    </div>
+                    <div class="shrink-0">
+                        <form method="post" action="<?= url('sms') ?>" class="inline sms-delete-recipient-form">
+                            <input type="hidden" name="action" value="sms-recipient-delete">
+                            <input type="hidden" name="id" value="<?= (int)$r['id'] ?>">
+                            <button type="button" class="p-2 text-red-500 hover:bg-red-50 rounded-lg sms-delete-recipient-btn" data-name="<?= h($r['name']) ?>" title="Delete recipient" aria-label="Delete recipient <?= h($r['name']) ?>">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <?php endforeach; ?>
+            <?php if (empty($smsRecipients)): ?>
+            <div class="p-4 text-center text-slate-500">No recipients yet. Add your first recipient above.</div>
+            <?php endif; ?>
+        </div>
+
+        <!-- Desktop Table -->
+        <div class="hidden lg:block overflow-x-auto">
             <table class="w-full text-left">
                 <thead class="bg-slate-50">
                     <tr>
@@ -216,7 +286,7 @@ foreach ($smsRecipients as $r) {
 </div>
 
 <!-- Send SMS Modal -->
-<div id="sendSmsModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+<div id="sendSmsModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-slate-900/50 md:backdrop-blur-sm">
     <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden modal-animate">
         <div class="bg-[#02396E] px-6 py-4 flex items-center justify-between">
             <h3 class="text-lg font-bold text-white">Send SMS</h3>
@@ -264,7 +334,7 @@ foreach ($smsRecipients as $r) {
 </div>
 
 <!-- Delete Recipient Modal -->
-<div id="smsDeleteRecipientModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+<div id="smsDeleteRecipientModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-slate-900/50 md:backdrop-blur-sm">
     <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden modal-animate">
         <div class="p-6 text-center">
             <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center text-red-500 mb-4 mx-auto">
@@ -281,7 +351,7 @@ foreach ($smsRecipients as $r) {
 </div>
 
 <!-- Delete Group Modal -->
-<div id="smsDeleteModal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-slate-900/50 backdrop-blur-sm">
+<div id="smsDeleteModal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-slate-900/50 md:backdrop-blur-sm">
     <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden modal-animate">
         <div class="p-6 text-center">
             <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center text-red-500 mb-4 mx-auto">
