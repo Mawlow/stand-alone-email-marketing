@@ -49,12 +49,3 @@ If you don’t run `composer install`, the app still works: you can manage sende
 ## Security note
 
 This app is intended for **local or trusted use**. Sender passwords are stored base64-encoded in SQLite. Do not expose it on the public internet without proper security (HTTPS, auth, etc.).
-
-## Difference from Applyna
-
-- No Laravel, no queues: campaigns are sent **synchronously** when you click “Send campaign”.
-- Recipients are **only** the marketing list (no “registered company users” segment).
-- No open-tracking pixel or attachment upload in this standalone version.
-- Same UI style (Tailwind, Applyna colors) and flow: Compose → Senders → Contacts → Logs.
-
-Nothing in the main Applyna project is changed or removed; this folder is fully independent.
