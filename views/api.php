@@ -250,7 +250,7 @@ if ($editKeyId > 0) {
                             <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Application Name</label>
                             <input type="text" name="api_key_name" required maxlength="255" placeholder="e.g. My Website Signup" class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-[#02396E] outline-none transition-all bg-white">
                         </div>
-                        <button type="submit" class="inline-flex items-center justify-center w-full md:w-auto px-8 py-2.5 bg-[#ff8904] text-white text-sm font-bold rounded-xl hover:bg-[#f54a00] transition-colors shadow-md">Generate Key</button>
+                        <button type="submit" class="inline-flex items-center justify-center w-full md:w-auto px-8 py-2.5 bg-[#f54a00] text-white text-sm font-bold rounded-xl hover:bg-[#e04400] transition-colors shadow-md">Generate Key</button>
                     </form>
                 </div>
             </div>

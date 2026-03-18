@@ -199,7 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
     <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">
         <div class="bg-[#02396E] px-4 md:px-8 py-6 border-b border-white/10 flex justify-between items-center">
             <h2 class="text-xl md:text-2xl font-bold text-white">Groups</h2>
-            <a href="<?= url('group-edit') ?>" class="inline-flex items-center px-3.5 py-1.5 bg-[#ff8904] text-white text-sm font-bold rounded-xl hover:bg-[#f54a00] transition-colors">Add Group</a>
+            <a href="<?= url('group-edit') ?>" class="inline-flex items-center px-3.5 py-1.5 bg-[#f54a00] text-white text-sm font-bold rounded-xl hover:bg-[#e04400] transition-colors">Add Group</a>
         </div>
         <div class="overflow-x-auto">
             <table class="w-full text-left">
@@ -241,7 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                     <p class="text-xl md:text-2xl font-bold text-slate-400 uppercase tracking-wider">No Groups Found</p>
                                     <p class="text-slate-400 mt-1 text-sm font-medium">Create segments to organize your contacts for targeted campaigns</p>
                                 </div>
-                                <a href="<?= url('group-edit') ?>" class="inline-flex items-center px-6 py-2.5 bg-[#ff8904] text-white text-sm font-bold rounded-xl hover:bg-orange-600 transition-all shadow-md hover:shadow-lg">
+                                <a href="<?= url('group-edit') ?>" class="inline-flex items-center px-6 py-2.5 bg-[#f54a00] text-white text-sm font-bold rounded-xl hover:bg-[#e04400] transition-all shadow-md hover:shadow-lg">
                                     Create your first group
                                 </a>
                             </div>

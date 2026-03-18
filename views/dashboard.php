@@ -195,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
     <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">
         <div class="bg-[#02396E] px-4 md:px-8 py-4 md:py-6 border-b border-white/10 flex flex-col sm:flex-row justify-between items-center gap-3">
             <h2 class="text-lg md:text-2xl font-bold text-white">Campaigns</h2>
-            <a href="<?= url('compose') ?>" class="inline-flex items-center px-3.5 py-1.5 text-white text-sm font-bold bg-[#ff8904] rounded-xl hover:bg-[#f54a00] hover:text-white transition-colors w-full sm:w-auto justify-center">Add Campaigns</a>
+            <a href="<?= url('compose') ?>" class="inline-flex items-center px-3.5 py-1.5 text-white text-sm font-bold bg-[#f54a00] rounded-xl hover:bg-[#e04400] hover:text-white transition-colors w-full sm:w-auto justify-center">Add Campaigns</a>
         </div>
         
         <!-- Mobile Campaigns Card View (Redesigned) -->
