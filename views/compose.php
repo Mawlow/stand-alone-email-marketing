@@ -80,7 +80,7 @@ $composeFooterMode = 'text_only';
         <div class="bg-[#02396E] px-4 md:px-8 py-4 md:py-6 border-b border-white/10 flex flex-col sm:flex-row justify-between items-center gap-3">
             <h2 class="text-lg md:text-2xl font-bold text-white">Compose Campaign</h2>
             <div class="flex flex-wrap gap-2 w-full sm:w-auto">
-                <button type="button" id="load-template-btn" class="flex-1 sm:flex-none inline-flex items-center px-4 py-2 bg-[#ff8904] text-white text-sm font-bold rounded-xl hover:bg-[#f54a00] transition-colors justify-center shadow-lg">Load Template</button>
+                <button type="button" id="load-template-btn" class="flex-1 sm:flex-none inline-flex items-center px-4 py-2 bg-[#f54a00] text-white text-sm font-bold rounded-xl hover:bg-[#e04400] transition-colors justify-center shadow-lg">Load Template</button>
             </div>
         </div>
 
@@ -186,7 +186,7 @@ $composeFooterMode = 'text_only';
             
             <!-- Bottom Action Bar -->
             <div class="bg-slate-50 px-6 py-4 flex flex-row items-center gap-3 border-t border-slate-100">
-                <button type="submit" class="flex-1 sm:flex-none px-6 sm:px-10 py-3 bg-[#ff8904] text-white font-black rounded-xl hover:bg-[#f54a00] transition-all shadow-lg uppercase tracking-widest text-sm text-center"><span class="sm:hidden">Send</span><span class="hidden sm:inline">Send Campaign</span></button>
+                <button type="submit" class="flex-1 sm:flex-none px-6 sm:px-10 py-3 bg-[#f54a00] text-white font-black rounded-xl hover:bg-[#e04400] transition-all shadow-lg uppercase tracking-widest text-sm text-center"><span class="sm:hidden">Send</span><span class="hidden sm:inline">Send Campaign</span></button>
                 <a href="<?= url('index') ?>" class="flex-1 sm:flex-none px-6 py-3 bg-slate-200 text-slate-700 text-sm font-bold rounded-xl hover:bg-slate-300 transition-colors text-center">Cancel</a>
             </div>
         </form>

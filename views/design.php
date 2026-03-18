@@ -118,7 +118,7 @@ $designFooterMode = $designRow && in_array($designRow['footer_mode'] ?? '', ['lo
             <!-- Redundant "Deploy Design" button removed -->
             <!-- Bottom Action Bar -->
             <div class="bg-slate-50 px-4 md:px-6 py-4 flex items-center justify-start gap-3 border-t border-slate-100 flex-wrap">
-                <button type="submit" class="flex-1 sm:flex-none px-7 sm:px-10 py-3 sm:py-3 bg-[#ff8904] text-white font-black rounded-xl hover:bg-[#f54a00] transition-all shadow-lg uppercase tracking-widest text-sm sm:text-sm text-center"><span class="sm:hidden">Save</span><span class="hidden sm:inline">Save Design</span></button>
+                <button type="submit" class="flex-1 sm:flex-none px-7 sm:px-10 py-3 sm:py-3 bg-[#f54a00] text-white font-black rounded-xl hover:bg-[#e04400] transition-all shadow-lg uppercase tracking-widest text-sm sm:text-sm text-center"><span class="sm:hidden">Save</span><span class="hidden sm:inline">Save Design</span></button>
                 <a href="<?= url('compose') ?>" class="flex-1 sm:flex-none px-5 sm:px-6 py-3 sm:py-3 bg-slate-200 text-slate-700 text-sm sm:text-sm font-bold rounded-xl hover:bg-slate-300 transition-colors text-center"><span class="sm:hidden">To Compose</span><span class="hidden sm:inline">Go to Compose</span></a>
             </div>
         </form>

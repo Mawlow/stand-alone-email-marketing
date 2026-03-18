@@ -1321,69 +1321,75 @@ $groupsCount = (int) $groupsCountStmt->fetchColumn();
 })();
 </script>
 
-<!-- Logout Confirmation Modal -->
-<div id="logoutModal" class="fixed inset-0 bg-black bg-opacity-60 md:backdrop-blur-[2px] flex items-center justify-center z-50 hidden">
-    <div class="bg-slate-800 rounded-xl shadow-2xl max-w-md w-full mx-4 transform transition-all border border-slate-700/50">
-        <div class="p-6">
-            <div class="flex items-center gap-3 mb-4">
-                <div class="w-10 h-10 bg-slate-700 rounded-full flex items-center justify-center">
-                    <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                    </svg>
-                </div>
-                <div>
-                    <h3 class="text-lg font-semibold text-red-400">LOG OUT</h3>
-                    <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Confirm your action</p>
-                </div>
+<!-- Logout Confirmation Modal - Applyna Style (Dark Theme) -->
+<div id="logoutModal" class="fixed inset-0 z-[20000] hidden items-center justify-center transition-all duration-300" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-slate-950/40 backdrop-blur-[1px] transition-opacity" id="logoutModalBackdrop"></div>
+    <div id="logoutModalContent" class="relative bg-slate-900 rounded-2xl shadow-2xl border border-slate-800 p-7 sm:p-10 w-80 sm:w-[24rem] pointer-events-auto z-[60] mx-auto transform transition-all duration-200 scale-95 opacity-0">
+        <div class="flex items-center gap-4 mb-6">
+            <div class="w-10 h-10 bg-red-500/10 rounded-full flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                </svg>
             </div>
-            <p class="text-slate-300 mb-6">Are you sure you want to LOG OUT from your account?</p>
-            <div class="flex items-center justify-center gap-3">
-                <button type="button" id="cancelLogout" class="flex-1 px-4 py-2 bg-slate-700 text-slate-300 font-bold rounded-lg border border-slate-600 hover:bg-slate-600 transition-colors">Cancel</button>
-                <a href="<?= url('logout') ?>" id="confirmLogout" class="flex-1 inline-flex items-center justify-center px-4 py-2 bg-transparent text-red-400 font-black rounded-lg border border-red-400/20 hover:bg-red-500/20 hover:text-white hover:border-red-400 transition-all text-center uppercase tracking-widest text-sm shadow-lg">LOG OUT</a>
-            </div>
+            <div>
+                <h3 class="text-lg font-semibold text-slate-400">Are you sure you want to logout?</h3>
+            </div> 
+        </div>
+        <div class="flex gap-3">
+            <a href="<?= url('logout') ?>" class="flex-1 bg-red-600 hover:bg-red-500 text-white text-base font-medium py-3 px-6 rounded-lg transition-colors text-center">
+                Yes
+            </a>
+            <button type="button" id="cancelLogout" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-base font-medium py-3 px-6 rounded-lg transition-colors">
+                Cancel
+            </button>
         </div>
     </div>
 </div>
 
 <script>
-// Initialize logout modal functionality
+// Initialize logout modal functionality (Applyna Style)
 (function() {
     const logoutModal = document.getElementById('logoutModal');
+    const modalContent = document.getElementById('logoutModalContent');
     const cancelLogoutBtn = document.getElementById('cancelLogout');
-    const confirmLogoutBtn = document.getElementById('confirmLogout');
+    const backdrop = document.getElementById('logoutModalBackdrop');
+
+    function openLogoutModal() {
+        logoutModal.classList.remove('hidden');
+        logoutModal.classList.add('flex');
+        // Trigger animation
+        setTimeout(() => {
+            modalContent.classList.remove('scale-95', 'opacity-0');
+            modalContent.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    }
+
+    function closeLogoutModal() {
+        modalContent.classList.remove('scale-100', 'opacity-100');
+        modalContent.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+            logoutModal.classList.add('hidden');
+            logoutModal.classList.remove('flex');
+        }, 200);
+    }
 
     // Handle logout button clicks
     document.addEventListener('click', function(e) {
         const logoutBtn = e.target.closest('.logout-btn');
         if (logoutBtn) {
             e.preventDefault();
-            logoutModal.classList.remove('hidden');
-            logoutModal.classList.add('flex');
+            openLogoutModal();
             return false;
         }
     });
 
-    // Handle cancel button
-    if (cancelLogoutBtn) {
-        cancelLogoutBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            logoutModal.classList.add('hidden');
-            logoutModal.classList.remove('flex');
-            return false;
-        });
-    }
+    if (cancelLogoutBtn) cancelLogoutBtn.addEventListener('click', closeLogoutModal);
+    if (backdrop) backdrop.addEventListener('click', closeLogoutModal);
 
     // Close modal on escape key
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape' && !logoutModal.classList.contains('hidden')) {
-            cancelLogoutBtn.click();
-        }
-    });
-
-    // Close modal on backdrop click
-    logoutModal.addEventListener('click', function(e) {
-        if (e.target === logoutModal) {
-            cancelLogoutBtn.click();
+            closeLogoutModal();
         }
     });
 })();

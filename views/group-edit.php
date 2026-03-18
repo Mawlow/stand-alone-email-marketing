@@ -281,7 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             <div class="bg-slate-50 px-8 py-4 border-t border-slate-100">
                 <div class="flex flex-row gap-3 sm:w-1/2 sm:justify-start">
-                    <button type="submit" class="flex-1 sm:flex-none px-5 py-3 bg-[#ff8904] text-white text-sm font-bold rounded-xl hover:bg-[#f54a00] shadow-lg shadow-orange-900/10 transition-all transform hover:-translate-y-0.5 active:translate-y-0 text-center">
+                    <button type="submit" class="flex-1 sm:flex-none px-5 py-3 bg-[#f54a00] text-white text-sm font-bold rounded-xl hover:bg-[#e04400] shadow-lg shadow-orange-900/10 transition-all transform hover:-translate-y-0.5 active:translate-y-0 text-center">
                         <?php if ($group): ?>
                             <span class="sm:hidden">Update</span><span class="hidden sm:inline">Update Group</span>
                         <?php else: ?>

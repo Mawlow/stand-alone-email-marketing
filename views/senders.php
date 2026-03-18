@@ -164,7 +164,7 @@ foreach ($accounts as $a) { if ($a['is_active']) $activeSenders++; }
     <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">
         <div class="bg-[#02396E] px-4 md:px-8 py-4 md:py-6 border-b border-white/10 flex flex-col sm:flex-row justify-between items-center gap-3">
             <h2 class="text-lg md:text-2xl font-bold text-white">Senders</h2>
-            <a href="<?= url('sender-edit') ?>" class="w-full sm:w-auto inline-flex items-center justify-center px-3.5 py-1.5 bg-[#ff8904] text-white text-sm font-bold rounded-xl hover:bg-orange-600 transition-colors">Add Sender</a>
+            <a href="<?= url('sender-edit') ?>" class="w-full sm:w-auto inline-flex items-center justify-center px-3.5 py-1.5 bg-[#f54a00] text-white text-sm font-bold rounded-xl hover:bg-[#e04400] transition-colors">Add Sender</a>
         </div>
         
         <!-- Mobile Card View -->

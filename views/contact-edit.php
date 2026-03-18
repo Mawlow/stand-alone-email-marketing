@@ -119,7 +119,7 @@ $allGroups = $allGroupsStmt->fetchAll(PDO::FETCH_ASSOC);
                             <?php if (empty($allGroups)): ?>
                                 <div class="w-full text-center py-2">
                                     <span class="text-slate-500 text-sm italic">No groups found.</span>
-                                    <a href="<?= url('group-edit') ?>" class="text-[#ff8904] font-bold hover:underline ml-1">Create your first group</a>
+                                    <a href="<?= url('group-edit') ?>" class="text-[#f54a00] font-bold hover:underline ml-1">Create your first group</a>
                                 </div>
                             <?php endif; ?>
                         </div>
@@ -131,7 +131,7 @@ $allGroups = $allGroupsStmt->fetchAll(PDO::FETCH_ASSOC);
                 <p class="text-xs text-[#ff8904]/70 font-medium hidden sm:block">* Required fields</p>
                 <div class="flex gap-2 w-full sm:w-auto">
                     <a href="<?= url('contacts') ?>" class="flex-1 sm:flex-none px-4 py-2 bg-white text-slate-600 font-bold rounded-lg border-2 border-slate-200 hover:bg-slate-50 transition-colors text-center text-sm">Cancel</a>
-                    <button type="submit" class="flex-1 sm:flex-none px-4 py-2 bg-[#ff8904] text-white font-bold rounded-lg hover:bg-orange-600 shadow-md transition-all text-sm">Save</button>
+                    <button type="submit" class="flex-1 sm:flex-none px-4 py-2 bg-[#f54a00] text-white font-bold rounded-lg hover:bg-[#e04400] shadow-md transition-all text-sm">Save</button>
                 </div>
             </div>
         </form>

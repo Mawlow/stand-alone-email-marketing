@@ -128,7 +128,7 @@ if ($senderId) {
                 <p class="text-xs text-[#ff8904] font-medium hidden sm:block">* Required for sending</p>
                 <div class="flex gap-2 w-full sm:w-auto">
                     <a href="<?= url('senders') ?>" class="flex-1 sm:flex-none px-4 py-2 bg-white text-slate-600 font-bold rounded-lg border-2 border-slate-200 hover:bg-slate-50 transition-colors text-center text-sm">Cancel</a>
-                    <button type="submit" class="flex-1 sm:flex-none px-4 py-2 bg-[#ff8904] text-white font-bold rounded-lg hover:bg-orange-600 shadow-md transition-all text-sm">Save</button>
+                    <button type="submit" class="flex-1 sm:flex-none px-4 py-2 bg-[#f54a00] text-white font-bold rounded-lg hover:bg-[#e04400]shadow-md transition-all text-sm">Save</button>
                 </div>
             </div>
         </form>
