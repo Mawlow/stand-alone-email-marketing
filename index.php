@@ -11,6 +11,70 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// Production routing: when running under Apache/Nginx (not PHP built-in server),
+// parse the clean URL and set $_GET['page'] so the app works without router.php.
+if (php_sapi_name() !== 'cli-server' && !isset($_GET['page']) && !isset($_GET['action'])) {
+    $uri = $_SERVER['REQUEST_URI'] ?? '/';
+    $path = parse_url($uri, PHP_URL_PATH);
+    $scriptDir = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
+    if ($scriptDir !== '' && strpos($path, $scriptDir) === 0) {
+        $path = substr($path, strlen($scriptDir));
+    }
+    $path = rtrim($path, '/') ?: '/';
+
+    // API routes — delegate to dedicated PHP files
+    if ($path === '/api/v1/senders' && ($_SERVER['REQUEST_METHOD'] ?? '') === 'GET') {
+        require __DIR__ . '/api-senders.php'; exit;
+    }
+    if ($path === '/api/v1/contacts' && ($_SERVER['REQUEST_METHOD'] ?? '') === 'GET') {
+        require __DIR__ . '/api-contacts.php'; exit;
+    }
+    if ($path === '/api/v1/design' && ($_SERVER['REQUEST_METHOD'] ?? '') === 'GET') {
+        require __DIR__ . '/design-json.php'; exit;
+    }
+    if ($path === '/api/v1/design/templates' && ($_SERVER['REQUEST_METHOD'] ?? '') === 'GET') {
+        require __DIR__ . '/design-templates-json.php'; exit;
+    }
+    if ($path === '/api/v1/design/templates/delete' && ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
+        require __DIR__ . '/design-template-delete.php'; exit;
+    }
+    if ($path === '/api/v1/compose/ai-generate' && ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
+        require __DIR__ . '/api-ai-generate.php'; exit;
+    }
+    if (preg_match('#^/api/v1/send/partners/([a-zA-Z0-9_-]+)/senders$#', $path, $m) && ($_SERVER['REQUEST_METHOD'] ?? '') === 'GET') {
+        $_GET['link_slug'] = $m[1]; require __DIR__ . '/api-partners-senders.php'; exit;
+    }
+    if (preg_match('#^/api/v1/send/partners/([a-zA-Z0-9_-]+)/templates$#', $path, $m) && ($_SERVER['REQUEST_METHOD'] ?? '') === 'GET') {
+        $_GET['link_slug'] = $m[1]; require __DIR__ . '/api-partners-templates.php'; exit;
+    }
+    if (preg_match('#^/api/v1/send/partners/([a-zA-Z0-9_-]+)$#', $path, $m) && ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
+        $_GET['link_slug'] = $m[1]; require __DIR__ . '/api-send-by-link.php'; exit;
+    }
+    if ($path === '/api/v1/send' && ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
+        require __DIR__ . '/api.php'; exit;
+    }
+    if ($path === '/api-test' || $path === '/api-test/') {
+        require __DIR__ . '/api-test/index.php'; exit;
+    }
+    if (preg_match('#^/track/email-open/([a-zA-Z0-9]+)$#', $path, $m)) {
+        $_GET['action'] = 'track-open'; $_GET['token'] = $m[1];
+    }
+
+    // Page routes
+    $pageMap = [
+        '/' => 'landing', '/dashboard' => 'index', '/login' => 'login',
+        '/register' => 'register', '/logout' => 'logout', '/compose' => 'compose',
+        '/senders' => 'senders', '/sender-edit' => 'sender-edit', '/contacts' => 'contacts',
+        '/contact-edit' => 'contact-edit', '/contacts-import' => 'contacts-import',
+        '/groups' => 'groups', '/group-edit' => 'group-edit', '/design' => 'design',
+        '/template-html' => 'template-html', '/api' => 'api', '/logs' => 'logs',
+        '/sms-logs' => 'sms-logs', '/sms' => 'sms', '/admin' => 'admin',
+    ];
+    if (isset($pageMap[$path])) {
+        $_GET['page'] = $pageMap[$path];
+    }
+}
+
 /** Load .env file into config array. Keys like DB_MYSQL_HOST become $config['db_mysql']['host']. */
 function loadEnv(string $path): array {
     $config = [];
