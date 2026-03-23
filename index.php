@@ -1,15 +1,11 @@
 <?php
-/**
- * Standalone Email Marketing
- * Single-file app. Copy this folder to another computer and run: php -S localhost:8080
- * Optional: run "composer install" in this folder for SMTP sending via PHPMailer.
- * Configuration: copy .env.example to .env and set your values.
- */
 declare(strict_types=1);
-
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
 // Production routing: when running under Apache/Nginx (not PHP built-in server),
 // parse the clean URL and set $_GET['page'] so the app works without router.php.
@@ -24,51 +20,79 @@ if (php_sapi_name() !== 'cli-server' && !isset($_GET['page']) && !isset($_GET['a
 
     // API routes — delegate to dedicated PHP files
     if ($path === '/api/v1/senders' && ($_SERVER['REQUEST_METHOD'] ?? '') === 'GET') {
-        require __DIR__ . '/api-senders.php'; exit;
+        require __DIR__ . '/api-senders.php';
+        exit;
     }
     if ($path === '/api/v1/contacts' && ($_SERVER['REQUEST_METHOD'] ?? '') === 'GET') {
-        require __DIR__ . '/api-contacts.php'; exit;
+        require __DIR__ . '/api-contacts.php';
+        exit;
     }
     if ($path === '/api/v1/design' && ($_SERVER['REQUEST_METHOD'] ?? '') === 'GET') {
-        require __DIR__ . '/design-json.php'; exit;
+        require __DIR__ . '/design-json.php';
+        exit;
     }
     if ($path === '/api/v1/design/templates' && ($_SERVER['REQUEST_METHOD'] ?? '') === 'GET') {
-        require __DIR__ . '/design-templates-json.php'; exit;
+        require __DIR__ . '/design-templates-json.php';
+        exit;
     }
     if ($path === '/api/v1/design/templates/delete' && ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
-        require __DIR__ . '/design-template-delete.php'; exit;
+        require __DIR__ . '/design-template-delete.php';
+        exit;
     }
     if ($path === '/api/v1/compose/ai-generate' && ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
-        require __DIR__ . '/api-ai-generate.php'; exit;
+        require __DIR__ . '/api-ai-generate.php';
+        exit;
     }
     if (preg_match('#^/api/v1/send/partners/([a-zA-Z0-9_-]+)/senders$#', $path, $m) && ($_SERVER['REQUEST_METHOD'] ?? '') === 'GET') {
-        $_GET['link_slug'] = $m[1]; require __DIR__ . '/api-partners-senders.php'; exit;
+        $_GET['link_slug'] = $m[1];
+        require __DIR__ . '/api-partners-senders.php';
+        exit;
     }
     if (preg_match('#^/api/v1/send/partners/([a-zA-Z0-9_-]+)/templates$#', $path, $m) && ($_SERVER['REQUEST_METHOD'] ?? '') === 'GET') {
-        $_GET['link_slug'] = $m[1]; require __DIR__ . '/api-partners-templates.php'; exit;
+        $_GET['link_slug'] = $m[1];
+        require __DIR__ . '/api-partners-templates.php';
+        exit;
     }
     if (preg_match('#^/api/v1/send/partners/([a-zA-Z0-9_-]+)$#', $path, $m) && ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
-        $_GET['link_slug'] = $m[1]; require __DIR__ . '/api-send-by-link.php'; exit;
+        $_GET['link_slug'] = $m[1];
+        require __DIR__ . '/api-send-by-link.php';
+        exit;
     }
     if ($path === '/api/v1/send' && ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
-        require __DIR__ . '/api.php'; exit;
+        require __DIR__ . '/api.php';
+        exit;
     }
     if ($path === '/api-test' || $path === '/api-test/') {
-        require __DIR__ . '/api-test/index.php'; exit;
+        require __DIR__ . '/api-test/index.php';
+        exit;
     }
     if (preg_match('#^/track/email-open/([a-zA-Z0-9]+)$#', $path, $m)) {
-        $_GET['action'] = 'track-open'; $_GET['token'] = $m[1];
+        $_GET['action'] = 'track-open';
+        $_GET['token'] = $m[1];
     }
 
     // Page routes
     $pageMap = [
-        '/' => 'landing', '/dashboard' => 'index', '/login' => 'login',
-        '/register' => 'register', '/logout' => 'logout', '/compose' => 'compose',
-        '/senders' => 'senders', '/sender-edit' => 'sender-edit', '/contacts' => 'contacts',
-        '/contact-edit' => 'contact-edit', '/contacts-import' => 'contacts-import',
-        '/groups' => 'groups', '/group-edit' => 'group-edit', '/design' => 'design',
-        '/template-html' => 'template-html', '/api' => 'api', '/logs' => 'logs',
-        '/sms-logs' => 'sms-logs', '/sms' => 'sms', '/admin' => 'admin',
+        '/' => 'landing',
+        '/dashboard' => 'index',
+        '/login' => 'login',
+        '/register' => 'register',
+        '/logout' => 'logout',
+        '/compose' => 'compose',
+        '/senders' => 'senders',
+        '/sender-edit' => 'sender-edit',
+        '/contacts' => 'contacts',
+        '/contact-edit' => 'contact-edit',
+        '/contacts-import' => 'contacts-import',
+        '/groups' => 'groups',
+        '/group-edit' => 'group-edit',
+        '/design' => 'design',
+        '/template-html' => 'template-html',
+        '/api' => 'api',
+        '/logs' => 'logs',
+        '/sms-logs' => 'sms-logs',
+        '/sms' => 'sms',
+        '/admin' => 'admin',
     ];
     if (isset($pageMap[$path])) {
         $_GET['page'] = $pageMap[$path];
@@ -76,7 +100,8 @@ if (php_sapi_name() !== 'cli-server' && !isset($_GET['page']) && !isset($_GET['a
 }
 
 /** Load .env file into config array. Keys like DB_MYSQL_HOST become $config['db_mysql']['host']. */
-function loadEnv(string $path): array {
+function loadEnv(string $path): array
+{
     $config = [];
     if (!is_file($path)) {
         return $config;
@@ -137,7 +162,7 @@ $mysqlSchema = [
     "CREATE TABLE IF NOT EXISTS contact_groups (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) NOT NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)",
     "CREATE TABLE IF NOT EXISTS contact_group_members (contact_id INT NOT NULL, group_id INT NOT NULL, PRIMARY KEY (contact_id, group_id), FOREIGN KEY (contact_id) REFERENCES marketing_contacts(id) ON DELETE CASCADE, FOREIGN KEY (group_id) REFERENCES contact_groups(id) ON DELETE CASCADE)",
     "CREATE TABLE IF NOT EXISTS users (id INT AUTO_INCREMENT PRIMARY KEY, email VARCHAR(255) NOT NULL UNIQUE, password VARCHAR(255) NOT NULL, name VARCHAR(255) DEFAULT NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)",
-    "CREATE TABLE IF NOT EXISTS email_design (id INT PRIMARY KEY, header_html TEXT NOT NULL DEFAULT '', footer_html TEXT NOT NULL DEFAULT '', footer_bg_color VARCHAR(32) NOT NULL DEFAULT '#f1f5f9', block_text_color VARCHAR(32) NOT NULL DEFAULT '#1e293b', header_logo_url VARCHAR(500) DEFAULT '', header_mode VARCHAR(20) NOT NULL DEFAULT 'text_only', footer_logo_url VARCHAR(500) DEFAULT '', footer_mode VARCHAR(20) NOT NULL DEFAULT 'text_only', body_outline_color VARCHAR(32) DEFAULT '')",
+    "CREATE TABLE IF NOT EXISTS email_design (id INT PRIMARY KEY, header_html TEXT NOT NULL, footer_html TEXT NOT NULL, footer_bg_color VARCHAR(32) NOT NULL DEFAULT '#f1f5f9', block_text_color VARCHAR(32) NOT NULL DEFAULT '#1e293b', header_logo_url VARCHAR(500) DEFAULT '', header_mode VARCHAR(20) NOT NULL DEFAULT 'text_only', footer_logo_url VARCHAR(500) DEFAULT '', footer_mode VARCHAR(20) NOT NULL DEFAULT 'text_only', body_outline_color VARCHAR(32) DEFAULT '')",
     "INSERT IGNORE INTO email_design (id, header_html, footer_html, footer_bg_color, block_text_color, header_logo_url, header_mode, footer_logo_url, footer_mode, body_outline_color) VALUES (1, '', '', '#f1f5f9', '#1e293b', '', 'text_only', '', 'text_only', '')",
     "CREATE TABLE IF NOT EXISTS api_keys (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) NOT NULL, api_key VARCHAR(64) NOT NULL UNIQUE, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)",
     "CREATE TABLE IF NOT EXISTS sms_groups (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) NOT NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)",
@@ -151,35 +176,92 @@ foreach ($mysqlSchema as $i => $sql) {
     $pdo->exec($sql);
 }
 foreach (["ALTER TABLE email_design ADD COLUMN header_logo_url VARCHAR(500) DEFAULT ''", "ALTER TABLE email_design ADD COLUMN header_mode VARCHAR(20) NOT NULL DEFAULT 'text_only'", "ALTER TABLE email_design ADD COLUMN footer_logo_url VARCHAR(500) DEFAULT ''", "ALTER TABLE email_design ADD COLUMN footer_mode VARCHAR(20) NOT NULL DEFAULT 'text_only'", "ALTER TABLE email_design ADD COLUMN body_outline_color VARCHAR(32) DEFAULT ''"] as $alterSql) {
-    try { $pdo->exec($alterSql); } catch (Throwable $e) { /* column exists */ }
+    try {
+        $pdo->exec($alterSql);
+    } catch (Throwable $e) { /* column exists */
+    }
 }
 foreach (["ALTER TABLE api_keys ADD COLUMN default_template_id INT NULL DEFAULT NULL", "ALTER TABLE api_keys ADD COLUMN default_sender_ids VARCHAR(255) NULL DEFAULT NULL", "ALTER TABLE api_keys ADD COLUMN link_slug VARCHAR(64) NULL DEFAULT NULL", "ALTER TABLE api_keys ADD UNIQUE KEY api_keys_link_slug (link_slug)"] as $alterSql) {
-    try { $pdo->exec($alterSql); } catch (Throwable $e) { /* column exists */ }
+    try {
+        $pdo->exec($alterSql);
+    } catch (Throwable $e) { /* column exists */
+    }
 }
-$pdo->exec("CREATE TABLE IF NOT EXISTS email_design_templates (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) NOT NULL UNIQUE, header_html TEXT NOT NULL DEFAULT '', footer_html TEXT NOT NULL DEFAULT '', footer_bg_color VARCHAR(32) NOT NULL DEFAULT '#f1f5f9', block_text_color VARCHAR(32) NOT NULL DEFAULT '#1e293b', header_logo_url VARCHAR(500) DEFAULT '', header_mode VARCHAR(20) NOT NULL DEFAULT 'text_only', footer_logo_url VARCHAR(500) DEFAULT '', footer_mode VARCHAR(20) NOT NULL DEFAULT 'text_only', body_outline_color VARCHAR(32) DEFAULT '', created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)");
+$pdo->exec("CREATE TABLE IF NOT EXISTS email_design_templates (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) NOT NULL UNIQUE, header_html TEXT NOT NULL, footer_html TEXT NOT NULL, footer_bg_color VARCHAR(32) NOT NULL DEFAULT '#f1f5f9', block_text_color VARCHAR(32) NOT NULL DEFAULT '#1e293b', header_logo_url VARCHAR(500) DEFAULT '', header_mode VARCHAR(20) NOT NULL DEFAULT 'text_only', footer_logo_url VARCHAR(500) DEFAULT '', footer_mode VARCHAR(20) NOT NULL DEFAULT 'text_only', body_outline_color VARCHAR(32) DEFAULT '', created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)");
 $pdo->exec($mysqlSchema[count($mysqlSchema) - 2]);
 $pdo->exec($mysqlSchema[count($mysqlSchema) - 1]);
 
 // Per-user dashboard: add user_id to all data tables so each user sees only their own data
 foreach (['sender_accounts', 'email_campaigns', 'contact_groups', 'api_keys', 'sms_groups'] as $tbl) {
-    try { $pdo->exec("ALTER TABLE $tbl ADD COLUMN user_id INT NULL DEFAULT NULL"); } catch (Throwable $e) { /* exists */ }
-    try { $pdo->exec("UPDATE $tbl SET user_id = 1 WHERE user_id IS NULL"); } catch (Throwable $e) { }
-    try { $pdo->exec("ALTER TABLE $tbl ADD INDEX idx_user_id (user_id)"); } catch (Throwable $e) { /* exists */ }
+    try {
+        $pdo->exec("ALTER TABLE $tbl ADD COLUMN user_id INT NULL DEFAULT NULL");
+    } catch (Throwable $e) { /* exists */
+    }
+    try {
+        $pdo->exec("UPDATE $tbl SET user_id = 1 WHERE user_id IS NULL");
+    } catch (Throwable $e) {
+    }
+    try {
+        $pdo->exec("ALTER TABLE $tbl ADD INDEX idx_user_id (user_id)");
+    } catch (Throwable $e) { /* exists */
+    }
 }
-try { $pdo->exec('ALTER TABLE marketing_contacts ADD COLUMN user_id INT NULL DEFAULT NULL'); } catch (Throwable $e) { }
-try { $pdo->exec('UPDATE marketing_contacts SET user_id = 1 WHERE user_id IS NULL'); } catch (Throwable $e) { }
-try { $pdo->exec('ALTER TABLE marketing_contacts ADD INDEX idx_user_id (user_id)'); } catch (Throwable $e) { }
-try { $pdo->exec('ALTER TABLE marketing_contacts DROP INDEX email'); } catch (Throwable $e) { }
-try { $pdo->exec('ALTER TABLE marketing_contacts ADD UNIQUE KEY user_email (user_id, email)'); } catch (Throwable $e) { }
-try { $pdo->exec('ALTER TABLE email_design ADD COLUMN user_id INT NULL DEFAULT NULL'); } catch (Throwable $e) { }
-try { $pdo->exec('UPDATE email_design SET user_id = 1 WHERE user_id IS NULL'); } catch (Throwable $e) { }
-try { $pdo->exec('ALTER TABLE email_design ADD INDEX idx_user_id (user_id)'); } catch (Throwable $e) { }
-try { $pdo->exec('ALTER TABLE email_design_templates ADD COLUMN user_id INT NULL DEFAULT NULL'); } catch (Throwable $e) { }
-try { $pdo->exec('UPDATE email_design_templates SET user_id = 1 WHERE user_id IS NULL'); } catch (Throwable $e) { }
-try { $pdo->exec('ALTER TABLE email_design_templates ADD INDEX idx_user_id (user_id)'); } catch (Throwable $e) { }
-try { $pdo->exec('ALTER TABLE email_design_templates DROP INDEX name'); } catch (Throwable $e) { }
-try { $pdo->exec('ALTER TABLE email_design_templates ADD UNIQUE KEY user_name (user_id, name)'); } catch (Throwable $e) { }
-try { $pdo->exec('ALTER TABLE users ADD COLUMN is_admin TINYINT NOT NULL DEFAULT 0'); } catch (Throwable $e) { }
+try {
+    $pdo->exec('ALTER TABLE marketing_contacts ADD COLUMN user_id INT NULL DEFAULT NULL');
+} catch (Throwable $e) {
+}
+try {
+    $pdo->exec('UPDATE marketing_contacts SET user_id = 1 WHERE user_id IS NULL');
+} catch (Throwable $e) {
+}
+try {
+    $pdo->exec('ALTER TABLE marketing_contacts ADD INDEX idx_user_id (user_id)');
+} catch (Throwable $e) {
+}
+try {
+    $pdo->exec('ALTER TABLE marketing_contacts DROP INDEX email');
+} catch (Throwable $e) {
+}
+try {
+    $pdo->exec('ALTER TABLE marketing_contacts ADD UNIQUE KEY user_email (user_id, email)');
+} catch (Throwable $e) {
+}
+try {
+    $pdo->exec('ALTER TABLE email_design ADD COLUMN user_id INT NULL DEFAULT NULL');
+} catch (Throwable $e) {
+}
+try {
+    $pdo->exec('UPDATE email_design SET user_id = 1 WHERE user_id IS NULL');
+} catch (Throwable $e) {
+}
+try {
+    $pdo->exec('ALTER TABLE email_design ADD INDEX idx_user_id (user_id)');
+} catch (Throwable $e) {
+}
+try {
+    $pdo->exec('ALTER TABLE email_design_templates ADD COLUMN user_id INT NULL DEFAULT NULL');
+} catch (Throwable $e) {
+}
+try {
+    $pdo->exec('UPDATE email_design_templates SET user_id = 1 WHERE user_id IS NULL');
+} catch (Throwable $e) {
+}
+try {
+    $pdo->exec('ALTER TABLE email_design_templates ADD INDEX idx_user_id (user_id)');
+} catch (Throwable $e) {
+}
+try {
+    $pdo->exec('ALTER TABLE email_design_templates DROP INDEX name');
+} catch (Throwable $e) {
+}
+try {
+    $pdo->exec('ALTER TABLE email_design_templates ADD UNIQUE KEY user_name (user_id, name)');
+} catch (Throwable $e) {
+}
+try {
+    $pdo->exec('ALTER TABLE users ADD COLUMN is_admin TINYINT NOT NULL DEFAULT 0');
+} catch (Throwable $e) {
+}
 // Ensure default admin from .env exists and only that account has admin. All other users (e.g. company user id 1) are non-admin.
 try {
     $defaultAdminEmail = trim($config['admin_email'] ?? 'admin@example.com');
@@ -189,13 +271,16 @@ try {
         $pdo->prepare('INSERT INTO users (email, password, name, is_admin) VALUES (?, ?, ?, 1) ON DUPLICATE KEY UPDATE password = VALUES(password), is_admin = 1, name = VALUES(name)')->execute([$defaultAdminEmail, $defaultAdminHash, 'Admin']);
         $pdo->prepare('UPDATE users SET is_admin = 0 WHERE email != ?')->execute([$defaultAdminEmail]);
     }
-} catch (Throwable $e) { }
+} catch (Throwable $e) {
+}
 
-function h($s): string {
+function h($s): string
+{
     return htmlspecialchars((string) $s, ENT_QUOTES, 'UTF-8');
 }
 
-function normalizeEmailBlockHtml(string $html): string {
+function normalizeEmailBlockHtml(string $html): string
+{
     $html = preg_replace('#<head\b[^>]*>.*?</head>#is', '', $html) ?? $html;
     $html = preg_replace('#<script\b[^>]*>.*?</script>#is', '', $html) ?? $html;
     $html = preg_replace('#<style\b[^>]*>.*?</style>#is', '', $html) ?? $html;
@@ -205,16 +290,19 @@ function normalizeEmailBlockHtml(string $html): string {
 }
 
 /** Split combined header+footer HTML by delimiter. Returns [header_html, footer_html]. Delimiter: <!-- FOOTER --> (case-insensitive). */
-function splitHeaderFooterHtml(string $combined): array {
+function splitHeaderFooterHtml(string $combined): array
+{
     $combined = trim($combined);
     if ($combined === '') {
         return ['', ''];
     }
     if (preg_match('#\s*<!--\s*FOOTER\s*-->\s*#is', $combined, $m, PREG_OFFSET_CAPTURE)) {
         $pos = $m[0][1];
-        $header = trim(substr($combined, 0, $pos));
-        $footer = trim(substr($combined, $pos + strlen($m[0][0])));
-        return [$header, $footer];
+        if ($pos !== null && $pos !== false && is_int($pos)) {
+            $header = trim(substr($combined, 0, $pos));
+            $footer = trim(substr($combined, $pos + strlen($m[0][0])));
+            return [$header, $footer];
+        }
     }
     return [$combined, $combined];
 }
@@ -242,12 +330,14 @@ $cleanPaths = [
     'admin' => '/admin',
 ];
 
-function baseUrl(): string {
+function baseUrl(): string
+{
     $script = $_SERVER['SCRIPT_NAME'] ?? '/index.php';
     return rtrim(dirname($script), '/') ?: '';
 }
 
-function url(string $page = '', array $q = []): string {
+function url(string $page = '', array $q = []): string
+{
     global $cleanPaths;
     if (isset($cleanPaths[$page])) {
         $path = $cleanPaths[$page];
@@ -263,15 +353,18 @@ function url(string $page = '', array $q = []): string {
     return $path . (count($params) ? '?' . http_build_query($params) : '');
 }
 
-function currentPage(): string {
+function currentPage(): string
+{
     return $_GET['page'] ?? 'landing';
 }
 
-function isLoggedIn(): bool {
+function isLoggedIn(): bool
+{
     return isset($_SESSION['user_id']);
 }
 
-function isAdmin(): bool {
+function isAdmin(): bool
+{
     return !empty($_SESSION['is_admin']);
 }
 
@@ -292,7 +385,8 @@ if (currentPage() === 'logout') {
     exit;
 }
 
-function navClass(string $page): string {
+function navClass(string $page): string
+{
     $current = currentPage();
     if ($page === 'groups' && ($current === 'groups' || $current === 'group-edit')) return 'bg-[#f54a00] text-white';
     if ($page === 'contacts' && in_array($current, ['contacts', 'contact-edit', 'contacts-import'])) return 'bg-[#f54a00] text-white';
@@ -306,7 +400,8 @@ function navClass(string $page): string {
 }
 
 /** Base URL for open-tracking pixel (must be reachable by recipient's email client). */
-function trackingBaseUrl(): string {
+function trackingBaseUrl(): string
+{
     global $config;
     $base = trim((string) ($config['tracking_base_url'] ?? ''));
     if ($base !== '') {
@@ -326,7 +421,8 @@ function trackingBaseUrl(): string {
 }
 
 /** Inject tracking pixel + optional "View in browser" link so opens are recorded even when images are blocked. */
-function injectTrackingPixel(string $body, string $baseUrl, string $token): string {
+function injectTrackingPixel(string $body, string $baseUrl, string $token): string
+{
     $url = $baseUrl . '/track/email-open/' . $token;
     $urlEsc = htmlspecialchars($url, ENT_QUOTES, 'UTF-8');
     // 1) Pixel – works when the email client loads images
@@ -356,7 +452,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'track-open' && isset($_GET['t
     }
     $pixel = base64_decode(
         'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVQI12NgAAIABQAB'
-        . 'Nl7BcQAAAABJRU5ErkJggg==',
+            . 'Nl7BcQAAAABJRU5ErkJggg==',
         true
     );
     $accept = $_SERVER['HTTP_ACCEPT'] ?? '';
@@ -502,7 +598,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $password = $_POST['password'] ?? '';
         $confirm = $_POST['password_confirmation'] ?? '';
         $name = trim($_POST['name'] ?? '');
-        
+
         if ($email === '' || $password === '') {
             $flashError = 'Email and password are required.';
             $_GET['page'] = 'register';
@@ -604,7 +700,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $email = trim($_POST['email'] ?? '');
         $company = trim($_POST['company_name'] ?? '');
         $isAjax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
-        
+
         if ($gid && filter_var($email, FILTER_VALIDATE_EMAIL)) {
             try {
                 $pdo->beginTransaction();
@@ -612,7 +708,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $st = $pdo->prepare('SELECT id FROM marketing_contacts WHERE email = ? AND user_id = ?');
                 $st->execute([$email, $userId]);
                 $contact = $st->fetch();
-                
+
                 if ($contact) {
                     $cid = (int)$contact['id'];
                 } else {
@@ -620,17 +716,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         ->execute([$email, $company ?: null, $userId]);
                     $cid = (int)$pdo->lastInsertId();
                 }
-                
+
                 // Link to group - use IGNORE to avoid errors if already linked
                 $pdo->prepare('INSERT IGNORE INTO contact_group_members (contact_id, group_id) VALUES (?, ?)')
                     ->execute([$cid, $gid]);
-                
+
                 $pdo->commit();
-                
+
                 if ($isAjax) {
                     header('Content-Type: application/json');
                     echo json_encode([
-                        'success' => true, 
+                        'success' => true,
                         'message' => 'Contact created and added to group.',
                         'data' => [
                             'id' => $cid,
@@ -640,7 +736,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ]);
                     exit;
                 }
-                
+
                 header('Location: ' . url('group-edit', ['id' => $gid, 'success' => 'Contact created and added to group.']));
                 exit;
             } catch (Exception $e) {
@@ -676,9 +772,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 exit;
             }
             header('Location: ' . url('group-edit', ['id' => $gid, 'success' => 'Member removed.']));
-                exit;
-            }
+            exit;
         }
+    }
 
     // ---------- SMS Notification ----------
     if ($action === 'sms-group-create') {
@@ -704,7 +800,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ? array_map('trim', $_POST['recipient_name'])
             : [trim($_POST['recipient_name'] ?? '')];
         $phones = isset($_POST['phone_number']) && is_array($_POST['phone_number'])
-            ? array_map(function ($p) { return preg_replace('/\s+/', '', trim($p)); }, $_POST['phone_number'])
+            ? array_map(function ($p) {
+                return preg_replace('/\s+/', '', trim($p));
+            }, $_POST['phone_number'])
             : [preg_replace('/\s+/', '', trim($_POST['phone_number'] ?? ''))];
         $pairs = [];
         $max = max(count($names), count($phones));
@@ -786,7 +884,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($singleRecipientId > 0) {
             $one = null;
             foreach ($recipients as $r) {
-                if ((int)$r['id'] === $singleRecipientId) { $one = $r; break; }
+                if ((int)$r['id'] === $singleRecipientId) {
+                    $one = $r;
+                    break;
+                }
             }
             if ($one) {
                 $recipients = [$one];
@@ -859,7 +960,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
             $statusByNumber[$num] = ['status' => $st === 'failed' ? 'failed' : ($st !== 'unknown' ? $st : 'sent'), 'error' => $err];
-            if ($st === 'failed') $failed++; else $sent++;
+            if ($st === 'failed') $failed++;
+            else $sent++;
         }
         $responseParsed = true;
 
@@ -1007,27 +1109,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $flashError = 'Please upload a valid CSV file.';
             $_GET['page'] = 'contacts-import';
         } else {
-        $added = 0;
-        $skipped = 0;
-        $rows = array_map('str_getcsv', file($_FILES['file']['tmp_name']));
-        $header = $rows ? array_shift($rows) : [];
-        $emailIdx = 0;
-        $companyIdx = null;
-        foreach ($header as $i => $col) {
-            $c = strtolower(trim($col));
-            if (in_array($c, ['email', 'e-mail', 'email address'], true)) $emailIdx = $i;
-            if (in_array($c, ['company', 'company name', 'company_name'], true)) $companyIdx = $i;
-        }
-        $stmt = $pdo->prepare('INSERT IGNORE INTO marketing_contacts (email, company_name, user_id) VALUES (?,?,?)');
-        foreach ($rows as $row) {
-            $email = trim($row[$emailIdx] ?? '');
-            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) { $skipped++; continue; }
-            $company = $companyIdx !== null ? trim($row[$companyIdx] ?? '') : null;
-            $stmt->execute([$email, $company ?: null, $userId]);
-            if ($stmt->rowCount()) $added++; else $skipped++;
-        }
-        header('Location: ' . url('contacts') . '&success=' . urlencode("Import done: $added added, $skipped skipped."));
-        exit;
+            $added = 0;
+            $skipped = 0;
+            $rows = array_map('str_getcsv', file($_FILES['file']['tmp_name']));
+            $header = $rows ? array_shift($rows) : [];
+            $emailIdx = 0;
+            $companyIdx = null;
+            foreach ($header as $i => $col) {
+                $c = strtolower(trim($col));
+                if (in_array($c, ['email', 'e-mail', 'email address'], true)) $emailIdx = $i;
+                if (in_array($c, ['company', 'company name', 'company_name'], true)) $companyIdx = $i;
+            }
+            $stmt = $pdo->prepare('INSERT IGNORE INTO marketing_contacts (email, company_name, user_id) VALUES (?,?,?)');
+            foreach ($rows as $row) {
+                $email = trim($row[$emailIdx] ?? '');
+                if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                    $skipped++;
+                    continue;
+                }
+                $company = $companyIdx !== null ? trim($row[$companyIdx] ?? '') : null;
+                $stmt->execute([$email, $company ?: null, $userId]);
+                if ($stmt->rowCount()) $added++;
+                else $skipped++;
+            }
+            header('Location: ' . url('contacts') . '&success=' . urlencode("Import done: $added added, $skipped skipped."));
+            exit;
         }
     }
 
@@ -1060,89 +1166,89 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $recipients = $stmt->fetchAll(PDO::FETCH_ASSOC);
             }
             if (!isset($flashError)) {
-            $composeSender = $_POST['compose_sender'] ?? 'all';
-            if ($composeSender !== '' && $composeSender !== 'all') {
-                $senderId = (int) $composeSender;
-                if ($senderId > 0) {
-                    $stmt = $pdo->prepare('SELECT id FROM sender_accounts WHERE is_active = 1 AND id = ?');
-                    $stmt->execute([$senderId]);
-                    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-                    $senders = $row ? [$row] : [];
-                    if (empty($senders)) {
-                        $flashError = 'Selected sender not found or inactive. Choose "All active senders" or another sender.';
-                        $_GET['page'] = 'compose';
+                $composeSender = $_POST['compose_sender'] ?? 'all';
+                if ($composeSender !== '' && $composeSender !== 'all') {
+                    $senderId = (int) $composeSender;
+                    if ($senderId > 0) {
+                        $stmt = $pdo->prepare('SELECT id FROM sender_accounts WHERE is_active = 1 AND id = ?');
+                        $stmt->execute([$senderId]);
+                        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                        $senders = $row ? [$row] : [];
+                        if (empty($senders)) {
+                            $flashError = 'Selected sender not found or inactive. Choose "All active senders" or another sender.';
+                            $_GET['page'] = 'compose';
+                        }
+                    } else {
+                        $senders = $pdo->query('SELECT id FROM sender_accounts WHERE is_active=1 ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
                     }
                 } else {
                     $senders = $pdo->query('SELECT id FROM sender_accounts WHERE is_active=1 ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
                 }
-            } else {
-                $senders = $pdo->query('SELECT id FROM sender_accounts WHERE is_active=1 ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
-            }
-            if (!isset($flashError)) {
-            $pdo->prepare('INSERT INTO email_campaigns (subject, body, recipient_filter, rotate_senders, status, total_recipients, user_id) VALUES (?,?,?,?,?,?,?)')
-                ->execute([$subject, $body, $recipientFilter, $rotateSenders ? 1 : 0, 'sending', count($recipients), $userId]);
-            $campaignId = (int) $pdo->lastInsertId();
+                if (!isset($flashError)) {
+                    $pdo->prepare('INSERT INTO email_campaigns (subject, body, recipient_filter, rotate_senders, status, total_recipients, user_id) VALUES (?,?,?,?,?,?,?)')
+                        ->execute([$subject, $body, $recipientFilter, $rotateSenders ? 1 : 0, 'sending', count($recipients), $userId]);
+                    $campaignId = (int) $pdo->lastInsertId();
 
-            $insertLog = $pdo->prepare('INSERT INTO email_logs (email_campaign_id, sender_account_id, recipient_email, status, open_tracking_token) VALUES (?,?,?,?,?)');
-            $senderCount = count($senders);
-            foreach ($recipients as $i => $r) {
-                $senderId = $senderCount > 0 ? (int) $senders[$i % $senderCount]['id'] : null;
-                $token = bin2hex(random_bytes(16));
-                $insertLog->execute([$campaignId, $senderId, $r['email'], 'pending', $token]);
-            }
-
-            // Send immediately (sync) for standalone
-            $logsStmt = $pdo->prepare('SELECT l.id, l.recipient_email, l.open_tracking_token, s.email as from_email, s.password, s.host, s.port, s.encryption, s.name as from_name FROM email_logs l LEFT JOIN sender_accounts s ON s.id = l.sender_account_id WHERE l.email_campaign_id = ? AND l.status = ?');
-            $logsStmt->execute([$campaignId, 'pending']);
-            $sent = 0;
-            $failed = 0;
-            $usePhpMailer = file_exists(__DIR__ . '/vendor/autoload.php');
-            $trackingBase = trackingBaseUrl();
-            if ($usePhpMailer) {
-                require_once __DIR__ . '/vendor/autoload.php';
-            }
-
-            while ($log = $logsStmt->fetch(PDO::FETCH_ASSOC)) {
-                if ($usePhpMailer && !empty($log['from_email']) && !empty($log['host'])) {
-                    try {
-                        $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
-                        $mail->CharSet = 'UTF-8';
-                        $mail->isHTML(true);
-                        $mail->Subject = $subject;
-                        $bodyWithPixel = !empty($log['open_tracking_token']) ? injectTrackingPixel($body, $trackingBase, $log['open_tracking_token']) : $body;
-                        $mail->Body = $bodyWithPixel;
-                        $mail->setFrom($log['from_email'], $log['from_name'] ?? '');
-                        $mail->addAddress($log['recipient_email']);
-                        $mail->isSMTP();
-                        $mail->Host = $log['host'];
-                        $mail->Port = (int) $log['port'];
-                        $mail->SMTPAuth = true;
-                        $mail->Username = $log['from_email'];
-                        $mail->Password = base64_decode($log['password'], true) ?: $log['password'];
-                        if (!empty($log['encryption'])) {
-                            $mail->SMTPSecure = $log['encryption'] === 'ssl' ? \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS : \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
-                        } else {
-                            $mail->SMTPSecure = false;
-                        }
-                        $mail->send();
-                        $pdo->prepare('UPDATE email_logs SET status=?, sent_at=? WHERE id=?')->execute(['sent', date('Y-m-d H:i:s'), $log['id']]);
-                        $sent++;
-                    } catch (\Throwable $e) {
-                        $pdo->prepare('UPDATE email_logs SET status=?, error_message=? WHERE id=?')->execute(['failed', $e->getMessage(), $log['id']]);
-                        $failed++;
+                    $insertLog = $pdo->prepare('INSERT INTO email_logs (email_campaign_id, sender_account_id, recipient_email, status, open_tracking_token) VALUES (?,?,?,?,?)');
+                    $senderCount = count($senders);
+                    foreach ($recipients as $i => $r) {
+                        $senderId = $senderCount > 0 ? (int) $senders[$i % $senderCount]['id'] : null;
+                        $token = bin2hex(random_bytes(16));
+                        $insertLog->execute([$campaignId, $senderId, $r['email'], 'pending', $token]);
                     }
-                } else {
-                    $msg = empty($log['from_email']) ? 'No sender account for this recipient.' : 'Run composer install and add active sender accounts.';
-                    $pdo->prepare('UPDATE email_logs SET status=?, error_message=? WHERE id=?')->execute(['failed', $msg, $log['id']]);
-                    $failed++;
-                }
-            }
 
-            $pdo->prepare('UPDATE email_campaigns SET status=?, sent_count=?, failed_count=?, completed_at=? WHERE id=?')
-                ->execute(['completed', $sent, $failed, date('Y-m-d H:i:s'), $campaignId]);
-            header('Location: ' . url('index') . '&success=' . urlencode("Campaign sent. $sent sent, $failed failed."));
-            exit;
-            }
+                    // Send immediately (sync) for standalone
+                    $logsStmt = $pdo->prepare('SELECT l.id, l.recipient_email, l.open_tracking_token, s.email as from_email, s.password, s.host, s.port, s.encryption, s.name as from_name FROM email_logs l LEFT JOIN sender_accounts s ON s.id = l.sender_account_id WHERE l.email_campaign_id = ? AND l.status = ?');
+                    $logsStmt->execute([$campaignId, 'pending']);
+                    $sent = 0;
+                    $failed = 0;
+                    $usePhpMailer = file_exists(__DIR__ . '/vendor/autoload.php');
+                    $trackingBase = trackingBaseUrl();
+                    if ($usePhpMailer) {
+                        require_once __DIR__ . '/vendor/autoload.php';
+                    }
+
+                    while ($log = $logsStmt->fetch(PDO::FETCH_ASSOC)) {
+                        if ($usePhpMailer && !empty($log['from_email']) && !empty($log['host'])) {
+                            try {
+                                $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
+                                $mail->CharSet = 'UTF-8';
+                                $mail->isHTML(true);
+                                $mail->Subject = $subject;
+                                $bodyWithPixel = !empty($log['open_tracking_token']) ? injectTrackingPixel($body, $trackingBase, $log['open_tracking_token']) : $body;
+                                $mail->Body = $bodyWithPixel;
+                                $mail->setFrom($log['from_email'], $log['from_name'] ?? '');
+                                $mail->addAddress($log['recipient_email']);
+                                $mail->isSMTP();
+                                $mail->Host = $log['host'];
+                                $mail->Port = (int) $log['port'];
+                                $mail->SMTPAuth = true;
+                                $mail->Username = $log['from_email'];
+                                $mail->Password = base64_decode($log['password'], true) ?: $log['password'];
+                                if (!empty($log['encryption'])) {
+                                    $mail->SMTPSecure = $log['encryption'] === 'ssl' ? \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS : \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+                                } else {
+                                    $mail->SMTPSecure = false;
+                                }
+                                $mail->send();
+                                $pdo->prepare('UPDATE email_logs SET status=?, sent_at=? WHERE id=?')->execute(['sent', date('Y-m-d H:i:s'), $log['id']]);
+                                $sent++;
+                            } catch (\Throwable $e) {
+                                $pdo->prepare('UPDATE email_logs SET status=?, error_message=? WHERE id=?')->execute(['failed', $e->getMessage(), $log['id']]);
+                                $failed++;
+                            }
+                        } else {
+                            $msg = empty($log['from_email']) ? 'No sender account for this recipient.' : 'Run composer install and add active sender accounts.';
+                            $pdo->prepare('UPDATE email_logs SET status=?, error_message=? WHERE id=?')->execute(['failed', $msg, $log['id']]);
+                            $failed++;
+                        }
+                    }
+
+                    $pdo->prepare('UPDATE email_campaigns SET status=?, sent_count=?, failed_count=?, completed_at=? WHERE id=?')
+                        ->execute(['completed', $sent, $failed, date('Y-m-d H:i:s'), $campaignId]);
+                    header('Location: ' . url('index') . '&success=' . urlencode("Campaign sent. $sent sent, $failed failed."));
+                    exit;
+                }
             }
         }
     }
@@ -1172,291 +1278,382 @@ $groupsCount = (int) $groupsCountStmt->fetchColumn();
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title><?= h($page === 'index' ? 'Email Marketing' : ($page === 'admin' ? 'Admin' : ucfirst(str_replace('-', ' ', $page)))) ?> - <?= h($appName) ?></title>
+    <title>
+        <?= h($page === 'index' ? 'Email Marketing' : ($page === 'admin' ? 'Admin' : ucfirst(str_replace('-', ' ', $page)))) ?>
+        - <?= h($appName) ?></title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
     <style>
-        /* Hide all scrollbars while keeping scroll behavior */
-        * {
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-        }
-        *::-webkit-scrollbar {
-            display: none;
-        }
-        @media (max-width: 767px) {
-            /* Prevent background from scrolling/shifting when the drawer is open */
-            /* Avoid iOS/Android rendering "flip" by not fixing <body>.
+    /* Hide all scrollbars while keeping scroll behavior */
+    * {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    *::-webkit-scrollbar {
+        display: none;
+    }
+
+    @media (max-width: 767px) {
+
+        /* Prevent background from scrolling/shifting when the drawer is open */
+        /* Avoid iOS/Android rendering "flip" by not fixing <body>.
                Instead, lock scrolling via <html> + main container. */
-            html.mobile-nav-open,
-            body.mobile-nav-open {
-                overflow: hidden;
-            }
-            body { overflow-x: hidden; }
-            body.mobile-nav-open main {
-                overflow: hidden;
-                overscroll-behavior: contain;
-                touch-action: none;
-            }
-            .no-horizontal-scroll { overflow-x: hidden; max-width: 100vw; }
-        }
-        @media (min-width: 768px) {
-            .sidebar-overlay { display: none !important; }
-        }
-        .sidebar-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 40;
-            /* Blur can cause mobile GPU/compositing glitches ("flipped" content). */
-            backdrop-filter: none;
-            -webkit-backdrop-filter: none;
-        }
-        @media (min-width: 768px) {
-            .sidebar-overlay {
-                backdrop-filter: blur(2px);
-                -webkit-backdrop-filter: blur(2px);
-            }
-        }
-        .sidebar-overlay:not(.hidden) {
-            display: block;
-        }
-        .rotate-180 {
-            transform: rotate(180deg);
+        html.mobile-nav-open,
+        body.mobile-nav-open {
+            overflow: hidden;
         }
 
+        body {
+            overflow-x: hidden;
+        }
+
+        body.mobile-nav-open main {
+            overflow: hidden;
+            overscroll-behavior: contain;
+            touch-action: none;
+        }
+
+        .no-horizontal-scroll {
+            overflow-x: hidden;
+            max-width: 100vw;
+        }
+    }
+
+    @media (min-width: 768px) {
+        .sidebar-overlay {
+            display: none !important;
+        }
+    }
+
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 40;
+        /* Blur can cause mobile GPU/compositing glitches ("flipped" content). */
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+    }
+
+    @media (min-width: 768px) {
+        .sidebar-overlay {
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+        }
+    }
+
+    .sidebar-overlay:not(.hidden) {
+        display: block;
+    }
+
+    .rotate-180 {
+        transform: rotate(180deg);
+    }
     </style>
 </head>
+
 <body class="min-h-screen bg-slate-100 font-sans text-slate-900 antialiased">
-<div class="flex min-h-screen">
-    <?php if (!in_array(currentPage(), $publicPages)): ?>
-    <!-- Mobile Header -->
-    <header class="md:hidden fixed top-0 left-0 right-0 bg-slate-900 z-30 h-20 grid grid-cols-3 items-center px-4 shadow-lg">
-        <button id="mobile-menu-btn" type="button" class="p-2 -ml-2 text-white hover:bg-white/10 rounded-lg touch-manipulation" aria-label="Open menu">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-            </svg>
-        </button>
-        <div></div>
-        <a href="<?= url('index') ?>" class="flex items-center justify-end">
-            <img src="/public/images/logo1.png" alt="Logo" class="h-12 w-auto">
-        </a>
-    </header>
-
-    <!-- Mobile Sidebar Overlay -->
-    <div id="sidebar-overlay" class="sidebar-overlay hidden" aria-hidden="true"></div>
-
-    <!-- Sidebar -->
-    <aside id="mobile-sidebar" class="w-64 flex-shrink-0 bg-slate-900 flex flex-col fixed md:sticky top-0 h-screen z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
-        <div class="p-6 border-b border-slate-700/50 flex flex-col items-center relative">
-            <a href="<?= url('index') ?>" class="flex flex-col items-center text-center">
-                <img src="/public/images/logo1.png" alt="Logo" class="h-12 w-auto mb-3">
-                <h1 class="text-lg font-semibold text-white tracking-tight">FH Email Marketing</h1>
-            </a>
-            <button id="mobile-close-btn" type="button" class="md:hidden absolute top-5 right-5 p-2 text-slate-400 hover:text-white" aria-label="Close menu">
+    <div class="flex min-h-screen">
+        <?php if (!in_array(currentPage(), $publicPages)): ?>
+        <!-- Mobile Header -->
+        <header
+            class="md:hidden fixed top-0 left-0 right-0 bg-slate-900 z-30 h-20 grid grid-cols-3 items-center px-4 shadow-lg">
+            <button id="mobile-menu-btn" type="button"
+                class="p-2 -ml-2 text-white hover:bg-white/10 rounded-lg touch-manipulation" aria-label="Open menu">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16">
+                    </path>
                 </svg>
             </button>
-        </div>
-        <nav class="flex-1 p-3 space-y-0.5 overflow-y-auto" aria-label="Main">
-            <?php if (!isAdmin()): ?>
-            <!-- Company nav: only for non-admin users -->
-            <a href="<?= url('index') ?>" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors <?= currentPage() === 'index' ? 'bg-[#f54a00] text-white' : 'text-slate-300 hover:bg-white/10 hover:text-white' ?>">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
-                <span>Dashboard</span>
+            <div></div>
+            <a href="<?= url('index') ?>" class="flex items-center justify-end">
+                <img src="/public/images/logo1.png" alt="Logo" class="h-12 w-auto">
             </a>
+        </header>
 
-            <a href="<?= url('compose') ?>" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors <?= in_array(currentPage(), ['compose', 'contacts']) ? 'bg-[#f54a00] text-white' : 'text-slate-300 hover:bg-white/10 hover:text-white' ?>">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path></svg>
-                <span>Email Marketing</span>
-            </a>
+        <!-- Mobile Sidebar Overlay -->
+        <div id="sidebar-overlay" class="sidebar-overlay hidden" aria-hidden="true"></div>
 
-            <a href="<?= url('groups') ?>" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors <?= navClass('groups') ?>">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
-                <span>Groups</span>
-            </a>
-            <a href="<?= url('logs') ?>" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors <?= navClass('logs') ?>">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                <span>Logs</span>
-            </a>
-            <a href="<?= url('sms') ?>" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors <?= navClass('sms') ?>">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-                <span>SMS</span>
-            </a>
-            <?php endif; ?>
-
-            <?php if (isAdmin()): ?>
-            <div class="pt-4">
-                <p class="px-3 mb-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Admin</p>
-                <a href="<?= url('admin') ?>" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors <?= currentPage() === 'admin' ? 'bg-[#f54a00] text-white' : 'text-slate-300 hover:bg-white/10 hover:text-white' ?>">
-                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                    <span>Admin</span>
+        <!-- Sidebar -->
+        <aside id="mobile-sidebar"
+            class="w-64 flex-shrink-0 bg-slate-900 flex flex-col fixed md:sticky top-0 h-screen z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
+            <div class="p-6 border-b border-slate-700/50 flex flex-col items-center relative">
+                <a href="<?= url('index') ?>" class="flex flex-col items-center text-center">
+                    <img src="/public/images/logo1.png" alt="Logo" class="h-12 w-auto mb-3">
+                    <h1 class="text-lg font-semibold text-white tracking-tight">FH Email Marketing</h1>
                 </a>
-                <a href="<?= url('senders') ?>" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors <?= navClass('senders') ?>">
-                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                    <span>Senders</span>
-                </a>
-                <a href="<?= url('design') ?>" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors <?= navClass('design') ?>">
-                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path></svg>
-                    <span>Design</span>
-                </a>
-                <a href="<?= url('api') ?>" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors <?= navClass('api') ?>">
-                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
-                    <span>API</span>
-                </a>
+                <button id="mobile-close-btn" type="button"
+                    class="md:hidden absolute top-5 right-5 p-2 text-slate-400 hover:text-white"
+                    aria-label="Close menu">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                    </svg>
+                </button>
             </div>
-            <?php endif; ?>
-        </nav>
-        <!-- START: Isolated Logout Section -->
-        <div id="logout-section-isolated" class="mt-auto p-3 border-t border-slate-700/50 bg-slate-800">
-            <button type="button" class="logout-btn-isolated logout-btn flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium bg-transparent text-red-400 border border-red-500 hover:bg-red-500/20 hover:text-white hover:border-red-400 transition-all w-full text-left">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                <span>LOG OUT</span>
-            </button>
-        </div>
-        <!-- END: Isolated Logout Section -->
-    </aside>
-    <?php endif; ?>
+            <nav class="flex-1 p-3 space-y-0.5 overflow-y-auto" aria-label="Main">
+                <?php if (!isAdmin()): ?>
+                <!-- Company nav: only for non-admin users -->
+                <a href="<?= url('index') ?>"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors <?= currentPage() === 'index' ? 'bg-[#f54a00] text-white' : 'text-slate-300 hover:bg-white/10 hover:text-white' ?>">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
+                        </path>
+                    </svg>
+                    <span>Dashboard</span>
+                </a>
 
-    <!-- Main content -->
-    <main class="flex-1 overflow-auto <?= in_array(currentPage(), $publicPages) ? '' : 'pt-20 md:pt-0' ?>">
-        <div class="<?= in_array(currentPage(), $publicPages) ? '' : 'max-w-6xl mx-auto pl-12 pr-3 sm:pl-16 sm:pr-4 md:pl-20 md:pr-6 lg:pl-24 lg:pr-8 py-4 md:py-8' ?> <?= !in_array(currentPage(), $publicPages) ? 'no-horizontal-scroll' : '' ?>">
-            <?php if (!in_array(currentPage(), $publicPages)): ?>
-                <?php if (!in_array($page, ['api', 'design', 'compose', 'senders', 'contacts', 'group-edit', 'groups', 'logs', 'contact-edit', 'sender-edit', 'contacts-import', 'index', 'sms', 'admin'])): ?>
-                <div class="mb-4 md:mb-6">
-                    <h2 class="text-xl md:text-2xl font-semibold text-slate-900"><?= $page === 'index' ? 'Dashboard' : ucfirst(str_replace('-', ' ', $page)) ?></h2>
-                    <p class="text-slate-500 text-xs md:text-sm mt-0.5"><?= $page === 'index' ? 'Overview and recent campaigns' : 'Manage your email marketing' ?></p>
+                <a href="<?= url('compose') ?>"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors <?= in_array(currentPage(), ['compose', 'contacts']) ? 'bg-[#f54a00] text-white' : 'text-slate-300 hover:bg-white/10 hover:text-white' ?>">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z">
+                        </path>
+                    </svg>
+                    <span>Email Marketing</span>
+                </a>
+
+                <a href="<?= url('groups') ?>"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors <?= navClass('groups') ?>">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
+                        </path>
+                    </svg>
+                    <span>Groups</span>
+                </a>
+                <a href="<?= url('logs') ?>"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors <?= navClass('logs') ?>">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                        </path>
+                    </svg>
+                    <span>Logs</span>
+                </a>
+                <a href="<?= url('sms') ?>"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors <?= navClass('sms') ?>">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                    </svg>
+                    <span>SMS</span>
+                </a>
+                <?php endif; ?>
+
+                <?php if (isAdmin()): ?>
+                <div class="pt-4">
+                    <p class="px-3 mb-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Admin</p>
+                    <a href="<?= url('admin') ?>"
+                        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors <?= currentPage() === 'admin' ? 'bg-[#f54a00] text-white' : 'text-slate-300 hover:bg-white/10 hover:text-white' ?>">
+                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+                            </path>
+                        </svg>
+                        <span>Admin</span>
+                    </a>
+                    <a href="<?= url('senders') ?>"
+                        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors <?= navClass('senders') ?>">
+                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                        <span>Senders</span>
+                    </a>
+                    <a href="<?= url('design') ?>"
+                        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors <?= navClass('design') ?>">
+                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01">
+                            </path>
+                        </svg>
+                        <span>Design</span>
+                    </a>
+                    <a href="<?= url('api') ?>"
+                        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors <?= navClass('api') ?>">
+                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                        </svg>
+                        <span>API</span>
+                    </a>
                 </div>
                 <?php endif; ?>
-            <?php endif; ?>
-
-            <?php if (currentPage() !== 'sms' && $flashSuccess): ?>
-            <div class="mb-4 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 font-medium <?= in_array(currentPage(), $publicPages) ? 'max-w-md mx-auto mt-4' : '' ?>"><?= h($flashSuccess) ?></div>
-            <?php endif; ?>
-            <?php if (currentPage() !== 'sms' && !empty($flashError)): ?>
-            <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 font-medium <?= in_array(currentPage(), $publicPages) ? 'max-w-md mx-auto mt-4' : '' ?>"><?= h($flashError) ?></div>
-            <?php endif; ?>
-
-            <?php
-            $viewPath = __DIR__ . '/views/' . ($page === 'index' ? 'dashboard' : $page) . '.php';
-            if (file_exists($viewPath)) {
-                include $viewPath;
-            } else {
-                echo '<div class="p-8 bg-white rounded-2xl shadow border border-slate-100 text-center text-slate-500">Page not found.</div>';
-            }
-            ?>
-        </div>
-    </main>
-</div>
-<script>
-(function() {
-    var menuBtn = document.getElementById('mobile-menu-btn');
-    var closeBtn = document.getElementById('mobile-close-btn');
-    var sidebar = document.getElementById('mobile-sidebar');
-    var overlay = document.getElementById('sidebar-overlay');
-    
-    function openMenu() {
-        sidebar.classList.remove('-translate-x-full');
-        overlay.classList.remove('hidden');
-        document.documentElement.classList.add('mobile-nav-open');
-        document.body.classList.add('mobile-nav-open');
-    }
-    
-    function closeMenu() {
-        sidebar.classList.add('-translate-x-full');
-        overlay.classList.add('hidden');
-        document.documentElement.classList.remove('mobile-nav-open');
-        document.body.classList.remove('mobile-nav-open');
-    }
-    
-    if (menuBtn) menuBtn.addEventListener('click', openMenu);
-    if (closeBtn) closeBtn.addEventListener('click', closeMenu);
-    if (overlay) overlay.addEventListener('click', closeMenu);
-    
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') closeMenu();
-    });
-
-})();
-</script>
-
-<!-- Logout Confirmation Modal - Applyna Style (Dark Theme) -->
-<div id="logoutModal" class="fixed inset-0 z-[20000] hidden items-center justify-center transition-all duration-300" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-    <div class="fixed inset-0 bg-slate-950/40 backdrop-blur-[1px] transition-opacity" id="logoutModalBackdrop"></div>
-    <div id="logoutModalContent" class="relative bg-slate-900 rounded-2xl shadow-2xl border border-slate-800 p-7 sm:p-10 w-80 sm:w-[24rem] pointer-events-auto z-[60] mx-auto transform transition-all duration-200 scale-95 opacity-0">
-        <div class="flex items-center gap-4 mb-6">
-            <div class="w-10 h-10 bg-red-500/10 rounded-full flex items-center justify-center flex-shrink-0">
-                <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                </svg>
+            </nav>
+            <!-- START: Isolated Logout Section -->
+            <div id="logout-section-isolated" class="mt-auto p-3 border-t border-slate-700/50 bg-slate-800">
+                <button type="button"
+                    class="logout-btn-isolated logout-btn flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium bg-transparent text-red-400 border border-red-500 hover:bg-red-500/20 hover:text-white hover:border-red-400 transition-all w-full text-left">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
+                        </path>
+                    </svg>
+                    <span>LOG OUT</span>
+                </button>
             </div>
-            <div>
-                <h3 class="text-lg font-semibold text-slate-400">Are you sure you want to logout?</h3>
-            </div> 
+            <!-- END: Isolated Logout Section -->
+        </aside>
+        <?php endif; ?>
+
+        <!-- Main content -->
+        <main class="flex-1 overflow-auto <?= in_array(currentPage(), $publicPages) ? '' : 'pt-20 md:pt-0' ?>">
+            <div
+                class="<?= in_array(currentPage(), $publicPages) ? '' : 'max-w-6xl mx-auto pl-12 pr-3 sm:pl-16 sm:pr-4 md:pl-20 md:pr-6 lg:pl-24 lg:pr-8 py-4 md:py-8' ?> <?= !in_array(currentPage(), $publicPages) ? 'no-horizontal-scroll' : '' ?>">
+                <?php if (!in_array(currentPage(), $publicPages)): ?>
+                <?php if (!in_array($page, ['api', 'design', 'compose', 'senders', 'contacts', 'group-edit', 'groups', 'logs', 'contact-edit', 'sender-edit', 'contacts-import', 'index', 'sms', 'admin'])): ?>
+                <div class="mb-4 md:mb-6">
+                    <h2 class="text-xl md:text-2xl font-semibold text-slate-900">
+                        <?= $page === 'index' ? 'Dashboard' : ucfirst(str_replace('-', ' ', $page)) ?></h2>
+                    <p class="text-slate-500 text-xs md:text-sm mt-0.5">
+                        <?= $page === 'index' ? 'Overview and recent campaigns' : 'Manage your email marketing' ?></p>
+                </div>
+                <?php endif; ?>
+                <?php endif; ?>
+
+                <?php if (currentPage() !== 'sms' && $flashSuccess): ?>
+                <div
+                    class="mb-4 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 font-medium <?= in_array(currentPage(), $publicPages) ? 'max-w-md mx-auto mt-4' : '' ?>">
+                    <?= h($flashSuccess) ?></div>
+                <?php endif; ?>
+                <?php if (currentPage() !== 'sms' && !empty($flashError)): ?>
+                <div
+                    class="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 font-medium <?= in_array(currentPage(), $publicPages) ? 'max-w-md mx-auto mt-4' : '' ?>">
+                    <?= h($flashError) ?></div>
+                <?php endif; ?>
+
+                <?php
+                $viewPath = __DIR__ . '/views/' . ($page === 'index' ? 'dashboard' : $page) . '.php';
+                if (file_exists($viewPath)) {
+                    include $viewPath;
+                } else {
+                    echo '<div class="p-8 bg-white rounded-2xl shadow border border-slate-100 text-center text-slate-500">Page not found.</div>';
+                }
+                ?>
+            </div>
+        </main>
+    </div>
+    <script>
+    (function() {
+        var menuBtn = document.getElementById('mobile-menu-btn');
+        var closeBtn = document.getElementById('mobile-close-btn');
+        var sidebar = document.getElementById('mobile-sidebar');
+        var overlay = document.getElementById('sidebar-overlay');
+
+        function openMenu() {
+            sidebar.classList.remove('-translate-x-full');
+            overlay.classList.remove('hidden');
+            document.documentElement.classList.add('mobile-nav-open');
+            document.body.classList.add('mobile-nav-open');
+        }
+
+        function closeMenu() {
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+            document.documentElement.classList.remove('mobile-nav-open');
+            document.body.classList.remove('mobile-nav-open');
+        }
+
+        if (menuBtn) menuBtn.addEventListener('click', openMenu);
+        if (closeBtn) closeBtn.addEventListener('click', closeMenu);
+        if (overlay) overlay.addEventListener('click', closeMenu);
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeMenu();
+        });
+
+    })();
+    </script>
+
+    <!-- Logout Confirmation Modal - Applyna Style (Dark Theme) -->
+    <div id="logoutModal" class="fixed inset-0 z-[20000] hidden items-center justify-center transition-all duration-300"
+        aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-slate-950/40 backdrop-blur-[1px] transition-opacity" id="logoutModalBackdrop">
         </div>
-        <div class="flex gap-3">
-            <a href="<?= url('logout') ?>" class="flex-1 bg-red-600 hover:bg-red-500 text-white text-base font-medium py-3 px-6 rounded-lg transition-colors text-center">
-                Yes
-            </a>
-            <button type="button" id="cancelLogout" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-base font-medium py-3 px-6 rounded-lg transition-colors">
-                Cancel
-            </button>
+        <div id="logoutModalContent"
+            class="relative bg-slate-900 rounded-2xl shadow-2xl border border-slate-800 p-7 sm:p-10 w-80 sm:w-[24rem] pointer-events-auto z-[60] mx-auto transform transition-all duration-200 scale-95 opacity-0">
+            <div class="flex items-center gap-4 mb-6">
+                <div class="w-10 h-10 bg-red-500/10 rounded-full flex items-center justify-center flex-shrink-0">
+                    <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
+                        </path>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-slate-400">Are you sure you want to logout?</h3>
+                </div>
+            </div>
+            <div class="flex gap-3">
+                <a href="<?= url('logout') ?>"
+                    class="flex-1 bg-red-600 hover:bg-red-500 text-white text-base font-medium py-3 px-6 rounded-lg transition-colors text-center">
+                    Yes
+                </a>
+                <button type="button" id="cancelLogout"
+                    class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-base font-medium py-3 px-6 rounded-lg transition-colors">
+                    Cancel
+                </button>
+            </div>
         </div>
     </div>
-</div>
 
-<script>
-// Initialize logout modal functionality (Applyna Style)
-(function() {
-    const logoutModal = document.getElementById('logoutModal');
-    const modalContent = document.getElementById('logoutModalContent');
-    const cancelLogoutBtn = document.getElementById('cancelLogout');
-    const backdrop = document.getElementById('logoutModalBackdrop');
+    <script>
+    // Initialize logout modal functionality (Applyna Style)
+    (function() {
+        const logoutModal = document.getElementById('logoutModal');
+        const modalContent = document.getElementById('logoutModalContent');
+        const cancelLogoutBtn = document.getElementById('cancelLogout');
+        const backdrop = document.getElementById('logoutModalBackdrop');
 
-    function openLogoutModal() {
-        logoutModal.classList.remove('hidden');
-        logoutModal.classList.add('flex');
-        // Trigger animation
-        setTimeout(() => {
-            modalContent.classList.remove('scale-95', 'opacity-0');
-            modalContent.classList.add('scale-100', 'opacity-100');
-        }, 10);
-    }
-
-    function closeLogoutModal() {
-        modalContent.classList.remove('scale-100', 'opacity-100');
-        modalContent.classList.add('scale-95', 'opacity-0');
-        setTimeout(() => {
-            logoutModal.classList.add('hidden');
-            logoutModal.classList.remove('flex');
-        }, 200);
-    }
-
-    // Handle logout button clicks
-    document.addEventListener('click', function(e) {
-        const logoutBtn = e.target.closest('.logout-btn');
-        if (logoutBtn) {
-            e.preventDefault();
-            openLogoutModal();
-            return false;
+        function openLogoutModal() {
+            logoutModal.classList.remove('hidden');
+            logoutModal.classList.add('flex');
+            // Trigger animation
+            setTimeout(() => {
+                modalContent.classList.remove('scale-95', 'opacity-0');
+                modalContent.classList.add('scale-100', 'opacity-100');
+            }, 10);
         }
-    });
 
-    if (cancelLogoutBtn) cancelLogoutBtn.addEventListener('click', closeLogoutModal);
-    if (backdrop) backdrop.addEventListener('click', closeLogoutModal);
-
-    // Close modal on escape key
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && !logoutModal.classList.contains('hidden')) {
-            closeLogoutModal();
+        function closeLogoutModal() {
+            modalContent.classList.remove('scale-100', 'opacity-100');
+            modalContent.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                logoutModal.classList.add('hidden');
+                logoutModal.classList.remove('flex');
+            }, 200);
         }
-    });
-})();
-</script>
+
+        // Handle logout button clicks
+        document.addEventListener('click', function(e) {
+            const logoutBtn = e.target.closest('.logout-btn');
+            if (logoutBtn) {
+                e.preventDefault();
+                openLogoutModal();
+                return false;
+            }
+        });
+
+        if (cancelLogoutBtn) cancelLogoutBtn.addEventListener('click', closeLogoutModal);
+        if (backdrop) backdrop.addEventListener('click', closeLogoutModal);
+
+        // Close modal on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && !logoutModal.classList.contains('hidden')) {
+                closeLogoutModal();
+            }
+        });
+    })();
+    </script>
 </body>
+
 </html>

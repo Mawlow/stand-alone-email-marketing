@@ -1,0 +1,23 @@
+[0;1;32m●[0m apache2.service - The Apache HTTP Server
+     Loaded: loaded (/lib/systemd/system/apache2.service; enabled; vendor preset: enabled)
+     Active: [0;1;32mactive (running)[0m since Sat 2026-03-21 04:38:56 UTC; 7min ago
+       Docs: https://httpd.apache.org/docs/2.4/
+    Process: 40782 ExecStart=/usr/sbin/apachectl start (code=exited, status=0/SUCCESS)
+   Main PID: 40787 (apache2)
+      Tasks: 11 (limit: 4665)
+     Memory: 34.3M
+     CGroup: /system.slice/apache2.service
+             ├─40787 /usr/sbin/apache2 -k start
+             ├─40789 /usr/sbin/apache2 -k start
+             ├─40790 /usr/sbin/apache2 -k start
+             ├─40791 /usr/sbin/apache2 -k start
+             ├─40792 /usr/sbin/apache2 -k start
+             ├─40793 /usr/sbin/apache2 -k start
+             ├─40916 /usr/sbin/apache2 -k start
+             ├─41297 /usr/sbin/apache2 -k start
+             ├─41298 /usr/sbin/apache2 -k start
+             ├─41299 /usr/sbin/apache2 -k start
+             └─41300 /usr/sbin/apache2 -k start
+
+Mar 21 04:38:56 ip-172-31-23-95 systemd[1]: Starting The Apache HTTP Server...
+Mar 21 04:38:56 ip-172-31-23-95 systemd[1]: Started The Apache HTTP Server.
