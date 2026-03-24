@@ -155,7 +155,7 @@
     .auth-overlay {
       position: fixed;
       inset: 0;
-      z-index: 90; /* keep below the fixed landing header (z=100) */
+      z-index: 120; /* keep popup above fixed header */
       display: none;
       align-items: center;
       justify-content: center;
@@ -180,12 +180,12 @@
       position: relative;
       color: #0f172a;
       display: none;
-      margin-top: 50px;
+      margin-top: 0;
     }
 
     @media (max-width: 640px) {
       /* leave space for the fixed landing header so it doesn't look like it shifts */
-      .auth-overlay { padding: calc(0.75rem + 80px) 0.75rem 0.75rem; align-items: center; background: rgba(15, 23, 42, 0.65); }
+      .auth-overlay { padding: 0.75rem; align-items: center; background: rgba(15, 23, 42, 0.65); }
       .auth-card { margin-top: 0; width: 100%; }
     }
     .auth-card.active {
@@ -220,6 +220,9 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 1rem;
+    }
+    .auth-form-grid__full {
+      grid-column: span 2;
     }
     .auth-card form label {
       display: block;
@@ -346,6 +349,7 @@
     }
     @media (max-width: 640px) {
       .auth-form-grid { grid-template-columns: 1fr; }
+      .auth-form-grid__full { grid-column: auto; }
       .auth-card--wide { max-width: 420px; }
     }
 
@@ -369,7 +373,7 @@
         <img src="/public/images/logo1.png" alt="FH CRM" class="landing-logo" />
       </a>
       <nav class="landing-nav">
-        <a id="signin-trigger" href="<?= url('login') ?>" class="landing-nav-btn">
+        <a id="signin-trigger" href="<?= url('landing', ['auth' => 'login']) ?>" class="landing-nav-btn">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
           Sign In
         </a>
@@ -472,7 +476,7 @@
         <form action="<?= url('landing') ?>" method="POST">
             <input type="hidden" name="action" value="register">
             <div class="auth-form-grid">
-                <label style="grid-column: span 2;">
+                <label class="auth-form-grid__full">
                     Full Name
                     <input type="text" name="name" placeholder="John Doe" required />
                     Work Email
@@ -567,92 +571,22 @@
           }
         });
 
-        // Keep overlay open if there's a flash error
+        <?php
+        $landingAuthOpen = $_GET['auth'] ?? '';
+        if ($landingAuthOpen !== 'login' && $landingAuthOpen !== 'register') {
+            $landingAuthOpen = '';
+        }
+        ?>
+        // Keep overlay open if there's a flash error, or open sign-in/sign-up from URL (?auth=)
         <?php if (!empty($flashError) && currentPage() === 'landing'): ?>
           <?php if (($_POST['action'] ?? '') === 'login'): ?>
             openAuth('login');
           <?php elseif (($_POST['action'] ?? '') === 'register'): ?>
             openAuth('register');
           <?php endif; ?>
+        <?php elseif ($landingAuthOpen !== ''): ?>
+          openAuth(<?= json_encode($landingAuthOpen) ?>);
         <?php endif; ?>
     });
 
-    // Auto scroll until hero text is centered, then lock scroll (mobile-friendly)
-    document.addEventListener('DOMContentLoaded', () => {
-      const heroContent = document.querySelector('.hero-content');
-      const authOverlay = document.getElementById('auth-overlay');
-      if (!heroContent) return;
-
-      let locked = false;
-      let lockY = 0;
-
-      const lockScroll = () => {
-        if (locked) return;
-        if (authOverlay && authOverlay.classList.contains('active')) return;
-        locked = true;
-        lockY = window.scrollY || 0;
-        document.body.classList.add('landing-scroll-locked');
-        // keep visual position stable
-        document.body.style.position = 'fixed';
-        document.body.style.top = `-${lockY}px`;
-        document.body.style.left = '0';
-        document.body.style.right = '0';
-        document.body.style.width = '100%';
-      };
-
-      const unlockScroll = () => {
-        if (!locked) return;
-        locked = false;
-        document.body.classList.remove('landing-scroll-locked');
-        document.body.style.position = '';
-        document.body.style.top = '';
-        document.body.style.left = '';
-        document.body.style.right = '';
-        document.body.style.width = '';
-        window.scrollTo(0, lockY);
-      };
-
-      const checkAndLock = () => {
-        if (locked) return;
-        const rect = heroContent.getBoundingClientRect();
-        const heroCenter = rect.top + rect.height / 2;
-        const viewportCenter = window.innerHeight / 2;
-        // lock when hero content center is near viewport center
-        if (Math.abs(heroCenter - viewportCenter) <= 20) {
-          lockScroll();
-        }
-      };
-
-      // Try to gently center the hero text on initial load (mobile)
-      const centerHero = () => {
-        const rect = heroContent.getBoundingClientRect();
-        const heroCenter = (window.scrollY || 0) + rect.top + rect.height / 2;
-        const viewportCenter = (window.scrollY || 0) + window.innerHeight / 2;
-        const delta = heroCenter - viewportCenter;
-        if (Math.abs(delta) > 20) {
-          window.scrollTo({ top: Math.max(0, (window.scrollY || 0) + delta), behavior: 'smooth' });
-        }
-        // After the scroll settles, lock.
-        setTimeout(checkAndLock, 450);
-      };
-
-      // Only do this on small screens
-      if (window.matchMedia('(max-width: 640px)').matches) {
-        setTimeout(centerHero, 100);
-        window.addEventListener('scroll', checkAndLock, { passive: true });
-        window.addEventListener('resize', checkAndLock);
-      }
-
-      // If auth overlay opens, temporarily unlock to allow interaction/scrolling inside overlay
-      const observer = authOverlay ? new MutationObserver(() => {
-        if (authOverlay.classList.contains('active')) {
-          unlockScroll();
-        } else {
-          // re-check and lock again after closing
-          setTimeout(checkAndLock, 100);
-        }
-      }) : null;
-
-      if (observer && authOverlay) observer.observe(authOverlay, { attributes: true, attributeFilter: ['class'] });
-    });
 </script>
