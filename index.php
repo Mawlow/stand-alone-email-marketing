@@ -89,6 +89,9 @@ if (php_sapi_name() !== 'cli-server' && !isset($_GET['page']) && !isset($_GET['a
         '/design' => 'design',
         '/template-html' => 'template-html',
         '/api' => 'api',
+        '/api-settings' => 'api',
+        '/registrations' => 'registrations',
+        '/users' => 'users',
         '/logs' => 'logs',
         '/sms-logs' => 'sms-logs',
         '/sms' => 'sms',
@@ -262,13 +265,42 @@ try {
     $pdo->exec('ALTER TABLE users ADD COLUMN is_admin TINYINT NOT NULL DEFAULT 0');
 } catch (Throwable $e) {
 }
+$isActiveColumnAdded = false;
+try {
+    $pdo->exec('ALTER TABLE users ADD COLUMN is_active TINYINT NOT NULL DEFAULT 1');
+    $isActiveColumnAdded = true;
+} catch (Throwable $e) {
+}
+if ($isActiveColumnAdded) {
+    try {
+        $pdo->exec('UPDATE users SET is_active = 1');
+    } catch (Throwable $e) {
+    }
+}
+$isApprovedColumnAdded = false;
+try {
+    $pdo->exec('ALTER TABLE users ADD COLUMN is_approved TINYINT NOT NULL DEFAULT 0');
+    $isApprovedColumnAdded = true;
+} catch (Throwable $e) {
+}
+if ($isApprovedColumnAdded) {
+    try {
+        // Preserve access for existing accounts when this column is introduced.
+        $pdo->exec('UPDATE users SET is_approved = 1');
+    } catch (Throwable $e) {
+    }
+}
+try {
+    $pdo->exec('UPDATE users SET is_approved = 1 WHERE is_admin = 1');
+} catch (Throwable $e) {
+}
 // Ensure default admin from .env exists and only that account has admin. All other users (e.g. company user id 1) are non-admin.
 try {
     $defaultAdminEmail = trim($config['admin_email'] ?? 'admin@example.com');
     $defaultAdminPassword = $config['admin_password'] ?? 'admin123';
     if ($defaultAdminEmail !== '') {
         $defaultAdminHash = password_hash($defaultAdminPassword, PASSWORD_DEFAULT);
-        $pdo->prepare('INSERT INTO users (email, password, name, is_admin) VALUES (?, ?, ?, 1) ON DUPLICATE KEY UPDATE password = VALUES(password), is_admin = 1, name = VALUES(name)')->execute([$defaultAdminEmail, $defaultAdminHash, 'Admin']);
+        $pdo->prepare('INSERT INTO users (email, password, name, is_admin, is_approved, is_active) VALUES (?, ?, ?, 1, 1, 1) ON DUPLICATE KEY UPDATE password = VALUES(password), is_admin = 1, is_approved = 1, is_active = 1, name = VALUES(name)')->execute([$defaultAdminEmail, $defaultAdminHash, 'Admin']);
         $pdo->prepare('UPDATE users SET is_admin = 0 WHERE email != ?')->execute([$defaultAdminEmail]);
     }
 } catch (Throwable $e) {
@@ -324,7 +356,9 @@ $cleanPaths = [
     'group-edit' => '/group-edit',
     'design' => '/design',
     'template-html' => '/template-html',
-    'api' => '/api',
+    'api' => '/api-settings',
+    'registrations' => '/registrations',
+    'users' => '/users',
     'logs' => '/logs',
     'sms' => '/sms',
     'admin' => '/admin',
@@ -371,7 +405,16 @@ function isAdmin(): bool
 // Redirect if not logged in
 $publicPages = ['landing', 'login', 'register', 'logout'];
 if (!isLoggedIn() && !in_array(currentPage(), $publicPages)) {
-    header('Location: ' . url('login'));
+    header('Location: ' . url('landing', ['auth' => 'login']));
+    exit;
+}
+
+// Login/register UI lives on landing only; clean URLs redirect there
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && in_array(currentPage(), ['login', 'register'], true)) {
+    $q = $_GET;
+    unset($q['page']);
+    $q['auth'] = currentPage() === 'login' ? 'login' : 'register';
+    header('Location: ' . url('landing', $q));
     exit;
 }
 
@@ -443,7 +486,7 @@ function injectTrackingPixel(string $body, string $baseUrl, string $token): stri
 if (isset($_GET['action']) && $_GET['action'] === 'track-open' && isset($_GET['token'])) {
     $token = trim((string) $_GET['token']);
     if (strlen($token) >= 16 && strlen($token) <= 64 && preg_match('/^[a-zA-Z0-9]+$/', $token)) {
-        $st = $pdo->prepare("SELECT id FROM email_logs WHERE open_tracking_token = ? AND status = 'sent' AND (opened_at IS NULL OR opened_at = '')");
+        $st = $pdo->prepare("SELECT id FROM email_logs WHERE open_tracking_token = ? AND opened_at IS NULL");
         $st->execute([$token]);
         $row = $st->fetch(PDO::FETCH_ASSOC);
         if ($row) {
@@ -593,6 +636,79 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
+    if ($action === 'admin-approve-user' && isset($_POST['id'])) {
+        if (!isAdmin()) {
+            header('Location: ' . url('index'));
+            exit;
+        }
+        $approveId = (int) $_POST['id'];
+        if ($approveId > 0) {
+            $pdo->prepare('UPDATE users SET is_approved = 1 WHERE id = ? AND COALESCE(is_admin, 0) = 0')->execute([$approveId]);
+        }
+        $returnPage = $_POST['return_page'] ?? 'registrations';
+        if (!in_array($returnPage, ['registrations', 'users'], true)) {
+            $returnPage = 'registrations';
+        }
+        header('Location: ' . url($returnPage, ['success' => 'Account approved.']));
+        exit;
+    }
+
+    if ($action === 'admin-user-toggle-active' && isset($_POST['id'])) {
+        if (!isAdmin()) {
+            header('Location: ' . url('index'));
+            exit;
+        }
+        $targetId = (int) ($_POST['id'] ?? 0);
+        $setActive = (int) ($_POST['set_active'] ?? 0) === 1 ? 1 : 0;
+        if ($targetId > 0) {
+            $pdo->prepare('UPDATE users SET is_active = ? WHERE id = ? AND COALESCE(is_admin, 0) = 0')->execute([$setActive, $targetId]);
+        }
+        $returnPage = $_POST['return_page'] ?? 'registrations';
+        if (!in_array($returnPage, ['registrations', 'users'], true)) {
+            $returnPage = 'registrations';
+        }
+        header('Location: ' . url($returnPage, ['success' => $setActive ? 'User activated.' : 'User deactivated.']));
+        exit;
+    }
+
+    if ($action === 'admin-user-delete' && isset($_POST['id'])) {
+        if (!isAdmin()) {
+            header('Location: ' . url('index'));
+            exit;
+        }
+        $targetId = (int) ($_POST['id'] ?? 0);
+        $returnPage = $_POST['return_page'] ?? 'users';
+        if (!in_array($returnPage, ['registrations', 'users'], true)) {
+            $returnPage = 'users';
+        }
+        if ($targetId > 0) {
+            try {
+                $pdo->beginTransaction();
+                $pdo->prepare('DELETE FROM contact_group_members WHERE contact_id IN (SELECT id FROM marketing_contacts WHERE user_id = ?)')->execute([$targetId]);
+                $pdo->prepare('DELETE FROM contact_group_members WHERE group_id IN (SELECT id FROM contact_groups WHERE user_id = ?)')->execute([$targetId]);
+                $pdo->prepare('DELETE FROM marketing_contacts WHERE user_id = ?')->execute([$targetId]);
+                $pdo->prepare('DELETE FROM contact_groups WHERE user_id = ?')->execute([$targetId]);
+                $pdo->prepare('DELETE FROM api_keys WHERE user_id = ?')->execute([$targetId]);
+                $pdo->prepare('DELETE FROM sms_recipients WHERE group_id IN (SELECT id FROM sms_groups WHERE user_id = ?)')->execute([$targetId]);
+                $pdo->prepare('DELETE FROM sms_groups WHERE user_id = ?')->execute([$targetId]);
+                $pdo->prepare('DELETE FROM email_logs WHERE email_campaign_id IN (SELECT id FROM email_campaigns WHERE user_id = ?)')->execute([$targetId]);
+                $pdo->prepare('DELETE FROM email_campaigns WHERE user_id = ?')->execute([$targetId]);
+                $pdo->prepare('DELETE FROM email_design_templates WHERE user_id = ?')->execute([$targetId]);
+                $pdo->prepare('DELETE FROM email_design WHERE user_id = ?')->execute([$targetId]);
+                $pdo->prepare('DELETE FROM users WHERE id = ? AND COALESCE(is_admin, 0) = 0')->execute([$targetId]);
+                $pdo->commit();
+            } catch (Throwable $e) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                header('Location: ' . url($returnPage, ['error' => 'Could not delete user.']));
+                exit;
+            }
+        }
+        header('Location: ' . url($returnPage, ['success' => 'User permanently deleted.']));
+        exit;
+    }
+
     if ($action === 'register') {
         $email = trim($_POST['email'] ?? '');
         $password = $_POST['password'] ?? '';
@@ -601,20 +717,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($email === '' || $password === '') {
             $flashError = 'Email and password are required.';
-            $_GET['page'] = 'register';
+            $_GET['page'] = 'landing';
         } elseif ($password !== $confirm) {
             $flashError = 'Passwords do not match.';
-            $_GET['page'] = 'register';
+            $_GET['page'] = 'landing';
         } else {
             try {
                 $hash = password_hash($password, PASSWORD_DEFAULT);
-                $pdo->prepare('INSERT INTO users (email, password, name) VALUES (?, ?, ?)')->execute([$email, $hash, $name]);
-                header('Location: ' . url('login', ['success' => 'Registration successful. Please login.']));
+                $pdo->prepare('INSERT INTO users (email, password, name, is_approved) VALUES (?, ?, ?, 0)')->execute([$email, $hash, $name]);
+                header('Location: ' . url('landing', [
+                    'success' => 'Registration submitted. Your account is pending admin approval.',
+                    'auth' => 'login',
+                ]));
                 exit;
             } catch (PDOException $e) {
                 $msg = $e->getMessage();
                 $flashError = (strpos($msg, 'UNIQUE') !== false || strpos($msg, 'Duplicate entry') !== false) ? 'Email already registered.' : $msg;
-                $_GET['page'] = 'register';
+                $_GET['page'] = 'landing';
             }
         }
     }
@@ -622,18 +741,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'login') {
         $email = trim($_POST['email'] ?? '');
         $password = $_POST['password'] ?? '';
-        $stmt = $pdo->prepare('SELECT id, password, name, COALESCE(is_admin, 0) AS is_admin FROM users WHERE email = ?');
+        $stmt = $pdo->prepare('SELECT id, password, name, COALESCE(is_admin, 0) AS is_admin, COALESCE(is_approved, 0) AS is_approved, COALESCE(is_active, 1) AS is_active FROM users WHERE email = ?');
         $stmt->execute([$email]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($user && password_verify($password, $user['password'])) {
+            if (empty($user['is_admin']) && empty($user['is_approved'])) {
+                $flashError = 'Your account is pending admin approval.';
+                $_GET['page'] = 'landing';
+            } elseif (empty($user['is_active'])) {
+                $flashError = 'Your account is inactive. Please contact admin.';
+                $_GET['page'] = 'landing';
+            } else {
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['user_name'] = $user['name'];
             $_SESSION['is_admin'] = (bool) ($user['is_admin'] ?? 0);
             header('Location: ' . (($_SESSION['is_admin'] ?? false) ? url('admin') : url('index')));
             exit;
+            }
         } else {
             $flashError = 'Invalid email or password.';
-            $_GET['page'] = 'login';
+            $_GET['page'] = 'landing';
         }
     }
 
@@ -791,7 +918,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'sms-group-delete' && isset($_POST['id'])) {
         $gid = (int) $_POST['id'];
         $pdo->prepare('DELETE FROM sms_groups WHERE id=? AND user_id=?')->execute([$gid, $userId]);
-        header('Location: ' . url('sms', ['success' => 'SMS group deleted.']));
+        $returnPage = $_POST['return_page'] ?? 'sms';
+        if (!in_array($returnPage, ['sms', 'groups'], true)) {
+            $returnPage = 'sms';
+        }
+        header('Location: ' . url($returnPage, ['success' => 'SMS group deleted.']));
         exit;
     }
 
@@ -1012,7 +1143,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $pdo->prepare('UPDATE api_keys SET default_template_id = ?, default_sender_ids = ?, link_slug = ? WHERE id = ? AND user_id = ?')
             ->execute([$defaultTemplateId > 0 ? $defaultTemplateId : null, $defaultSenderIds !== '' ? $defaultSenderIds : null, $linkSlugFinal, $keyId, $userId]);
-        header('Location: ' . url('api') . '&success=' . urlencode('Defaults and API link saved.'));
+        header('Location: ' . url('api', ['success' => 'Defaults and API link saved.']));
         exit;
     }
 
@@ -1030,12 +1161,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_GET['page'] = 'api';
             } else {
                 $pdo->prepare('UPDATE api_keys SET link_slug = ? WHERE id = ? AND user_id = ?')->execute([$linkSlug, $keyId, $userId]);
-                header('Location: ' . url('api') . '&success=' . urlencode('API link saved.'));
+                header('Location: ' . url('api', ['success' => 'API link saved.']));
                 exit;
             }
         } else {
             $pdo->prepare('UPDATE api_keys SET link_slug = NULL WHERE id = ? AND user_id = ?')->execute([$keyId, $userId]);
-            header('Location: ' . url('api') . '&success=' . urlencode('API link cleared.'));
+            header('Location: ' . url('api', ['success' => 'API link cleared.']));
             exit;
         }
     }
@@ -1100,7 +1231,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $pdo->prepare('INSERT INTO email_design_templates (name, header_html, footer_html, footer_bg_color, block_text_color, header_logo_url, header_mode, footer_logo_url, footer_mode, body_outline_color) VALUES (?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE header_html=VALUES(header_html), footer_html=VALUES(footer_html), footer_bg_color=VALUES(footer_bg_color), block_text_color=VALUES(block_text_color), header_logo_url=VALUES(header_logo_url), header_mode=VALUES(header_mode), footer_logo_url=VALUES(footer_logo_url), footer_mode=VALUES(footer_mode), body_outline_color=VALUES(body_outline_color)')->execute([$templateName, $headerHtml, $footerHtml, $footerBg, $textColor, $headerLogoUrl, $headerMode, $footerLogoUrl, $footerMode, $bodyOutline]);
             }
         }
-        header('Location: ' . url('design') . '?success=' . urlencode($templateName !== '' ? 'Design saved as template "' . $templateName . '".' : 'Email design saved.'));
+        header('Location: ' . url('design', ['success' => $templateName !== '' ? 'Design saved as template "' . $templateName . '".' : 'Email design saved.']));
         exit;
     }
 
@@ -1132,7 +1263,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($stmt->rowCount()) $added++;
                 else $skipped++;
             }
-            header('Location: ' . url('contacts') . '&success=' . urlencode("Import done: $added added, $skipped skipped."));
+            header('Location: ' . url('contacts', ['success' => "Import done: $added added, $skipped skipped."]));
             exit;
         }
     }
@@ -1246,7 +1377,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     $pdo->prepare('UPDATE email_campaigns SET status=?, sent_count=?, failed_count=?, completed_at=? WHERE id=?')
                         ->execute(['completed', $sent, $failed, date('Y-m-d H:i:s'), $campaignId]);
-                    header('Location: ' . url('index') . '&success=' . urlencode("Campaign sent. $sent sent, $failed failed."));
+                    header('Location: ' . url('index', ['success' => "Campaign sent. $sent sent, $failed failed."]));
                     exit;
                 }
             }
@@ -1259,7 +1390,7 @@ $flashError = $flashError ?? $_GET['error'] ?? null;
 $page = currentPage();
 
 // Admin-only pages: only users with is_admin can access
-$adminOnlyPages = ['admin', 'senders', 'design', 'api', 'sender-edit'];
+$adminOnlyPages = ['admin', 'senders', 'design', 'api', 'sender-edit', 'registrations', 'users'];
 if (isLoggedIn() && !isAdmin() && in_array($page, $adminOnlyPages, true)) {
     header('Location: ' . url('index'));
     exit;
@@ -1282,6 +1413,8 @@ $groupsCount = (int) $groupsCountStmt->fetchColumn();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="icon" type="image/png" href="/public/images/logo1.png">
+    <link rel="apple-touch-icon" href="/public/images/logo1.png">
     <title>
         <?= h($page === 'index' ? 'Email Marketing' : ($page === 'admin' ? 'Admin' : ucfirst(str_replace('-', ' ', $page)))) ?>
         - <?= h($appName) ?></title>
@@ -1486,6 +1619,24 @@ $groupsCount = (int) $groupsCountStmt->fetchColumn();
                         </svg>
                         <span>API</span>
                     </a>
+                    <a href="<?= url('registrations') ?>"
+                        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors <?= navClass('registrations') ?>">
+                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 20h5V4H2v16h5m10 0v-2a4 4 0 00-8 0v2m8 0H9m4-10a3 3 0 110-6 3 3 0 010 6z">
+                            </path>
+                        </svg>
+                        <span>Registrations</span>
+                    </a>
+                    <a href="<?= url('users') ?>"
+                        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors <?= navClass('users') ?>">
+                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 20h5V4H2v16h5m10 0v-2a4 4 0 00-8 0v2m8 0H9m4-10a3 3 0 110-6 3 3 0 010 6z">
+                            </path>
+                        </svg>
+                        <span>Users</span>
+                    </a>
                 </div>
                 <?php endif; ?>
             </nav>
@@ -1510,7 +1661,7 @@ $groupsCount = (int) $groupsCountStmt->fetchColumn();
             <div
                 class="<?= in_array(currentPage(), $publicPages) ? '' : 'max-w-6xl mx-auto pl-12 pr-3 sm:pl-16 sm:pr-4 md:pl-20 md:pr-6 lg:pl-24 lg:pr-8 py-4 md:py-8' ?> <?= !in_array(currentPage(), $publicPages) ? 'no-horizontal-scroll' : '' ?>">
                 <?php if (!in_array(currentPage(), $publicPages)): ?>
-                <?php if (!in_array($page, ['api', 'design', 'compose', 'senders', 'contacts', 'group-edit', 'groups', 'logs', 'contact-edit', 'sender-edit', 'contacts-import', 'index', 'sms', 'admin'])): ?>
+                <?php if (!in_array($page, ['api', 'design', 'compose', 'senders', 'contacts', 'group-edit', 'groups', 'logs', 'contact-edit', 'sender-edit', 'contacts-import', 'index', 'sms', 'admin', 'registrations', 'users'])): ?>
                 <div class="mb-4 md:mb-6">
                     <h2 class="text-xl md:text-2xl font-semibold text-slate-900">
                         <?= $page === 'index' ? 'Dashboard' : ucfirst(str_replace('-', ' ', $page)) ?></h2>
@@ -1520,12 +1671,15 @@ $groupsCount = (int) $groupsCountStmt->fetchColumn();
                 <?php endif; ?>
                 <?php endif; ?>
 
-                <?php if (currentPage() !== 'sms' && $flashSuccess): ?>
+                <?php
+                $authModalOpen = (currentPage() === 'landing') && in_array(($_GET['auth'] ?? ''), ['login', 'register'], true);
+                ?>
+                <?php if (currentPage() !== 'sms' && $flashSuccess && !$authModalOpen): ?>
                 <div
                     class="mb-4 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 font-medium <?= in_array(currentPage(), $publicPages) ? 'max-w-md mx-auto mt-4' : '' ?>">
                     <?= h($flashSuccess) ?></div>
                 <?php endif; ?>
-                <?php if (currentPage() !== 'sms' && !empty($flashError)): ?>
+                <?php if (currentPage() !== 'sms' && !empty($flashError) && currentPage() !== 'landing'): ?>
                 <div
                     class="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 font-medium <?= in_array(currentPage(), $publicPages) ? 'max-w-md mx-auto mt-4' : '' ?>">
                     <?= h($flashError) ?></div>
