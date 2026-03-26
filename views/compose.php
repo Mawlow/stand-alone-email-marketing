@@ -31,7 +31,7 @@ $composeFooterMode = 'text_only';
     @media (min-width: 640px) { main > div.max-w-6xl > div.mb-4 { padding-left: 1.5rem; padding-right: 1.5rem; } }
     @media (min-width: 1024px) { main > div.max-w-6xl > div.mb-4 { padding-left: 2rem; padding-right: 2rem; } }
 
-    .compose-banner { margin-bottom: 2rem; }
+    .compose-banner { margin-bottom: 1rem; }
 
     .compose-content-wrapper {
         max-width: 72rem;
@@ -44,29 +44,29 @@ $composeFooterMode = 'text_only';
 </style>
 
 <!-- Banner (Desktop) - Restored Dark Design -->
-<div class="compose-banner bg-[#141d2e] py-6 md:py-8 text-white shadow-lg relative overflow-hidden hidden lg:block">
-    <div class="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div class="relative z-10">
-            <h1 class="text-[2.5rem] font-bold leading-tight">Compose</h1>
-            <p class="text-blue-100/80 mt-1 text-sm font-medium">Create and send email campaigns</p>
+<div class="compose-banner bg-[#141d2e] text-white shadow-lg relative overflow-hidden hidden lg:block min-h-[97px] box-border border-b border-slate-700/50 flex items-center">
+    <div class="max-w-6xl mx-auto w-full px-3 sm:px-4 md:px-6 lg:px-8 flex flex-row flex-wrap items-center justify-between gap-4 py-3">
+        <div class="relative z-10 min-w-0 pt-2 md:pt-3">
+            <h1 class="text-xl font-bold leading-tight md:text-2xl">Compose</h1>
+            <p class="text-blue-100/80 mt-0.5 text-xs font-medium md:text-sm leading-snug">Create and send email campaigns</p>
         </div>
 
         <?php if (!isAdmin()): ?>
         <!-- Desktop sub-nav (top-right like Logs page) -->
-        <div class="relative z-10 flex gap-2">
+        <div class="relative z-10 flex flex-wrap gap-2 shrink-0">
             <a href="<?= url('compose') ?>" class="px-4 py-1.5 rounded-lg text-sm font-bold transition-all border <?= currentPage() === 'compose' ? 'bg-[#f54a00] text-white border-[#f54a00] shadow-lg' : 'bg-white/10 text-white/70 border-white/30 hover:text-white hover:bg-white/20' ?>">Compose</a>
             <a href="<?= url('contacts') ?>" class="px-4 py-1.5 rounded-lg text-sm font-bold transition-all border <?= currentPage() === 'contacts' ? 'bg-[#f54a00] text-white border-[#f54a00] shadow-lg' : 'bg-white/10 text-white/70 border-white/30 hover:text-white hover:bg-white/20' ?>">Contacts</a>
         </div>
         <?php endif; ?>
     </div>
-    <div class="absolute top-0 right-0 -mt-4 -mr-4 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
+    <div class="absolute top-0 right-0 -mt-4 -mr-4 w-64 h-64 bg-white/5 rounded-full blur-3xl pointer-events-none"></div>
 </div>
 
 
 <!-- Mobile Sub-Navigation -->
-<div class="lg:hidden bg-[#141d2e] px-4 pt-4 pb-6 text-white mb-2">
-    <div class="flex items-center gap-3">
-        <h1 class="text-base font-black text-white shrink-0">Compose</h1>
+<div class="lg:hidden bg-[#141d2e] px-6 py-6 text-white mb-2 border-b border-slate-700/50 box-border min-h-[97px] flex flex-col justify-center">
+    <div class="flex items-center gap-3 flex-wrap pt-2 md:pt-0">
+        <h1 class="text-xl font-bold text-white shrink-0 leading-tight">Compose</h1>
         <div class="flex flex-1 gap-2 justify-end">
             <a href="<?= url('compose') ?>" class="text-center px-3 py-2 min-h-[34px] rounded-lg text-[11px] font-bold transition-all border whitespace-nowrap <?= currentPage() === 'compose' ? 'bg-[#f54a00] text-white border-[#f54a00] shadow-sm' : 'bg-white/10 text-white/70 border-white/30 hover:text-white' ?>">Compose</a>
             <a href="<?= url('contacts') ?>" class="text-center px-3 py-2 min-h-[34px] rounded-lg text-[11px] font-bold transition-all border whitespace-nowrap <?= currentPage() === 'contacts' ? 'bg-[#f54a00] text-white border-[#f54a00] shadow-sm' : 'bg-white/10 text-white/70 border-white/30 hover:text-white' ?>">Contacts</a>
@@ -77,7 +77,7 @@ $composeFooterMode = 'text_only';
 <div class="compose-content-wrapper mt-6 lg:mt-0">
     <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">
         <!-- Dashboard-Style Section Header -->
-        <div class="bg-[#02396E] px-4 md:px-8 py-4 md:py-6 border-b border-white/10 flex flex-col sm:flex-row justify-between items-center gap-3">
+        <div class="bg-[#141d2e] px-4 md:px-8 py-4 md:py-6 border-b border-slate-700/50 flex flex-col sm:flex-row justify-between items-center gap-3">
             <h2 class="text-lg md:text-2xl font-bold text-white">Compose Campaign</h2>
             <div class="flex flex-wrap gap-2 w-full sm:w-auto">
                 <button type="button" id="load-template-btn" class="flex-1 sm:flex-none inline-flex items-center px-4 py-2 bg-[#f54a00] text-white text-sm font-bold rounded-xl hover:bg-[#e04400] transition-colors justify-center shadow-lg">Load Template</button>

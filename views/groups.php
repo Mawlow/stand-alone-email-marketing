@@ -13,6 +13,9 @@ $groups = $stmt->fetchAll(PDO::FETCH_ASSOC);
 $smsGroupsStmt = $pdo->prepare('SELECT g.*, (SELECT COUNT(*) FROM sms_recipients WHERE group_id = g.id) AS recipient_count FROM sms_groups g WHERE g.user_id = ? ORDER BY g.name');
 $smsGroupsStmt->execute([$userId]);
 $smsGroups = $smsGroupsStmt->fetchAll(PDO::FETCH_ASSOC);
+$waGroupsStmt = $pdo->prepare('SELECT g.*, (SELECT COUNT(*) FROM whatsapp_recipients WHERE group_id = g.id) AS recipient_count FROM whatsapp_groups g WHERE g.user_id = ? ORDER BY g.name');
+$waGroupsStmt->execute([$userId]);
+$waGroups = $waGroupsStmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <style>
@@ -65,7 +68,7 @@ $smsGroups = $smsGroupsStmt->fetchAll(PDO::FETCH_ASSOC);
     @media (min-width: 1024px) { main > div.max-w-6xl > div.mb-4 { padding-left: 2rem; padding-right: 2rem; } }
 
     .groups-banner {
-        margin-bottom: 2rem;
+        margin-bottom: 1rem;
     }
 
     /* Modal Animation */
@@ -79,14 +82,14 @@ $smsGroups = $smsGroupsStmt->fetchAll(PDO::FETCH_ASSOC);
 </style>
 
 <!-- Groups Banner -->
-<div class="groups-banner bg-[#141d2e] py-6 md:py-8 text-white shadow-lg relative overflow-hidden hidden lg:block">
-    <div class="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div class="relative z-10">
-            <h1 class="text-[2.5rem] font-bold leading-tight">Groups</h1>
-            <p class="text-blue-100/80 mt-1 text-sm font-medium">Manage email contact groups and SMS contact groups in one place.</p>
+<div class="groups-banner bg-[#141d2e] text-white shadow-lg relative overflow-hidden hidden lg:block min-h-[97px] box-border border-b border-slate-700/50 flex items-center">
+    <div class="max-w-6xl mx-auto w-full px-3 sm:px-4 md:px-6 lg:px-8 flex flex-row flex-wrap items-center justify-between gap-4 py-3">
+        <div class="relative z-10 min-w-0 pt-2 md:pt-3">
+            <h1 class="text-xl font-bold leading-tight md:text-2xl">Groups</h1>
+            <p class="text-blue-100/80 mt-0.5 text-xs font-medium md:text-sm leading-snug">Manage email contact groups and SMS contact groups in one place.</p>
         </div>
         <!-- Search Bar -->
-        <form method="get" action="<?= url('groups') ?>" class="relative z-10 w-full md:w-[400px]">
+        <form method="get" action="<?= url('groups') ?>" class="relative z-10 w-full md:w-[400px] shrink-0 md:max-w-[400px]">
             <input type="hidden" name="page" value="groups">
             <div class="relative group">
                 <input type="text" name="search" id="groupsSearch" placeholder="Search groups..." value="<?= h($searchQuery) ?>" class="w-full bg-white rounded-xl py-3 pl-12 pr-20 text-slate-900 text-base placeholder-slate-400 focus:outline-none transition-all shadow-inner border-none">
@@ -111,12 +114,12 @@ $smsGroups = $smsGroupsStmt->fetchAll(PDO::FETCH_ASSOC);
 </div>
 
 <!-- Mobile Header -->
-<div class="lg:hidden bg-[#141d2e] px-4 py-4 text-white">
+<div class="lg:hidden bg-[#141d2e] px-6 py-6 text-white border-b border-slate-700/50 mb-2 box-border">
     <div class="flex flex-col gap-1">
-        <div class="flex items-center justify-start">
-            <h1 class="text-xl font-bold">Groups</h1>
+        <div class="flex items-center justify-start pt-2 md:pt-0">
+            <h1 class="text-xl font-bold leading-tight">Groups</h1>
         </div>
-        <p class="text-blue-100/80 text-xs">Manage email and SMS groups.</p>
+        <p class="text-blue-100/80 text-xs leading-snug">Manage email and SMS groups.</p>
         <form method="get" action="<?= url('groups') ?>" class="relative text-left mt-3">
             <input type="hidden" name="page" value="groups">
             <input type="text" name="search" id="groupsSearchMobile" placeholder="Search groups..." value="<?= h($searchQuery) ?>" class="w-full bg-white rounded-lg py-2 pl-10 pr-16 text-slate-900 text-sm placeholder-slate-400 focus:outline-none">
@@ -200,7 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 text-left mt-3 lg:mt-0">
     <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">
-        <div class="bg-[#02396E] px-4 md:px-8 py-6 border-b border-white/10 flex justify-between items-center">
+        <div class="bg-[#141d2e] px-4 md:px-8 py-6 border-b border-slate-700/50 flex justify-between items-center">
             <h2 class="text-xl md:text-2xl font-bold text-white">Email Contact Groups</h2>
             <a href="<?= url('group-edit') ?>" class="inline-flex items-center px-3.5 py-1.5 bg-[#f54a00] text-white text-sm font-bold rounded-xl hover:bg-[#e04400] transition-colors">Add Email Group</a>
         </div>
@@ -257,7 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
     </div>
 
     <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden mt-6">
-        <div class="bg-[#02396E] px-4 md:px-8 py-6 border-b border-white/10 flex justify-between items-center">
+        <div class="bg-[#141d2e] px-4 md:px-8 py-6 border-b border-slate-700/50 flex justify-between items-center">
             <h2 class="text-xl md:text-2xl font-bold text-white">SMS Contact Groups</h2>
             <a href="<?= url('sms') ?>" class="inline-flex items-center px-3.5 py-1.5 bg-emerald-600 text-white text-sm font-bold rounded-xl hover:bg-emerald-700 transition-colors">Add SMS Group</a>
         </div>
@@ -299,6 +302,58 @@ document.addEventListener('DOMContentLoaded', () => {
                             <p class="text-slate-400 mt-1 text-sm font-medium">Create SMS groups for recipients and notifications.</p>
                             <a href="<?= url('sms') ?>" class="inline-flex items-center mt-4 px-6 py-2.5 bg-emerald-600 text-white text-sm font-bold rounded-xl hover:bg-emerald-700 transition-all shadow-md hover:shadow-lg">
                                 Open SMS Groups
+                            </a>
+                        </td>
+                    </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden mt-6">
+        <div class="bg-[#141d2e] px-4 md:px-8 py-6 border-b border-slate-700/50 flex justify-between items-center">
+            <h2 class="text-xl md:text-2xl font-bold text-white">WhatsApp groups</h2>
+            <a href="<?= url('whatsapp') ?>" class="inline-flex items-center px-3.5 py-1.5 bg-[#25D366] text-white text-sm font-bold rounded-xl hover:bg-[#20bd5a] transition-colors">Add WhatsApp group</a>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead class="bg-blue-50">
+                    <tr>
+                        <th class="px-4 md:px-8 py-3 text-xs font-black text-slate-700 uppercase">Name</th>
+                        <th class="px-4 md:px-8 py-3 text-center text-xs font-black text-slate-700 uppercase">Recipients</th>
+                        <th class="pl-4 md:pl-8 pr-6 md:pr-14 py-3 text-right text-xs font-black text-slate-700 uppercase">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($waGroups as $wg): ?>
+                    <tr class="border-t border-slate-100 hover:bg-slate-50">
+                        <td class="px-4 md:px-8 py-4 font-semibold text-slate-900"><?= h($wg['name']) ?></td>
+                        <td class="px-4 md:px-8 py-4 text-center text-slate-600 font-medium"><?= (int)($wg['recipient_count'] ?? 0) ?></td>
+                        <td class="px-4 md:px-8 py-4 text-right">
+                            <div class="flex justify-end gap-2">
+                                <a href="<?= url('whatsapp') ?>" class="p-2 text-[#02396E] hover:bg-blue-50 rounded-lg transition-colors" title="Manage in WhatsApp">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                                </a>
+                                <form method="post" action="<?= url('groups') ?>" class="inline">
+                                    <input type="hidden" name="action" value="wa-group-delete">
+                                    <input type="hidden" name="id" value="<?= (int)$wg['id'] ?>">
+                                    <input type="hidden" name="return_page" value="groups">
+                                    <button type="submit" class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" onclick="return confirm('Delete WhatsApp group <?= h($wg['name']) ?>?');" title="Delete">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                    <?php if (empty($waGroups)): ?>
+                    <tr>
+                        <td colspan="3" class="px-4 md:px-8 pt-8 pb-12 text-center">
+                            <p class="text-lg font-bold text-slate-400 uppercase tracking-wider">No WhatsApp groups</p>
+                            <p class="text-slate-400 mt-1 text-sm font-medium">Create groups and add numbers on the WhatsApp page.</p>
+                            <a href="<?= url('whatsapp') ?>" class="inline-flex items-center mt-4 px-6 py-2.5 bg-[#25D366] text-white text-sm font-bold rounded-xl hover:bg-[#20bd5a] transition-all shadow-md hover:shadow-lg">
+                                Open WhatsApp
                             </a>
                         </td>
                     </tr>

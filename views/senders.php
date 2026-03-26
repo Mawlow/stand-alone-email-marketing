@@ -30,19 +30,19 @@ foreach ($accounts as $a) { if ($a['is_active']) $activeSenders++; }
     @media (min-width: 1024px) { main > div.max-w-6xl > div.mb-4 { padding-left: 2rem; padding-right: 2rem; } }
 
     .page-banner {
-        margin-bottom: 2rem;
+        margin-bottom: 1rem;
     }
 </style>
 
 <!-- Senders Banner (Desktop) -->
-<div class="page-banner bg-[#141d2e] py-6 md:py-8 text-white shadow-lg relative overflow-hidden hidden lg:block">
-    <div class="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div class="relative z-10">
-            <h1 class="text-[2.5rem] font-bold leading-tight">Sender Accounts</h1>
-            <p class="text-blue-100/80 mt-1 text-sm font-medium">Manage the identities powering your email delivery.</p>
+<div class="page-banner bg-[#141d2e] text-white shadow-lg relative overflow-hidden hidden lg:block min-h-[97px] box-border border-b border-slate-700/50 flex items-center">
+    <div class="max-w-6xl mx-auto w-full px-3 sm:px-4 md:px-6 lg:px-8 flex flex-row flex-wrap items-center justify-between gap-4 py-3">
+        <div class="relative z-10 min-w-0 pt-2 md:pt-3">
+            <h1 class="text-xl font-bold leading-tight md:text-2xl">Sender Accounts</h1>
+            <p class="text-blue-100/80 mt-0.5 text-xs font-medium md:text-sm leading-snug">Manage the identities powering your email delivery.</p>
         </div>
         <!-- Search Bar -->
-        <div class="relative z-10 w-full md:w-[400px]">
+        <div class="relative z-10 w-full md:w-[400px] shrink-0 md:max-w-[400px]">
             <div class="relative group">
                 <input type="text" id="senderSearch" placeholder="Search senders..." class="w-full bg-white rounded-xl py-3 pl-12 pr-20 text-slate-900 text-base placeholder-slate-400 focus:outline-none transition-all shadow-inner">
                 <div class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
@@ -83,12 +83,12 @@ foreach ($accounts as $a) { if ($a['is_active']) $activeSenders++; }
 <?php endif; ?>
 
 <!-- Mobile Sub-Navigation (Tabs Style like logs page) -->
-<div class="lg:hidden bg-[#141d2e] px-4 py-3 text-white pb-4 mb-2">
+<div class="lg:hidden bg-[#141d2e] px-6 py-6 text-white mb-2 border-b border-slate-700/50 box-border min-h-[97px] flex flex-col justify-center">
     <div class="flex flex-col gap-2">
-        <div class="flex items-center justify-start">
-            <h1 class="text-xl font-bold">Sender Accounts</h1>
+        <div class="flex items-center justify-start pt-2 md:pt-0">
+            <h1 class="text-xl font-bold leading-tight">Sender Accounts</h1>
         </div>
-        <p class="text-blue-100/80 text-xs mb-1">Manage your senders</p>
+        <p class="text-blue-100/80 text-xs leading-snug mb-1">Manage your senders</p>
         <div class="hidden flex gap-2 mt-2">
             <a href="<?= url('compose') ?>" class="flex-1 text-center px-2 py-1.5 rounded-lg text-xs font-bold transition-all border <?= currentPage() === 'compose' ? 'bg-[#f54a00] text-white border-[#f54a00] shadow-sm' : 'bg-white/10 text-white/70 border-white/30 hover:text-white' ?>">Compose</a>
             <a href="<?= url('senders') ?>" class="flex-1 text-center px-2 py-1.5 rounded-lg text-xs font-bold transition-all border <?= currentPage() === 'senders' ? 'bg-[#f54a00] text-white border-[#f54a00] shadow-sm' : 'bg-white/10 text-white/70 border-white/30 hover:text-white' ?>">Senders</a>
@@ -162,7 +162,7 @@ foreach ($accounts as $a) { if ($a['is_active']) $activeSenders++; }
     </div>
 
     <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">
-        <div class="bg-[#02396E] px-4 md:px-8 py-4 md:py-6 border-b border-white/10 flex flex-col sm:flex-row justify-between items-center gap-3">
+        <div class="bg-[#141d2e] px-4 md:px-8 py-4 md:py-6 border-b border-slate-700/50 flex flex-col sm:flex-row justify-between items-center gap-3">
             <h2 class="text-lg md:text-2xl font-bold text-white">Senders</h2>
             <a href="<?= url('sender-edit') ?>" class="w-full sm:w-auto inline-flex items-center justify-center px-3.5 py-1.5 bg-[#f54a00] text-white text-sm font-bold rounded-xl hover:bg-[#e04400] transition-colors">Add Sender</a>
         </div>

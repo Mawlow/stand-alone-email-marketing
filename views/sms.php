@@ -24,7 +24,7 @@ foreach ($smsRecipients as $r) {
         padding-left: 1rem;
         padding-right: 1rem;
     }
-    .sms-banner { margin-bottom: 1.5rem; }
+    .sms-banner { margin-bottom: 1rem; }
     @keyframes modalFadeIn {
         from { opacity: 0; transform: scale(0.95); }
         to { opacity: 1; transform: scale(1); }
@@ -35,26 +35,26 @@ foreach ($smsRecipients as $r) {
 </style>
 
 <!-- Banner (Desktop) -->
-<div class="sms-banner bg-[#141d2e] py-6 md:py-8 text-white shadow-lg relative overflow-hidden hidden lg:block">
-    <div class="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-        <div>
-            <h1 class="text-[2.5rem] font-bold leading-tight">SMS Notifications</h1>
-            <p class="text-blue-100/80 mt-1 text-sm font-medium">Manage groups and recipients, then send SMS messages via Semaphore.</p>
+<div class="sms-banner bg-[#141d2e] text-white shadow-lg relative overflow-hidden hidden lg:block min-h-[97px] box-border border-b border-slate-700/50 flex items-center">
+    <div class="max-w-6xl mx-auto w-full px-3 sm:px-4 md:px-6 lg:px-8 relative z-10 flex flex-row flex-wrap items-center justify-between gap-4 py-3">
+        <div class="min-w-0 pt-2 md:pt-3">
+            <h1 class="text-xl font-bold leading-tight md:text-2xl">SMS Notifications</h1>
+            <p class="text-blue-100/80 mt-0.5 text-xs font-medium md:text-sm leading-snug">Manage groups and recipients, then send SMS messages via Semaphore.</p>
         </div>
-        <button type="button" class="send-sms-open-btn inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white text-sm font-bold rounded-xl hover:bg-emerald-500 transition-colors shadow-md md:flex-shrink-0">
+        <button type="button" class="send-sms-open-btn inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white text-sm font-bold rounded-xl hover:bg-emerald-500 transition-colors shadow-md shrink-0">
             <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
             <span>Send SMS</span>
         </button>
     </div>
-    <div class="absolute top-0 right-0 -mt-4 -mr-4 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
+    <div class="absolute top-0 right-0 -mt-4 -mr-4 w-64 h-64 bg-white/5 rounded-full blur-3xl pointer-events-none"></div>
 </div>
 
 <!-- Mobile Header -->
-<div class="lg:hidden bg-[#141d2e] px-4 py-4 text-white mb-2">
-    <div class="flex items-center justify-between gap-3">
-        <div>
-            <h1 class="text-xl font-bold">SMS Notifications</h1>
-            <p class="text-blue-100/80 text-xs mt-0.5">Manage groups and send SMS to recipients.</p>
+<div class="lg:hidden bg-[#141d2e] px-6 py-6 text-white mb-2 border-b border-slate-700/50 box-border min-h-[97px] flex flex-col justify-center">
+    <div class="flex items-center justify-between gap-3 pt-2 md:pt-0">
+        <div class="min-w-0">
+            <h1 class="text-xl font-bold leading-tight">SMS Notifications</h1>
+            <p class="text-blue-100/80 text-xs mt-1 leading-snug">Manage groups and send SMS to recipients.</p>
         </div>
         <button type="button" class="send-sms-open-btn inline-flex items-center gap-1.5 px-3 py-2 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-500 transition-colors flex-shrink-0">
             <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
@@ -88,7 +88,7 @@ foreach ($smsRecipients as $r) {
 <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 space-y-8">
     <!-- 1. Create Group & Add Recipient (one form) -->
     <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">
-        <div class="bg-[#02396E] px-4 md:px-8 py-4 border-b border-white/10">
+        <div class="bg-[#141d2e] px-4 md:px-8 py-4 border-b border-slate-700/50">
             <h2 class="text-lg md:text-xl font-bold text-white">Create Group & Add Recipient</h2>
         </div>
         <div class="p-4 md:p-6">
@@ -139,7 +139,7 @@ foreach ($smsRecipients as $r) {
 
     <!-- 3. Recipients -->
     <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">
-        <div class="bg-[#02396E] px-4 md:px-8 py-4 border-b border-white/10">
+        <div class="bg-[#141d2e] px-4 md:px-8 py-4 border-b border-slate-700/50">
             <h2 class="text-lg md:text-xl font-bold text-white">All Recipients</h2>
         </div>
 
@@ -216,7 +216,7 @@ foreach ($smsRecipients as $r) {
 <!-- Send SMS Modal -->
 <div id="sendSmsModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-slate-900/50 md:backdrop-blur-sm">
     <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden modal-animate">
-        <div class="bg-[#02396E] px-6 py-4 flex items-center justify-between">
+        <div class="bg-[#141d2e] px-6 py-4 border-b border-slate-700/50 flex items-center justify-between">
             <h3 class="text-lg font-bold text-white">Send SMS</h3>
             <button type="button" class="send-sms-close-btn p-2 text-white/80 hover:text-white rounded-lg transition-colors" aria-label="Close">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>

@@ -23,7 +23,7 @@ $apiBase = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https' : 
 <body class="bg-slate-100 min-h-screen py-8">
     <div class="max-w-2xl mx-auto px-4">
         <div class="bg-white rounded-2xl shadow border border-slate-200 overflow-hidden">
-            <div class="bg-[#02396E] px-6 py-4">
+            <div class="bg-[#141d2e] px-6 py-4 border-b border-slate-700/50">
                 <h1 class="text-lg font-bold text-white">Email Marketing API – Test site</h1>
                 <p class="text-sm text-blue-100 mt-1">Test that the API is working from another page</p>
             </div>

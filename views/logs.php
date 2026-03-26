@@ -43,7 +43,24 @@ if ($logType === 'email') {
     $groupsForFilterStmt->execute([$userId]);
     $smsGroups = $groupsForFilterStmt->fetchAll(PDO::FETCH_ASSOC);
 } elseif ($logType === 'whatsapp') {
-    $logs = []; // WhatsApp logs not yet implemented in database
+    $q = 'SELECT l.* FROM whatsapp_logs l INNER JOIN whatsapp_groups g ON g.id = l.group_id AND g.user_id = ? WHERE 1=1';
+    $params = [$userId];
+    if ($statusFilter !== '') {
+        $q .= ' AND l.status = ?';
+        $params[] = $statusFilter;
+    }
+    if ($groupFilter > 0) {
+        $q .= ' AND l.group_id = ?';
+        $params[] = $groupFilter;
+    }
+    $q .= ' ORDER BY l.id DESC LIMIT 200';
+    $stmt = $pdo->prepare($q);
+    $stmt->execute($params);
+    $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $groupsForFilterStmt = $pdo->prepare('SELECT id, name FROM whatsapp_groups WHERE user_id = ? ORDER BY name');
+    $groupsForFilterStmt->execute([$userId]);
+    $whatsappGroups = $groupsForFilterStmt->fetchAll(PDO::FETCH_ASSOC);
 }
 ?>
 
@@ -68,7 +85,7 @@ if ($logType === 'email') {
     @media (min-width: 1024px) { main > div.max-w-6xl > div.mb-4 { padding-left: 2rem; padding-right: 2rem; } }
 
     .logs-banner {
-        margin-bottom: 2rem;
+        margin-bottom: 1rem;
     }
 
     /* Content Wrapper matching api.php */
@@ -83,14 +100,14 @@ if ($logType === 'email') {
 </style>
 
 <!-- Logs Banner -->
-<div class="logs-banner bg-[#141d2e] py-6 md:py-8 text-white shadow-lg relative overflow-hidden hidden lg:block">
-    <div class="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div class="relative z-10">
-            <h1 class="text-[2.5rem] font-bold leading-tight">Activity Logs</h1>
-            <p class="text-blue-100/80 mt-1 text-sm font-medium">Track every delivery and engagement in real-time.</p>
+<div class="logs-banner bg-[#141d2e] text-white shadow-lg relative overflow-hidden hidden lg:block min-h-[97px] box-border border-b border-slate-700/50 flex items-center">
+    <div class="max-w-6xl mx-auto w-full px-3 sm:px-4 md:px-6 lg:px-8 flex flex-row flex-wrap items-center justify-between gap-4 py-3">
+        <div class="relative z-10 min-w-0 pt-2 md:pt-3">
+            <h1 class="text-xl font-bold leading-tight md:text-2xl">Activity Logs</h1>
+            <p class="text-blue-100/80 mt-0.5 text-xs font-medium md:text-sm leading-snug">Track every delivery and engagement in real-time.</p>
         </div>
         <!-- Filter Buttons (Separated) -->
-        <div class="relative z-10 flex gap-2">
+        <div class="relative z-10 flex flex-wrap gap-2 shrink-0">
             <a href="<?= url('logs', ['type' => 'email']) ?>" class="px-4 py-1.5 rounded-lg text-sm font-bold transition-all border <?= $logType === 'email' ? 'bg-[#f54a00] text-white border-[#f54a00] shadow-lg' : 'bg-white/10 text-white/70 border-white/30 hover:text-white hover:bg-white/20' ?>">Email</a>
             <a href="<?= url('logs', ['type' => 'sms']) ?>" class="px-4 py-1.5 rounded-lg text-sm font-bold transition-all border <?= $logType === 'sms' ? 'bg-[#f54a00] text-white border-[#f54a00] shadow-lg' : 'bg-white/10 text-white/70 border-white/30 hover:text-white hover:bg-white/20' ?>">SMS</a>
             <a href="<?= url('logs', ['type' => 'whatsapp']) ?>" class="px-4 py-1.5 rounded-lg text-sm font-bold transition-all border <?= $logType === 'whatsapp' ? 'bg-[#f54a00] text-white border-[#f54a00] shadow-lg' : 'bg-white/10 text-white/70 border-white/30 hover:text-white hover:bg-white/20' ?>">WhatsApp</a>
@@ -101,9 +118,9 @@ if ($logType === 'email') {
 </div>
 
 <!-- Mobile Header -->
-<div class="lg:hidden bg-[#141d2e] px-4 pt-4 pb-6 text-white mb-2">
-    <div class="flex items-center gap-3">
-        <h1 class="text-base font-black text-white shrink-0">Logs</h1>
+<div class="lg:hidden bg-[#141d2e] px-6 py-6 text-white mb-2 border-b border-slate-700/50 box-border min-h-[97px] flex flex-col justify-center">
+    <div class="flex items-center gap-3 flex-wrap pt-2 md:pt-0">
+        <h1 class="text-xl font-bold text-white shrink-0 leading-tight">Logs</h1>
         <div class="flex flex-1 gap-2 justify-end">
             <a href="<?= url('logs', ['type' => 'email']) ?>" class="text-center px-3 py-2 min-h-[34px] rounded-lg text-[11px] font-bold transition-all border whitespace-nowrap <?= $logType === 'email' ? 'bg-[#f54a00] text-white border-[#f54a00] shadow-sm' : 'bg-white/10 text-white/70 border-white/30 hover:text-white' ?>">Email</a>
             <a href="<?= url('logs', ['type' => 'sms']) ?>" class="text-center px-3 py-2 min-h-[34px] rounded-lg text-[11px] font-bold transition-all border whitespace-nowrap <?= $logType === 'sms' ? 'bg-[#f54a00] text-white border-[#f54a00] shadow-sm' : 'bg-white/10 text-white/70 border-white/30 hover:text-white' ?>">SMS</a>
@@ -114,7 +131,7 @@ if ($logType === 'email') {
 
 <div class="logs-content-wrapper">
     <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">
-        <div class="bg-[#02396E] px-4 md:px-8 py-4 md:py-6 border-b border-white/30 flex flex-col lg:flex-row justify-between lg:items-center gap-4">
+        <div class="bg-[#141d2e] px-4 md:px-8 py-4 md:py-6 border-b border-slate-700/50 flex flex-col lg:flex-row justify-between lg:items-center gap-4">
             <h2 class="text-lg md:text-2xl font-bold text-white shrink-0"><?= ucfirst($logType) ?> Activities</h2>
             
             <form method="get" action="<?= url('logs') ?>" class="flex flex-col lg:flex-row gap-3 w-full lg:w-auto mt-2 lg:mt-0">
@@ -155,6 +172,14 @@ if ($logType === 'email') {
                         <option value="" class="text-slate-900">All Groups</option>
                         <?php foreach ($smsGroups as $sg): ?>
                             <option value="<?= (int)$sg['id'] ?>" <?= $groupFilter === (int)$sg['id'] ? 'selected' : '' ?> class="text-slate-900"><?= h($sg['name']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <?php endif; ?>
+                    <?php if ($logType === 'whatsapp'): ?>
+                    <select name="group_id" onchange="this.form.submit()" class="col-span-2 lg:col-span-1 w-full lg:w-auto bg-white/10 border border-white/20 rounded-lg px-2 py-2.5 lg:py-1.5 text-sm lg:text-xs font-medium text-white focus:ring-2 focus:ring-[#f54a00] focus:outline-none cursor-pointer hover:bg-white/20 transition-colors lg:max-w-[220px]">
+                        <option value="" class="text-slate-900">All Groups</option>
+                        <?php foreach (($whatsappGroups ?? []) as $wg): ?>
+                            <option value="<?= (int)$wg['id'] ?>" <?= $groupFilter === (int)$wg['id'] ? 'selected' : '' ?> class="text-slate-900"><?= h($wg['name']) ?></option>
                         <?php endforeach; ?>
                     </select>
                     <?php endif; ?>
@@ -217,7 +242,7 @@ if ($logType === 'email') {
                 <thead class="bg-blue-50">
                     <tr>
                         <th class="px-4 md:px-8 py-3 text-xs font-black text-slate-700 uppercase">Sent at</th>
-                        <?php if ($logType === 'sms'): ?>
+                        <?php if ($logType === 'sms' || $logType === 'whatsapp'): ?>
                         <th class="px-4 md:px-8 py-3 text-xs font-black text-slate-700 uppercase">Group</th>
                         <?php endif; ?>
                         <th class="px-4 md:px-8 py-3 text-xs font-black text-slate-700 uppercase">Recipient</th>
@@ -229,7 +254,7 @@ if ($logType === 'email') {
                     <?php foreach ($logs as $log): ?>
                     <tr class="border-t border-slate-100 hover:bg-slate-50">
                         <td class="px-4 md:px-8 py-4 text-sm text-slate-600"><?= h($log['sent_at']) ?></td>
-                        <?php if ($logType === 'sms'): ?>
+                        <?php if ($logType === 'sms' || $logType === 'whatsapp'): ?>
                         <td class="px-4 md:px-8 py-4 text-sm font-medium text-slate-900"><?= h($log['group_name'] ?? '—') ?></td>
                         <?php endif; ?>
                         <td class="px-4 md:px-8 py-4">
@@ -293,7 +318,7 @@ if ($logType === 'email') {
                     </span>
                 </div>
 
-                <?php if ($logType === 'sms'): ?>
+                <?php if ($logType === 'sms' || $logType === 'whatsapp'): ?>
                 <div class="text-xs text-slate-600 mb-2">
                     <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Group:</span>
                     <span class="font-bold"><?= h($log['group_name'] ?? '—') ?></span>

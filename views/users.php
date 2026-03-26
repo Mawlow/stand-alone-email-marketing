@@ -10,12 +10,7 @@ $allUsers = $allUsersStmt->fetchAll(PDO::FETCH_ASSOC);
         border-radius: 1rem;
     }
     .users-header {
-        background: linear-gradient(135deg, #02396E 0%, #1e40af 100%);
-    }
-    .users-filter-input,
-    .users-filter-select {
-        backdrop-filter: blur(6px);
-        -webkit-backdrop-filter: blur(6px);
+        background: #141d2e;
     }
     .user-row {
         transition: background-color .18s ease, transform .18s ease;
@@ -38,23 +33,25 @@ $allUsers = $allUsersStmt->fetchAll(PDO::FETCH_ASSOC);
     }
 </style>
 
-<div class="bg-[#141d2e] py-6 md:py-8 text-white shadow-lg relative overflow-hidden hidden lg:block mb-6">
-    <div class="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
-        <h1 class="text-[2.5rem] font-bold leading-tight">Users</h1>
-        <p class="text-blue-100/80 mt-1 text-sm font-medium">Manage all user accounts.</p>
+<div class="bg-[#141d2e] text-white shadow-lg relative overflow-hidden hidden lg:block mb-4 min-h-[97px] box-border border-b border-slate-700/50 flex items-center">
+    <div class="max-w-6xl mx-auto w-full px-3 sm:px-4 md:px-6 lg:px-8 py-3">
+        <div class="relative z-10 min-w-0 pt-2 md:pt-3">
+            <h1 class="text-xl font-bold leading-tight md:text-2xl">Users</h1>
+            <p class="text-blue-100/80 mt-0.5 text-xs font-medium md:text-sm leading-snug">Manage all user accounts.</p>
+        </div>
     </div>
     <div class="absolute top-0 right-0 -mt-4 -mr-4 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
 </div>
 
-<div class="lg:hidden bg-[#141d2e] px-4 py-3 text-white mb-3">
-    <h1 class="text-xl font-bold">Users</h1>
-    <p class="text-blue-100/80 text-xs mt-0.5">Manage accounts</p>
+<div class="lg:hidden bg-[#141d2e] px-6 py-6 text-white mb-2 border-b border-slate-700/50 flex flex-col justify-center min-h-[97px] box-border">
+    <h1 class="text-xl font-bold leading-tight pt-2 md:pt-3">Users</h1>
+    <p class="text-blue-100/80 text-xs mt-1 leading-snug">Manage accounts</p>
 </div>
 
 <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
     <div class="users-shell p-2 sm:p-3 shadow border border-slate-200/70">
     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-        <div class="users-header px-4 md:px-8 py-4 md:py-6 border-b border-white/10">
+        <div class="users-header px-4 md:px-8 py-4 md:py-6 border-b border-slate-700/50">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                 <div>
                     <h2 class="text-lg md:text-2xl font-bold text-white">All users</h2>
@@ -62,9 +59,9 @@ $allUsers = $allUsersStmt->fetchAll(PDO::FETCH_ASSOC);
                 </div>
                 <div class="flex flex-col sm:flex-row gap-2">
                     <input id="usersFilterSearch" type="text" placeholder="Search name or email"
-                        class="users-filter-input w-full sm:w-56 rounded-lg border border-white/20 bg-white/10 text-white placeholder-white/70 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-white/40">
+                        class="users-filter-input w-full sm:w-56 rounded-lg border border-slate-200 bg-white text-slate-900 placeholder-slate-400 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-400">
                     <select id="usersFilterStatus"
-                        class="users-filter-select w-full sm:w-44 rounded-lg border border-white/20 bg-white/10 text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-white/40">
+                        class="users-filter-select w-full sm:w-44 rounded-lg border border-slate-200 bg-white text-slate-900 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-400">
                         <option value="all" class="text-slate-900">All</option>
                         <option value="active" class="text-slate-900">Active</option>
                         <option value="inactive" class="text-slate-900">Inactive</option>

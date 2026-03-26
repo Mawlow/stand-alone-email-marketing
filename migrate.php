@@ -114,8 +114,12 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS email_design_templates (id INT AUTO_INCRE
 $pdo->exec($mysqlSchema[count($mysqlSchema) - 2]);
 $pdo->exec($mysqlSchema[count($mysqlSchema) - 1]);
 
+$pdo->exec("CREATE TABLE IF NOT EXISTS whatsapp_groups (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) NOT NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)");
+$pdo->exec("CREATE TABLE IF NOT EXISTS whatsapp_recipients (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) NOT NULL, phone_number VARCHAR(32) NOT NULL, group_id INT NOT NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (group_id) REFERENCES whatsapp_groups(id) ON DELETE CASCADE)");
+$pdo->exec("CREATE TABLE IF NOT EXISTS whatsapp_logs (id INT AUTO_INCREMENT PRIMARY KEY, group_id INT NOT NULL, group_name VARCHAR(255) NOT NULL, recipient_name VARCHAR(255) NOT NULL, phone_number VARCHAR(32) NOT NULL, message TEXT NOT NULL, status VARCHAR(32) NOT NULL DEFAULT 'sent', error_message TEXT DEFAULT NULL, sent_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)");
+
 // Per-user columns and indexes
-foreach (['sender_accounts', 'email_campaigns', 'contact_groups', 'api_keys', 'sms_groups'] as $tbl) {
+foreach (['sender_accounts', 'email_campaigns', 'contact_groups', 'api_keys', 'sms_groups', 'whatsapp_groups'] as $tbl) {
     try { $pdo->exec("ALTER TABLE $tbl ADD COLUMN user_id INT NULL DEFAULT NULL"); } catch (Throwable $e) { }
     try { $pdo->exec("UPDATE $tbl SET user_id = 1 WHERE user_id IS NULL"); } catch (Throwable $e) { }
     try { $pdo->exec("ALTER TABLE $tbl ADD INDEX idx_user_id (user_id)"); } catch (Throwable $e) { }

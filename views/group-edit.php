@@ -99,7 +99,7 @@ if ($groupId) {
     @media (min-width: 1024px) { main > div.max-w-6xl > div.mb-4 { padding-left: 2rem; padding-right: 2rem; } }
 
     .group-edit-banner {
-        margin-bottom: 2rem;
+        margin-bottom: 1rem;
     }
 
     /* Modal Animation */
@@ -113,17 +113,17 @@ if ($groupId) {
 </style>
 
 <!-- Group Edit Banner -->
-<div class="group-edit-banner bg-[#141d2e] py-6 md:py-8 text-white shadow-lg relative overflow-hidden hidden lg:block">
-    <div class="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 relative z-10">
-        <div class="mb-4">
-            <a href="<?= url('groups') ?>" class="text-[#ff8904] hover:text-orange-600 text-sm font-bold flex items-center gap-1 transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                Back
-            </a>
-        </div>
-        <div>
-            <h1 class="text-[2.5rem] font-bold leading-tight"><?= $group ? 'Edit Group' : 'Add New Group' ?></h1>
-            <p class="text-blue-100/80 mt-1 text-sm font-medium">Define and organize your contact segments</p>
+<div class="group-edit-banner bg-[#141d2e] text-white shadow-lg relative overflow-hidden hidden lg:block min-h-[97px] box-border border-b border-slate-700/50 flex items-center">
+    <div class="max-w-6xl mx-auto w-full px-3 sm:px-4 md:px-6 lg:px-8 py-3 relative z-10">
+        <div class="min-w-0 pt-2 md:pt-3">
+            <div class="mb-1">
+                <a href="<?= url('groups') ?>" class="text-[#ff8904] hover:text-orange-600 text-sm font-bold flex items-center gap-1 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    Back
+                </a>
+            </div>
+            <h1 class="text-xl font-bold leading-tight md:text-2xl"><?= $group ? 'Edit Group' : 'Add New Group' ?></h1>
+            <p class="text-blue-100/80 mt-0.5 text-xs font-medium md:text-sm leading-snug">Define and organize your contact segments</p>
         </div>
     </div>
     <!-- Decorative element -->
@@ -131,18 +131,18 @@ if ($groupId) {
 </div>
 
 <!-- Mobile Header -->
-<div class="lg:hidden bg-[#141d2e] px-4 pt-4 pb-6 text-white mb-2">
+<div class="lg:hidden bg-[#141d2e] px-6 py-6 text-white mb-2 border-b border-slate-700/50 flex flex-col justify-center min-h-[97px] box-border">
     <div class="hidden flex items-center gap-2 mb-2">
         <a href="<?= url('groups') ?>" class="text-[#ff8904] hover:text-orange-300 text-sm font-bold flex items-center gap-1 transition-colors">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
             Back
         </a>
     </div>
-    <div class="text-left">
+    <div class="text-left pt-2 md:pt-0">
         <div class="flex items-center justify-start">
-            <h1 class="text-xl font-bold"><?= $group ? 'Edit Group' : 'Add New Group' ?></h1>
+            <h1 class="text-xl font-bold leading-tight"><?= $group ? 'Edit Group' : 'Add New Group' ?></h1>
         </div>
-        <p class="text-blue-100/80 text-xs mt-1">Define and organize your contact segments</p>
+        <p class="text-blue-100/80 text-xs mt-1 leading-snug">Define and organize your contact segments</p>
     </div>
 </div>
 
@@ -264,7 +264,7 @@ document.addEventListener('DOMContentLoaded', () => {
 <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 space-y-8">
     <!-- Group Details Card -->
     <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden text-left">
-        <div class="bg-[#02396E] px-6 py-6 border-b border-white/10">
+        <div class="bg-[#141d2e] px-6 py-6 border-b border-slate-700/50">
             <h3 class="text-base md:text-lg font-bold text-white uppercase tracking-wide">Group Details</h3>
         </div>
         <form method="post" action="<?= url('groups') ?>">
@@ -299,7 +299,7 @@ document.addEventListener('DOMContentLoaded', () => {
     <?php if ($group): ?>
     <!-- Group Membership Card -->
     <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden text-left">
-        <div class="bg-[#02396E] px-6 py-4 border-b border-white/10 flex justify-between items-center">
+        <div class="bg-[#141d2e] px-6 py-4 border-b border-slate-700/50 flex justify-between items-center">
             <h3 class="text-base md:text-lg font-bold text-white uppercase tracking-wide">Contacts in this Group</h3>
         </div>
 

@@ -29,19 +29,19 @@ $campaigns = $campaignsStmt->fetchAll(PDO::FETCH_ASSOC);
     @media (min-width: 1024px) { main > div.max-w-6xl > div.mb-4 { padding-left: 2rem; padding-right: 2rem; } }
 
     .dashboard-banner {
-        margin-bottom: 2rem;
+        margin-bottom: 1rem;
     }
 </style>
 
 <!-- Dashboard Banner (Desktop) -->
-<div class="dashboard-banner bg-[#141d2e] py-6 md:py-8 text-white shadow-lg relative overflow-hidden hidden lg:block">
-    <div class="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div class="relative z-10">
-            <h1 class="text-[2.5rem] font-bold leading-tight">Email Marketing</h1>
-            <p class="text-blue-100/80 mt-1 text-sm font-medium">Reach inboxes. Build connections. Grow your business.</p>
+<div class="dashboard-banner bg-[#141d2e] text-white shadow-lg relative overflow-hidden hidden lg:block min-h-[97px] box-border border-b border-slate-700/50 flex items-center">
+    <div class="max-w-6xl mx-auto w-full px-3 sm:px-4 md:px-6 lg:px-8 flex flex-row flex-wrap items-center justify-between gap-4 py-3">
+        <div class="relative z-10 min-w-0 pt-2 md:pt-3">
+            <h1 class="text-xl font-bold leading-tight md:text-2xl">Email Marketing</h1>
+            <p class="text-blue-100/80 mt-0.5 text-xs font-medium md:text-sm leading-snug">Reach inboxes. Build connections. Grow your business.</p>
         </div>
         <!-- Search Bar -->
-        <div class="relative z-10 w-full md:w-[400px]">
+        <div class="relative z-10 w-full md:w-[400px] shrink-0 md:max-w-[400px]">
             <div class="relative group">
                 <input type="text" id="dashboardSearch" placeholder="Search campaigns..." class="w-full bg-white rounded-xl py-3 pl-12 pr-20 text-slate-900 text-base placeholder-slate-400 focus:outline-none transition-all shadow-inner">
                 <div class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
@@ -65,12 +65,12 @@ $campaigns = $campaignsStmt->fetchAll(PDO::FETCH_ASSOC);
 </div>
 
 <!-- Mobile Header -->
-<div class="lg:hidden bg-[#141d2e] px-4 py-4 text-white">
+<div class="lg:hidden bg-[#141d2e] px-6 py-6 text-white border-b border-slate-700/50 mb-2 box-border">
     <div class="flex flex-col gap-1">
-        <div class="flex items-center justify-start">
-            <h1 class="text-xl font-bold">Email Marketing</h1>
+        <div class="flex items-center justify-start pt-2 md:pt-0">
+            <h1 class="text-xl font-bold leading-tight">Email Marketing</h1>
         </div>
-        <p class="text-blue-100/80 text-xs">Reach inboxes. Build connections.</p>
+        <p class="text-blue-100/80 text-xs leading-snug">Reach inboxes. Build connections.</p>
         <div class="relative mt-3">
             <input type="text" id="dashboardSearch" placeholder="Search campaigns..." class="w-full bg-white rounded-lg py-2 pl-10 pr-16 text-slate-900 text-sm placeholder-slate-400 focus:outline-none">
             <div class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
@@ -193,7 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     <!-- Campaigns Section -->
     <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">
-        <div class="bg-[#02396E] px-4 md:px-8 py-4 md:py-6 border-b border-white/10 flex flex-col sm:flex-row justify-between items-center gap-3">
+        <div class="bg-[#141d2e] px-4 md:px-8 py-4 md:py-6 border-b border-slate-700/50 flex flex-col sm:flex-row justify-between items-center gap-3">
             <h2 class="text-lg md:text-2xl font-bold text-white">Campaigns</h2>
             <a href="<?= url('compose') ?>" class="inline-flex items-center px-3.5 py-1.5 text-white text-sm font-bold bg-[#f54a00] rounded-xl hover:bg-[#e04400] hover:text-white transition-colors w-full sm:w-auto justify-center">Add Campaigns</a>
         </div>

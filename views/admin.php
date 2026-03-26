@@ -32,17 +32,17 @@ $adminCampaigns = $adminCampaignsStmt->fetchAll(PDO::FETCH_ASSOC);
     }
     @media (min-width: 640px) { main > div.max-w-6xl > div.mb-4 { padding-left: 1.5rem; padding-right: 1.5rem; } }
     @media (min-width: 1024px) { main > div.max-w-6xl > div.mb-4 { padding-left: 2rem; padding-right: 2rem; } }
-    .admin-banner { margin-bottom: 2rem; }
+    .admin-banner { margin-bottom: 1rem; }
 </style>
 
-<!-- Admin Banner (Desktop) -->
-<div class="admin-banner bg-[#141d2e] py-6 md:py-8 text-white shadow-lg relative overflow-visible hidden lg:block">
-    <div class="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div class="relative z-10">
-            <h1 class="text-[2.5rem] font-bold leading-tight">Admin</h1>
-            <p class="text-blue-100/80 mt-1 text-sm font-medium">Monitor senders, design, API, and campaign activity.</p>
+<!-- Admin Banner (Desktop) — height aligned with sidebar logo strip (~97px) -->
+<div class="admin-banner bg-[#141d2e] text-white shadow-lg relative overflow-visible hidden lg:block min-h-[97px] box-border border-b border-slate-700/50 flex items-center">
+    <div class="max-w-6xl mx-auto w-full px-3 sm:px-4 md:px-6 lg:px-8 flex flex-row items-center justify-between gap-4 py-3">
+        <div class="relative z-10 min-w-0 pt-2 md:pt-3">
+            <h1 class="text-xl font-bold leading-tight md:text-2xl">Admin</h1>
+            <p class="text-blue-100/80 mt-0.5 text-xs font-medium md:text-sm leading-snug">Monitor senders, design, API, and campaign activity.</p>
         </div>
-        <div class="relative z-10 self-start md:self-auto">
+        <div class="relative z-10 shrink-0">
             <button id="adminNotifBtn" type="button"
                 class="relative z-30 inline-flex items-center justify-center w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 transition-colors">
                 <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -77,9 +77,9 @@ $adminCampaigns = $adminCampaignsStmt->fetchAll(PDO::FETCH_ASSOC);
     <div class="absolute top-0 right-0 -mt-4 -mr-4 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
 </div>
 
-<div class="lg:hidden bg-[#141d2e] px-4 py-3 text-white mb-2">
-    <h1 class="text-xl font-bold">Admin</h1>
-    <p class="text-blue-100/80 text-xs mt-0.5">Monitor only</p>
+<div class="lg:hidden bg-[#141d2e] px-6 py-6 text-white mb-2 border-b border-slate-700/50 flex flex-col justify-center min-h-[97px] box-border">
+    <h1 class="text-xl font-bold leading-tight">Admin</h1>
+    <p class="text-blue-100/80 text-xs mt-1 leading-snug">Monitor only</p>
 </div>
 
 <script>
@@ -141,7 +141,7 @@ $adminCampaigns = $adminCampaignsStmt->fetchAll(PDO::FETCH_ASSOC);
 
     <!-- Recent campaigns (read-only) -->
     <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">
-        <div class="bg-[#02396E] px-4 md:px-8 py-4 md:py-6 border-b border-white/10">
+        <div class="bg-[#141d2e] px-4 md:px-8 py-4 md:py-6 border-b border-slate-700/50">
             <h2 class="text-lg md:text-2xl font-bold text-white">Recent campaigns (monitor only)</h2>
         </div>
         <!-- Mobile cards -->
@@ -220,7 +220,7 @@ $adminCampaigns = $adminCampaignsStmt->fetchAll(PDO::FETCH_ASSOC);
     </div>
 
     <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden mt-6">
-        <div class="bg-[#02396E] px-4 md:px-8 py-4 md:py-6 border-b border-white/10">
+        <div class="bg-[#141d2e] px-4 md:px-8 py-4 md:py-6 border-b border-slate-700/50">
             <h2 class="text-lg md:text-2xl font-bold text-white">Pending registrations</h2>
         </div>
         <div class="divide-y divide-slate-100">
@@ -246,7 +246,7 @@ $adminCampaigns = $adminCampaignsStmt->fetchAll(PDO::FETCH_ASSOC);
     </div>
 
     <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden mt-6">
-        <div class="bg-[#02396E] px-4 md:px-8 py-4 md:py-6 border-b border-white/10">
+        <div class="bg-[#141d2e] px-4 md:px-8 py-4 md:py-6 border-b border-slate-700/50">
             <h2 class="text-lg md:text-2xl font-bold text-white">All users</h2>
         </div>
         <div class="divide-y divide-slate-100">

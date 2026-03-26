@@ -10,7 +10,7 @@ $pendingUsers = $pendingUsersStmt->fetchAll(PDO::FETCH_ASSOC);
         border-radius: 1rem;
     }
     .reg-header {
-        background: linear-gradient(135deg, #02396E 0%, #1e40af 100%);
+        background: #141d2e;
     }
     .reg-row {
         transition: background-color .18s ease;
@@ -33,23 +33,25 @@ $pendingUsers = $pendingUsersStmt->fetchAll(PDO::FETCH_ASSOC);
     }
 </style>
 
-<div class="bg-[#141d2e] py-6 md:py-8 text-white shadow-lg relative overflow-hidden hidden lg:block mb-6">
-    <div class="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
-        <h1 class="text-[2.5rem] font-bold leading-tight">Registrations</h1>
-        <p class="text-blue-100/80 mt-1 text-sm font-medium">Approve and manage user accounts.</p>
+<div class="bg-[#141d2e] text-white shadow-lg relative overflow-hidden hidden lg:block mb-4 min-h-[97px] box-border border-b border-slate-700/50 flex items-center">
+    <div class="max-w-6xl mx-auto w-full px-3 sm:px-4 md:px-6 lg:px-8 py-3">
+        <div class="relative z-10 min-w-0 pt-2 md:pt-3">
+            <h1 class="text-xl font-bold leading-tight md:text-2xl">Registrations</h1>
+            <p class="text-blue-100/80 mt-0.5 text-xs font-medium md:text-sm leading-snug">Approve and manage user accounts.</p>
+        </div>
     </div>
     <div class="absolute top-0 right-0 -mt-4 -mr-4 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
 </div>
 
-<div class="lg:hidden bg-[#141d2e] px-4 py-3 text-white mb-3">
-    <h1 class="text-xl font-bold">Registrations</h1>
-    <p class="text-blue-100/80 text-xs mt-0.5">Approve and manage users</p>
+<div class="lg:hidden bg-[#141d2e] px-6 py-6 text-white mb-2 border-b border-slate-700/50 flex flex-col justify-center min-h-[97px] box-border">
+    <h1 class="text-xl font-bold leading-tight pt-2 md:pt-3">Registrations</h1>
+    <p class="text-blue-100/80 text-xs mt-1 leading-snug">Approve and manage users</p>
 </div>
 
 <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
     <div class="reg-shell p-2 sm:p-3 shadow border border-slate-200/70">
     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-        <div class="reg-header px-4 md:px-8 py-4 md:py-6 border-b border-white/10">
+        <div class="reg-header px-4 md:px-8 py-4 md:py-6 border-b border-slate-700/50">
             <h2 class="text-lg md:text-2xl font-bold text-white">Pending registrations</h2>
             <p class="text-xs md:text-sm text-blue-100/80 mt-1">Review and approve new accounts</p>
         </div>

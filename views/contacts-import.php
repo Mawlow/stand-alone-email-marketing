@@ -26,39 +26,39 @@
     @media (min-width: 1024px) { main > div.max-w-6xl > div.mb-4 { padding-left: 2rem; padding-right: 2rem; } }
 
     .page-banner {
-        margin-bottom: 2rem;
+        margin-bottom: 1rem;
     }
 </style>
 
 <!-- Header Banner -->
-<div class="page-banner bg-[#141d2e] py-6 md:py-8 text-white shadow-lg relative overflow-hidden hidden lg:block">
-    <div class="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div class="relative z-10">
-            <div class="flex items-center gap-2 mb-2">
+<div class="page-banner bg-[#141d2e] text-white shadow-lg relative overflow-hidden hidden lg:block min-h-[97px] box-border border-b border-slate-700/50 flex items-center">
+    <div class="max-w-6xl mx-auto w-full px-3 sm:px-4 md:px-6 lg:px-8 py-3">
+        <div class="relative z-10 min-w-0 pt-2 md:pt-3">
+            <div class="flex items-center gap-2 mb-1">
                 <a href="<?= url('contacts') ?>" class="text-[#ff8904] hover:text-orange-600 text-sm font-bold flex items-center gap-1 transition-colors">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                     Back
                 </a>
             </div>
-            <h1 class="text-[2.5rem] font-bold leading-tight">Contacts Import</h1>
-            <p class="text-blue-100/80 mt-1 text-sm font-medium">Bulk upload your audience from CSV files.</p>
+            <h1 class="text-xl font-bold leading-tight md:text-2xl">Contacts Import</h1>
+            <p class="text-blue-100/80 mt-0.5 text-xs font-medium md:text-sm leading-snug">Bulk upload your audience from CSV files.</p>
         </div>
     </div>
     <div class="absolute top-0 right-0 -mt-4 -mr-4 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
 </div>
 
 <!-- Mobile Header -->
-<div class="lg:hidden bg-[#141d2e] px-4 py-4 text-white">
+<div class="lg:hidden bg-[#141d2e] px-6 py-6 text-white border-b border-slate-700/50 mb-2 flex flex-col justify-center min-h-[97px] box-border">
     <div class="hidden flex items-center gap-2 mb-2">
         <a href="<?= url('contacts') ?>" class="text-[#ff8904] hover:text-orange-300 text-sm font-bold flex items-center gap-1 transition-colors">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
             Back
         </a>
     </div>
-    <div class="flex items-center justify-start">
-        <h1 class="text-xl font-bold">Contacts Import</h1>
+    <div class="flex items-center justify-start pt-2 md:pt-0">
+        <h1 class="text-xl font-bold leading-tight">Contacts Import</h1>
     </div>
-    <p class="text-blue-100/80 text-xs mt-1">Bulk upload your audience from CSV files.</p>
+    <p class="text-blue-100/80 text-xs mt-1 leading-snug">Bulk upload your audience from CSV files.</p>
 </div>
 
 <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 relative pt-6 md:pt-0">
@@ -66,7 +66,7 @@
     <div class="fixed inset-y-0 left-64 right-0 bg-slate-50 -z-10 border-l border-slate-200 hidden lg:block"></div>
 
     <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">
-        <div class="bg-[#02396E] px-4 md:px-8 py-6 border-b border-white/10">
+        <div class="bg-[#141d2e] px-4 md:px-8 py-6 border-b border-slate-700/50">
             <h2 class="text-xl md:text-2xl font-bold text-white uppercase tracking-wider">Import CSV</h2>
         </div>
         <form method="post" enctype="multipart/form-data" action="<?= url('contacts-import') ?>">

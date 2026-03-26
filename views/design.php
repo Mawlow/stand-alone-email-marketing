@@ -41,7 +41,7 @@ $designFooterMode = $designRow && in_array($designRow['footer_mode'] ?? '', ['lo
     }
     @media (min-width: 640px) { main > div.max-w-6xl > div.mb-4 { padding-left: 1.5rem; padding-right: 1.5rem; } }
     @media (min-width: 1024px) { main > div.max-w-6xl > div.mb-4 { padding-left: 2rem; padding-right: 2rem; } }
-.design-banner { margin-bottom: 2rem; }
+.design-banner { margin-bottom: 1rem; }
 
 /* Content Wrapper matching compose.php */
 .design-content-wrapper {
@@ -55,27 +55,27 @@ $designFooterMode = $designRow && in_array($designRow['footer_mode'] ?? '', ['lo
 </style>
 
 <!-- Banner (Matches Compose Campaign design exactly) -->
-<div class="design-banner bg-[#141d2e] py-6 md:py-8 text-white shadow-lg relative overflow-hidden hidden lg:block">
-<div class="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
-    <div class="relative z-10">
-        <h1 class="text-[2.5rem] font-bold leading-tight">Design</h1>
-        <p class="text-blue-100/80 mt-1 text-sm font-medium">Customize and manage email templates</p>
+<div class="design-banner bg-[#141d2e] text-white shadow-lg relative overflow-hidden hidden lg:block min-h-[97px] box-border border-b border-slate-700/50 flex items-center">
+    <div class="max-w-6xl mx-auto w-full px-3 sm:px-4 md:px-6 lg:px-8 flex flex-row flex-wrap items-center justify-between gap-4 py-3">
+        <div class="relative z-10 min-w-0 pt-2 md:pt-3">
+            <h1 class="text-xl font-bold leading-tight md:text-2xl">Design</h1>
+            <p class="text-blue-100/80 mt-0.5 text-xs font-medium md:text-sm leading-snug">Customize and manage email templates</p>
+        </div>
     </div>
-</div>
-<div class="absolute top-0 right-0 -mt-4 -mr-4 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
+    <div class="absolute top-0 right-0 -mt-4 -mr-4 w-64 h-64 bg-white/5 rounded-full blur-3xl pointer-events-none"></div>
 </div>
 
 <!-- Mobile Header -->
-<div class="lg:hidden bg-[#141d2e] px-4 py-4 text-white pb-6">
-<h1 class="text-xl font-bold">Design</h1>
-<p class="text-blue-100/80 text-xs">Customize templates</p>
+<div class="lg:hidden bg-[#141d2e] px-6 py-6 text-white mb-2 border-b border-slate-700/50 flex flex-col justify-center min-h-[97px] box-border">
+    <h1 class="text-xl font-bold leading-tight pt-2 md:pt-3">Design</h1>
+    <p class="text-blue-100/80 text-xs mt-1 leading-snug">Customize templates</p>
 </div>
 
 <div class="design-content-wrapper mt-6 lg:mt-0">
 
     <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">
         <!-- Header -->
-        <div class="bg-[#02396E] px-4 md:px-8 py-4 md:py-6 border-b border-white/10 flex flex-col sm:flex-row justify-between items-center gap-3">
+        <div class="bg-[#141d2e] px-4 md:px-8 py-4 md:py-6 border-b border-slate-700/50 flex flex-col sm:flex-row justify-between items-center gap-3">
             <h2 class="text-lg md:text-2xl font-bold text-white">Email Design</h2>
         </div>
 

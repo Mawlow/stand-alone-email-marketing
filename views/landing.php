@@ -36,18 +36,22 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 1rem 1.25rem;
-      background: rgba(15, 23, 42, 0.92);
-      backdrop-filter: blur(8px);
-      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding: 10px;
+      padding-right: 20px;
+      background: transparent;
+      backdrop-filter: none;
+      border-bottom: none;
     }
 
-    @media (min-width: 768px) {
-      .landing-header { padding: 1.5rem 2rem; background: linear-gradient(to bottom, rgba(15, 23, 42, 0.8), transparent); border-bottom: none; }
-    }
     .landing-logo {
-      height: 60px;
+      height: 64px;
       width: auto;
+    }
+    @media (min-width: 768px) {
+      .landing-logo { height: 144px; }
+      #signin-trigger {
+        margin-top: -34px;
+      }
     }
     .landing-nav {
       display: flex;
@@ -370,7 +374,7 @@
   <div id="landing-content" class="landing-content">
     <header class="landing-header">
       <a href="<?= url('landing') ?>" class="landing-logo-link">
-        <img src="/public/images/logo1.png" alt="FH CRM" class="landing-logo" />
+        <img src="/public/images/FH-logo1.png" alt="FH CRM" class="landing-logo" />
       </a>
       <nav class="landing-nav">
         <a id="signin-trigger" href="<?= url('landing', ['auth' => 'login']) ?>" class="landing-nav-btn">

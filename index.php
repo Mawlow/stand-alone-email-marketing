@@ -95,6 +95,7 @@ if (php_sapi_name() !== 'cli-server' && !isset($_GET['page']) && !isset($_GET['a
         '/logs' => 'logs',
         '/sms-logs' => 'sms-logs',
         '/sms' => 'sms',
+        '/whatsapp' => 'whatsapp',
         '/admin' => 'admin',
     ];
     if (isset($pageMap[$path])) {
@@ -194,8 +195,12 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS email_design_templates (id INT AUTO_INCRE
 $pdo->exec($mysqlSchema[count($mysqlSchema) - 2]);
 $pdo->exec($mysqlSchema[count($mysqlSchema) - 1]);
 
+$pdo->exec("CREATE TABLE IF NOT EXISTS whatsapp_groups (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) NOT NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)");
+$pdo->exec("CREATE TABLE IF NOT EXISTS whatsapp_recipients (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) NOT NULL, phone_number VARCHAR(32) NOT NULL, group_id INT NOT NULL, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (group_id) REFERENCES whatsapp_groups(id) ON DELETE CASCADE)");
+$pdo->exec("CREATE TABLE IF NOT EXISTS whatsapp_logs (id INT AUTO_INCREMENT PRIMARY KEY, group_id INT NOT NULL, group_name VARCHAR(255) NOT NULL, recipient_name VARCHAR(255) NOT NULL, phone_number VARCHAR(32) NOT NULL, message TEXT NOT NULL, status VARCHAR(32) NOT NULL DEFAULT 'sent', error_message TEXT DEFAULT NULL, sent_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)");
+
 // Per-user dashboard: add user_id to all data tables so each user sees only their own data
-foreach (['sender_accounts', 'email_campaigns', 'contact_groups', 'api_keys', 'sms_groups'] as $tbl) {
+foreach (['sender_accounts', 'email_campaigns', 'contact_groups', 'api_keys', 'sms_groups', 'whatsapp_groups'] as $tbl) {
     try {
         $pdo->exec("ALTER TABLE $tbl ADD COLUMN user_id INT NULL DEFAULT NULL");
     } catch (Throwable $e) { /* exists */
@@ -311,6 +316,124 @@ function h($s): string
     return htmlspecialchars((string) $s, ENT_QUOTES, 'UTF-8');
 }
 
+/** E.164 digits only (no +), for WhatsApp Cloud API `to` field. */
+function normalizeWhatsappPhoneDigits(string $raw): ?string
+{
+    $digits = preg_replace('/[^0-9]/', '', $raw) ?? '';
+    if ($digits === '') {
+        return null;
+    }
+    if (strlen($digits) === 10 && $digits[0] === '9') {
+        $digits = '63' . $digits;
+    } elseif (strlen($digits) === 11 && substr($digits, 0, 2) === '09') {
+        $digits = '63' . substr($digits, 1);
+    }
+    if (strlen($digits) < 10 || strlen($digits) > 15) {
+        return null;
+    }
+
+    return $digits;
+}
+
+/**
+ * Send via Meta WhatsApp Cloud API (Graph). Text works inside a 24h customer service window; otherwise use an approved template.
+ *
+ * @return array{ok: bool, error: ?string, response_raw: ?string}
+ */
+function whatsappSendCloudApi(array $config, string $toDigits, string $messageBody, ?string $templateName, ?string $templateLang): array
+{
+    $token = trim((string) ($config['whatsapp_access_token'] ?? ''));
+    $phoneId = trim((string) ($config['whatsapp_phone_number_id'] ?? ''));
+    $version = trim((string) ($config['whatsapp_api_version'] ?? 'v21.0'));
+    $version = preg_replace('/[^a-zA-Z0-9.]/', '', $version) ?: 'v21.0';
+    if ($token === '' || $phoneId === '') {
+        return ['ok' => false, 'error' => 'WhatsApp API not configured. Set WHATSAPP_ACCESS_TOKEN and WHATSAPP_PHONE_NUMBER_ID in .env.', 'response_raw' => null];
+    }
+    $verifyPeer = !in_array(trim(strtolower((string) ($config['whatsapp_ssl_verify'] ?? '1'))), ['0', 'false', 'no', 'off'], true);
+    $url = 'https://graph.facebook.com/' . $version . '/' . $phoneId . '/messages';
+
+    $templateName = $templateName !== null ? trim($templateName) : '';
+    if ($templateName !== '') {
+        $lang = trim($templateLang ?? '') !== '' ? trim($templateLang) : 'en_US';
+        $lang = preg_replace('/[^a-zA-Z0-9_]/', '', $lang) ?: 'en_US';
+        $tpl = strtolower(preg_replace('/[^a-zA-Z0-9_]/', '_', $templateName));
+        $tpl = trim($tpl, '_');
+        if ($tpl === '') {
+            return ['ok' => false, 'error' => 'Invalid template name.', 'response_raw' => null];
+        }
+        $payload = [
+            'messaging_product' => 'whatsapp',
+            'to' => $toDigits,
+            'type' => 'template',
+            'template' => [
+                'name' => $tpl,
+                'language' => ['code' => $lang],
+            ],
+        ];
+        $logMessage = '[template:' . $tpl . ' lang:' . $lang . ']';
+    } else {
+        if ($messageBody === '') {
+            return ['ok' => false, 'error' => 'Message is required for session (text) sends.', 'response_raw' => null];
+        }
+        $payload = [
+            'messaging_product' => 'whatsapp',
+            'recipient_type' => 'individual',
+            'to' => $toDigits,
+            'type' => 'text',
+            'text' => ['preview_url' => false, 'body' => $messageBody],
+        ];
+        $logMessage = $messageBody;
+    }
+
+    $jsonBody = json_encode($payload);
+    if ($jsonBody === false) {
+        return ['ok' => false, 'error' => 'Could not build JSON payload.', 'response_raw' => null];
+    }
+
+    $response = false;
+    if (function_exists('curl_init')) {
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonBody);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Content-Type: application/json',
+            'Authorization: Bearer ' . $token,
+        ]);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 45);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $verifyPeer);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, $verifyPeer ? 2 : 0);
+        $response = curl_exec($ch);
+        curl_close($ch);
+    }
+    if ($response === false && function_exists('file_get_contents')) {
+        $ctx = stream_context_create([
+            'http' => [
+                'method' => 'POST',
+                'header' => "Content-Type: application/json\r\nAuthorization: Bearer {$token}\r\n",
+                'content' => $jsonBody,
+                'timeout' => 45,
+            ],
+            'ssl' => ['verify_peer' => $verifyPeer],
+        ]);
+        $response = @file_get_contents($url, false, $ctx);
+    }
+
+    $raw = is_string($response) ? $response : '';
+    $decoded = json_decode($raw, true);
+    if (is_array($decoded) && !empty($decoded['error']['message'])) {
+        return ['ok' => false, 'error' => (string) $decoded['error']['message'], 'response_raw' => $raw];
+    }
+    if (is_array($decoded) && !empty($decoded['messages'][0]['id'])) {
+        return ['ok' => true, 'error' => null, 'response_raw' => $raw, 'log_message' => $logMessage];
+    }
+    if ($raw === '') {
+        return ['ok' => false, 'error' => 'Empty response from WhatsApp API.', 'response_raw' => $raw];
+    }
+
+    return ['ok' => false, 'error' => 'Unexpected API response: ' . mb_substr($raw, 0, 500), 'response_raw' => $raw];
+}
+
 function normalizeEmailBlockHtml(string $html): string
 {
     $html = preg_replace('#<head\b[^>]*>.*?</head>#is', '', $html) ?? $html;
@@ -361,6 +484,7 @@ $cleanPaths = [
     'users' => '/users',
     'logs' => '/logs',
     'sms' => '/sms',
+    'whatsapp' => '/whatsapp',
     'admin' => '/admin',
 ];
 
@@ -435,6 +559,7 @@ function navClass(string $page): string
     if ($page === 'contacts' && in_array($current, ['contacts', 'contact-edit', 'contacts-import'])) return 'bg-[#f54a00] text-white';
     if ($page === 'senders' && ($current === 'senders' || $current === 'sender-edit')) return 'bg-[#f54a00] text-white';
     if ($page === 'sms' && $current === 'sms') return 'bg-[#f54a00] text-white';
+    if ($page === 'whatsapp' && $current === 'whatsapp') return 'bg-[#f54a00] text-white';
     if ($page === 'logs' && in_array($current, ['logs', 'sms-logs', 'whatsapp-logs'], true)) return 'bg-[#f54a00] text-white';
 
     return $current === $page
@@ -691,6 +816,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $pdo->prepare('DELETE FROM api_keys WHERE user_id = ?')->execute([$targetId]);
                 $pdo->prepare('DELETE FROM sms_recipients WHERE group_id IN (SELECT id FROM sms_groups WHERE user_id = ?)')->execute([$targetId]);
                 $pdo->prepare('DELETE FROM sms_groups WHERE user_id = ?')->execute([$targetId]);
+                $pdo->prepare('DELETE FROM whatsapp_recipients WHERE group_id IN (SELECT id FROM whatsapp_groups WHERE user_id = ?)')->execute([$targetId]);
+                $pdo->prepare('DELETE FROM whatsapp_groups WHERE user_id = ?')->execute([$targetId]);
                 $pdo->prepare('DELETE FROM email_logs WHERE email_campaign_id IN (SELECT id FROM email_campaigns WHERE user_id = ?)')->execute([$targetId]);
                 $pdo->prepare('DELETE FROM email_campaigns WHERE user_id = ?')->execute([$targetId]);
                 $pdo->prepare('DELETE FROM email_design_templates WHERE user_id = ?')->execute([$targetId]);
@@ -1124,6 +1251,165 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
+    if ($action === 'wa-group-delete' && isset($_POST['id'])) {
+        $gid = (int) $_POST['id'];
+        $pdo->prepare('DELETE FROM whatsapp_groups WHERE id=? AND user_id=?')->execute([$gid, $userId]);
+        $returnPage = $_POST['return_page'] ?? 'whatsapp';
+        if (!in_array($returnPage, ['whatsapp', 'groups'], true)) {
+            $returnPage = 'whatsapp';
+        }
+        header('Location: ' . url($returnPage, ['success' => 'WhatsApp group deleted.']));
+        exit;
+    }
+
+    if ($action === 'wa-recipient-add') {
+        $names = isset($_POST['recipient_name']) && is_array($_POST['recipient_name'])
+            ? array_map('trim', $_POST['recipient_name'])
+            : [trim($_POST['recipient_name'] ?? '')];
+        $phones = isset($_POST['phone_number']) && is_array($_POST['phone_number'])
+            ? array_map(function ($p) { return preg_replace('/\s+/', '', trim($p)); }, $_POST['phone_number'])
+            : [preg_replace('/\s+/', '', trim($_POST['phone_number'] ?? ''))];
+        $pairs = [];
+        $max = max(count($names), count($phones));
+        for ($i = 0; $i < $max; $i++) {
+            $name = $names[$i] ?? '';
+            $phone = $phones[$i] ?? '';
+            if ($name !== '' || $phone !== '') {
+                if ($name === '' || $phone === '') {
+                    header('Location: ' . url('whatsapp', ['error' => 'Each recipient must have both name and WhatsApp phone number.']));
+                    exit;
+                }
+                $pairs[] = [$name, $phone];
+            }
+        }
+        if (empty($pairs)) {
+            header('Location: ' . url('whatsapp', ['error' => 'Add at least one recipient (name and phone number).']));
+            exit;
+        }
+        $groupChoice = trim($_POST['group_id'] ?? '');
+        $newGroupName = trim($_POST['new_group_name'] ?? '');
+        $groupId = null;
+        if ($groupChoice === 'new') {
+            if ($newGroupName === '') {
+                header('Location: ' . url('whatsapp', ['error' => 'Enter a name for the new group.']));
+                exit;
+            }
+            $pdo->prepare('INSERT INTO whatsapp_groups (name, user_id) VALUES (?, ?)')->execute([$newGroupName, $userId]);
+            $groupId = (int) $pdo->lastInsertId();
+        } else {
+            $groupId = (int) $groupChoice;
+            $chk = $pdo->prepare('SELECT id FROM whatsapp_groups WHERE id = ? AND user_id = ?');
+            $chk->execute([$groupId, $userId]);
+            if (!$chk->fetch()) {
+                header('Location: ' . url('whatsapp', ['error' => 'Invalid group.']));
+                exit;
+            }
+        }
+        if ($groupId < 1) {
+            header('Location: ' . url('whatsapp', ['error' => 'Select a group or create a new one.']));
+            exit;
+        }
+        $ins = $pdo->prepare('INSERT INTO whatsapp_recipients (name, phone_number, group_id) VALUES (?, ?, ?)');
+        foreach ($pairs as $p) {
+            $ins->execute([$p[0], $p[1], $groupId]);
+        }
+        $n = count($pairs);
+        $msg = $n === 1 ? 'Recipient added.' : $n . ' recipients added.';
+        if ($groupChoice === 'new') {
+            $msg = 'Group created and ' . strtolower($msg);
+        }
+        header('Location: ' . url('whatsapp', ['success' => $msg]));
+        exit;
+    }
+
+    if ($action === 'wa-recipient-delete' && isset($_POST['id'])) {
+        $rid = (int) $_POST['id'];
+        $pdo->prepare(
+            'DELETE FROM whatsapp_recipients WHERE id = ? AND group_id IN (SELECT id FROM whatsapp_groups WHERE user_id = ?)'
+        )->execute([$rid, $userId]);
+        header('Location: ' . url('whatsapp', ['success' => 'Recipient removed.']));
+        exit;
+    }
+
+    if ($action === 'wa-send') {
+        $groupId = (int) ($_POST['group_id'] ?? 0);
+        $message = trim($_POST['message'] ?? '');
+        $templateName = trim((string) ($_POST['template_name'] ?? ''));
+        $templateLang = trim((string) ($_POST['template_language'] ?? 'en_US'));
+        $accessToken = trim((string) ($config['whatsapp_access_token'] ?? ''));
+        $phoneNumberId = trim((string) ($config['whatsapp_phone_number_id'] ?? ''));
+        if ($groupId < 1) {
+            header('Location: ' . url('whatsapp', ['error' => 'Please select a group.']));
+            exit;
+        }
+        if ($accessToken === '' || $phoneNumberId === '') {
+            header('Location: ' . url('whatsapp', ['error' => 'WhatsApp not configured. Add WHATSAPP_ACCESS_TOKEN and WHATSAPP_PHONE_NUMBER_ID to .env.']));
+            exit;
+        }
+        if ($templateName === '' && $message === '') {
+            header('Location: ' . url('whatsapp', ['error' => 'Enter a message, or fill template name for template sends.']));
+            exit;
+        }
+        $stmt = $pdo->prepare('SELECT r.id, r.name, r.phone_number FROM whatsapp_recipients r INNER JOIN whatsapp_groups g ON g.id = r.group_id AND g.user_id = ? WHERE r.group_id = ? ORDER BY r.id');
+        $stmt->execute([$userId, $groupId]);
+        $recipients = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        if (empty($recipients)) {
+            header('Location: ' . url('whatsapp', ['error' => 'Selected group has no recipients.']));
+            exit;
+        }
+        $singleRecipientId = (int) ($_POST['recipient_id'] ?? 0);
+        if ($singleRecipientId > 0) {
+            $one = null;
+            foreach ($recipients as $r) {
+                if ((int) $r['id'] === $singleRecipientId) {
+                    $one = $r;
+                    break;
+                }
+            }
+            if ($one) {
+                $recipients = [$one];
+            }
+        }
+        $logDir = __DIR__ . '/data';
+        if (!is_dir($logDir)) {
+            @mkdir($logDir, 0755, true);
+        }
+        $logFile = $logDir . '/whatsapp-api-response.log';
+        $groupRow = $pdo->prepare('SELECT name FROM whatsapp_groups WHERE id = ? AND user_id = ?');
+        $groupRow->execute([$groupId, $userId]);
+        $groupName = $groupRow->fetchColumn() ?: 'Unknown';
+        $insertLog = $pdo->prepare('INSERT INTO whatsapp_logs (group_id, group_name, recipient_name, phone_number, message, status, error_message, sent_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
+        $sentAt = date('Y-m-d H:i:s');
+        $sent = 0;
+        $failed = 0;
+        $tplArg = $templateName !== '' ? $templateName : null;
+        $langArg = $templateName !== '' ? $templateLang : null;
+        foreach ($recipients as $r) {
+            $digits = normalizeWhatsappPhoneDigits($r['phone_number']);
+            if ($digits === null) {
+                $insertLog->execute([$groupId, $groupName, $r['name'], $r['phone_number'], $templateName !== '' ? '[template]' : $message, 'failed', 'Invalid phone number.', $sentAt]);
+                $failed++;
+                continue;
+            }
+            $result = whatsappSendCloudApi($config, $digits, $message, $tplArg, $langArg);
+            @file_put_contents($logFile, date('Y-m-d H:i:s') . ' to=' . $digits . ' ok=' . ($result['ok'] ? '1' : '0') . ' body=' . ($result['response_raw'] ?? '') . "\n---\n", FILE_APPEND | LOCK_EX);
+            $logMsg = $result['log_message'] ?? ($templateName !== '' ? '[template:' . $templateName . ']' : $message);
+            if (!empty($result['ok'])) {
+                $insertLog->execute([$groupId, $groupName, $r['name'], $r['phone_number'], $logMsg, 'sent', null, $sentAt]);
+                $sent++;
+            } else {
+                $insertLog->execute([$groupId, $groupName, $r['name'], $r['phone_number'], $logMsg, 'failed', $result['error'] ?? 'Unknown error', $sentAt]);
+                $failed++;
+            }
+        }
+        $msg = $sent . ' WhatsApp message(s) sent.';
+        if ($failed > 0) {
+            $msg .= ' ' . $failed . ' failed.';
+        }
+        header('Location: ' . url('whatsapp', ['success' => $msg]));
+        exit;
+    }
+
     if ($action === 'api-key-update-defaults' && isset($_POST['id'])) {
         $keyId = (int) $_POST['id'];
         $defaultTemplateId = isset($_POST['default_template_id']) ? (int) $_POST['default_template_id'] : 0;
@@ -1413,8 +1699,8 @@ $groupsCount = (int) $groupsCountStmt->fetchColumn();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <link rel="icon" type="image/png" href="/public/images/logo1.png">
-    <link rel="apple-touch-icon" href="/public/images/logo1.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/public/images/favicon-32x32.png">
+    <link rel="apple-touch-icon" href="/public/images/favicon-32x32.png">
     <title>
         <?= h($page === 'index' ? 'Email Marketing' : ($page === 'admin' ? 'Admin' : ucfirst(str_replace('-', ' ', $page)))) ?>
         - <?= h($appName) ?></title>
@@ -1496,7 +1782,7 @@ $groupsCount = (int) $groupsCountStmt->fetchColumn();
         <?php if (!in_array(currentPage(), $publicPages)): ?>
         <!-- Mobile Header -->
         <header
-            class="md:hidden fixed top-0 left-0 right-0 bg-slate-900 z-30 h-20 grid grid-cols-3 items-center px-4 shadow-lg">
+            class="md:hidden fixed top-0 left-0 right-0 bg-slate-900 z-30 h-20 grid grid-cols-[auto_1fr_auto] items-center px-4 shadow-lg">
             <button id="mobile-menu-btn" type="button"
                 class="p-2 -ml-2 text-white hover:bg-white/10 rounded-lg touch-manipulation" aria-label="Open menu">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1506,7 +1792,7 @@ $groupsCount = (int) $groupsCountStmt->fetchColumn();
             </button>
             <div></div>
             <a href="<?= url('index') ?>" class="flex items-center justify-end">
-                <img src="/public/images/logo1.png" alt="Logo" class="h-12 w-auto">
+                <img src="/public/images/FH-logo.png" alt="Filipino Homes" class="h-12 w-auto max-h-12 shrink-0 object-contain object-right" decoding="async">
             </a>
         </header>
 
@@ -1518,8 +1804,7 @@ $groupsCount = (int) $groupsCountStmt->fetchColumn();
             class="w-64 flex-shrink-0 bg-slate-900 flex flex-col fixed md:sticky top-0 h-screen z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
             <div class="p-6 border-b border-slate-700/50 flex flex-col items-center relative">
                 <a href="<?= url('index') ?>" class="flex flex-col items-center text-center">
-                    <img src="/public/images/logo1.png" alt="Logo" class="h-12 w-auto mb-3">
-                    <h1 class="text-lg font-semibold text-white tracking-tight">FH Email Marketing</h1>
+                    <img src="/public/images/FH-logo.png" alt="Filipino Homes" class="h-12 w-auto max-h-12 shrink-0 object-contain" decoding="async">
                 </a>
                 <button id="mobile-close-btn" type="button"
                     class="md:hidden absolute top-5 right-5 p-2 text-slate-400 hover:text-white"
@@ -1579,6 +1864,14 @@ $groupsCount = (int) $groupsCountStmt->fetchColumn();
                             d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
                     </svg>
                     <span>SMS</span>
+                </a>
+                <a href="<?= url('whatsapp') ?>"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors <?= navClass('whatsapp') ?>">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                    </svg>
+                    <span>WhatsApp</span>
                 </a>
                 <?php endif; ?>
 
@@ -1661,7 +1954,7 @@ $groupsCount = (int) $groupsCountStmt->fetchColumn();
             <div
                 class="<?= in_array(currentPage(), $publicPages) ? '' : 'max-w-6xl mx-auto pl-12 pr-3 sm:pl-16 sm:pr-4 md:pl-20 md:pr-6 lg:pl-24 lg:pr-8 py-4 md:py-8' ?> <?= !in_array(currentPage(), $publicPages) ? 'no-horizontal-scroll' : '' ?>">
                 <?php if (!in_array(currentPage(), $publicPages)): ?>
-                <?php if (!in_array($page, ['api', 'design', 'compose', 'senders', 'contacts', 'group-edit', 'groups', 'logs', 'contact-edit', 'sender-edit', 'contacts-import', 'index', 'sms', 'admin', 'registrations', 'users'])): ?>
+                <?php if (!in_array($page, ['api', 'design', 'compose', 'senders', 'contacts', 'group-edit', 'groups', 'logs', 'contact-edit', 'sender-edit', 'contacts-import', 'index', 'sms', 'whatsapp', 'admin', 'registrations', 'users'])): ?>
                 <div class="mb-4 md:mb-6">
                     <h2 class="text-xl md:text-2xl font-semibold text-slate-900">
                         <?= $page === 'index' ? 'Dashboard' : ucfirst(str_replace('-', ' ', $page)) ?></h2>
@@ -1674,12 +1967,12 @@ $groupsCount = (int) $groupsCountStmt->fetchColumn();
                 <?php
                 $authModalOpen = (currentPage() === 'landing') && in_array(($_GET['auth'] ?? ''), ['login', 'register'], true);
                 ?>
-                <?php if (currentPage() !== 'sms' && $flashSuccess && !$authModalOpen): ?>
+                <?php if (currentPage() !== 'sms' && currentPage() !== 'whatsapp' && $flashSuccess && !$authModalOpen): ?>
                 <div
                     class="mb-4 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 font-medium <?= in_array(currentPage(), $publicPages) ? 'max-w-md mx-auto mt-4' : '' ?>">
                     <?= h($flashSuccess) ?></div>
                 <?php endif; ?>
-                <?php if (currentPage() !== 'sms' && !empty($flashError) && currentPage() !== 'landing'): ?>
+                <?php if (currentPage() !== 'sms' && currentPage() !== 'whatsapp' && !empty($flashError) && currentPage() !== 'landing'): ?>
                 <div
                     class="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 font-medium <?= in_array(currentPage(), $publicPages) ? 'max-w-md mx-auto mt-4' : '' ?>">
                     <?= h($flashError) ?></div>

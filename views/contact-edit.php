@@ -42,7 +42,7 @@ $allGroups = $allGroupsStmt->fetchAll(PDO::FETCH_ASSOC);
     @media (min-width: 1024px) { main > div.max-w-6xl > div.mb-4 { padding-left: 2rem; padding-right: 2rem; } }
 
     .page-banner {
-        margin-bottom: 2rem;
+        margin-bottom: 1rem;
     }
 
     @media (max-width: 1023px) {
@@ -53,17 +53,17 @@ $allGroups = $allGroupsStmt->fetchAll(PDO::FETCH_ASSOC);
 </style>
 
 <!-- Header Banner (Desktop) -->
-<div class="page-banner bg-[#141d2e] py-6 md:py-8 text-white shadow-lg relative overflow-hidden hidden lg:block">
-    <div class="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div class="relative z-10">
-            <div class="flex items-center gap-2 mb-2">
+<div class="page-banner bg-[#141d2e] text-white shadow-lg relative overflow-hidden hidden lg:block min-h-[97px] box-border border-b border-slate-700/50 flex items-center">
+    <div class="max-w-6xl mx-auto w-full px-3 sm:px-4 md:px-6 lg:px-8 py-3">
+        <div class="relative z-10 min-w-0 pt-2 md:pt-3">
+            <div class="flex items-center gap-2 mb-1">
                 <a href="<?= url('contacts') ?>" class="text-[#ff8904] hover:text-orange-600 text-sm font-bold flex items-center gap-1 transition-colors">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                     Back
                 </a>
             </div>
-            <h1 class="text-[2.5rem] font-bold leading-tight"><?= $contact ? 'Edit Contact' : 'Add New Contact' ?></h1>
-            <p class="text-blue-100/80 mt-1 text-sm font-medium">
+            <h1 class="text-xl font-bold leading-tight md:text-2xl"><?= $contact ? 'Edit Contact' : 'Add New Contact' ?></h1>
+            <p class="text-blue-100/80 mt-0.5 text-xs font-medium md:text-sm leading-snug">
                 <?= $contact ? 'Update details for ' . h($contact['email']) : 'Create a new profile for your marketing list.' ?>
             </p>
         </div>
@@ -72,9 +72,9 @@ $allGroups = $allGroupsStmt->fetchAll(PDO::FETCH_ASSOC);
 </div>
 
 <!-- Mobile Header -->
-<div class="lg:hidden bg-[#141d2e] px-4 py-4 text-white text-center">
-    <h1 class="text-xl font-bold"><?= $contact ? 'Edit Contact' : 'Add Contact' ?></h1>
-    <p class="text-blue-100/80 text-xs"><?= $contact ? 'Update contact details' : 'Add new contact' ?></p>
+<div class="lg:hidden bg-[#141d2e] px-6 py-6 text-white text-center border-b border-slate-700/50 mb-2 flex flex-col justify-center min-h-[97px] box-border">
+    <h1 class="text-xl font-bold leading-tight pt-2 md:pt-3"><?= $contact ? 'Edit Contact' : 'Add Contact' ?></h1>
+    <p class="text-blue-100/80 text-xs mt-1 leading-snug"><?= $contact ? 'Update contact details' : 'Add new contact' ?></p>
 </div>
 
 <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 relative page-content">
@@ -82,7 +82,7 @@ $allGroups = $allGroupsStmt->fetchAll(PDO::FETCH_ASSOC);
     <div class="fixed inset-y-0 left-64 right-0 bg-slate-50 -z-10 border-l border-slate-200 hidden lg:block"></div>
 
     <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">
-        <div class="bg-[#02396E] px-4 md:px-8 py-4 border-b border-white/10 hidden lg:block">
+        <div class="bg-[#141d2e] px-4 md:px-8 py-4 border-b border-slate-700/50 hidden lg:block">
             <h2 class="text-lg font-bold text-white uppercase tracking-wider">Contact Information</h2>
         </div>
         <form method="post" action="<?= url('contacts') ?>">

@@ -119,6 +119,7 @@ $pageMap = [
     '/logs' => 'logs',
     '/sms-logs' => 'sms-logs',
     '/sms' => 'sms',
+    '/whatsapp' => 'whatsapp',
     '/admin' => 'admin',
 ];
 

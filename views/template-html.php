@@ -2,7 +2,7 @@
 $templateRows = $pdo->query('SELECT id, name, header_html, footer_html FROM email_design_templates ORDER BY name')->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">
-    <div class="bg-[#02396E] px-4 md:px-6 py-3 border-b border-white/10"><h2 class="text-sm md:text-base font-semibold text-white uppercase">Template HTML &mdash; ready to paste in Design</h2></div>
+    <div class="bg-[#141d2e] px-4 md:px-6 py-3 border-b border-slate-700/50"><h2 class="text-sm md:text-base font-semibold text-white uppercase">Template HTML &mdash; ready to paste in Design</h2></div>
     <p class="p-4 text-slate-600 text-sm border-b border-slate-100">Copy the HTML below for any template and paste it into the Design page (Header &amp; Footer field). <a href="<?= url('design') ?>" class="text-[#02396E] font-semibold hover:underline">&larr; Back to Design</a></p>
     <?php if (empty($templateRows)): ?>
     <div class="p-6 text-slate-500">No saved templates yet. Save a design with a template name on the <a href="<?= url('design') ?>" class="text-[#02396E] hover:underline">Design</a> page first.</div>
