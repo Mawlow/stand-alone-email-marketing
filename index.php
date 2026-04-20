@@ -434,6 +434,137 @@ function whatsappSendCloudApi(array $config, string $toDigits, string $messageBo
     return ['ok' => false, 'error' => 'Unexpected API response: ' . mb_substr($raw, 0, 500), 'response_raw' => $raw];
 }
 
+/** Normalize Twilio WhatsApp `From` to `whatsapp:+E164` (accepts `whatsapp:+...` or `+...` or digits). */
+function twilioNormalizeWhatsappFrom(string $raw): string
+{
+    $raw = trim($raw);
+    if ($raw === '') {
+        return '';
+    }
+    if (stripos($raw, 'whatsapp:') === 0) {
+        return $raw;
+    }
+    $digits = preg_replace('/[^0-9+]/', '', $raw) ?? '';
+    if ($digits === '') {
+        return '';
+    }
+    if ($digits[0] === '+') {
+        return 'whatsapp:' . $digits;
+    }
+
+    return 'whatsapp:+' . preg_replace('/[^0-9]/', '', $digits);
+}
+
+/**
+ * Send WhatsApp via Twilio (sandbox or production). Use session text in the message body, or set TWILIO_WHATSAPP_CONTENT_SID (+ optional TWILIO_WHATSAPP_CONTENT_VARIABLES) and fill Template name in the form to send approved Twilio Content (not Meta template names).
+ *
+ * @return array{ok: bool, error: ?string, response_raw: ?string, log_message?: string}
+ */
+function whatsappSendTwilio(array $config, string $toDigits, string $messageBody, ?string $templateName, ?string $templateLang): array
+{
+    $accountSid = trim((string) ($config['twilio_account_sid'] ?? ''));
+    $authToken = trim((string) ($config['twilio_auth_token'] ?? ''));
+    $fromRaw = trim((string) ($config['twilio_whatsapp_from'] ?? ''));
+    if ($accountSid === '' || $authToken === '' || $fromRaw === '') {
+        return ['ok' => false, 'error' => 'Twilio not configured. Set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_WHATSAPP_FROM in .env.', 'response_raw' => null];
+    }
+    $from = twilioNormalizeWhatsappFrom($fromRaw);
+    if ($from === '' || stripos($from, 'whatsapp:') !== 0) {
+        return ['ok' => false, 'error' => 'Invalid TWILIO_WHATSAPP_FROM. Example sandbox: whatsapp:+14155238886', 'response_raw' => null];
+    }
+
+    $to = 'whatsapp:+' . $toDigits;
+    $contentSid = trim((string) ($config['twilio_whatsapp_content_sid'] ?? ''));
+    $templateName = $templateName !== null ? trim($templateName) : '';
+
+    $fields = [
+        'From' => $from,
+        'To' => $to,
+    ];
+
+    if ($templateName !== '') {
+        if ($contentSid === '') {
+            return ['ok' => false, 'error' => 'Twilio: set TWILIO_WHATSAPP_CONTENT_SID in .env with your Content SID from Twilio Console (Messaging → Content). Meta template names do not apply to Twilio.', 'response_raw' => null];
+        }
+        $fields['ContentSid'] = $contentSid;
+        $vars = trim((string) ($config['twilio_whatsapp_content_variables'] ?? ''));
+        if ($vars !== '') {
+            $fields['ContentVariables'] = $vars;
+        }
+        $logMessage = '[twilio template content:' . $contentSid . ']';
+    } else {
+        if (trim($messageBody) === '') {
+            return ['ok' => false, 'error' => 'Enter a message for Twilio session (text) send, or fill Template name and set TWILIO_WHATSAPP_CONTENT_SID for a Twilio-approved template.', 'response_raw' => null];
+        }
+        $fields['Body'] = $messageBody;
+        $logMessage = $messageBody;
+    }
+
+    $verifyPeer = !in_array(trim(strtolower((string) ($config['twilio_ssl_verify'] ?? '1'))), ['0', 'false', 'no', 'off'], true);
+    $url = 'https://api.twilio.com/2010-04-01/Accounts/' . rawurlencode($accountSid) . '/Messages.json';
+    $postBody = http_build_query($fields);
+
+    $response = false;
+    if (function_exists('curl_init')) {
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $postBody);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_USERPWD, $accountSid . ':' . $authToken);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/x-www-form-urlencoded']);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 45);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $verifyPeer);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, $verifyPeer ? 2 : 0);
+        $response = curl_exec($ch);
+        curl_close($ch);
+    }
+    if ($response === false && function_exists('file_get_contents')) {
+        $ctx = stream_context_create([
+            'http' => [
+                'method' => 'POST',
+                'header' => "Authorization: Basic " . base64_encode($accountSid . ':' . $authToken) . "\r\nContent-Type: application/x-www-form-urlencoded\r\n",
+                'content' => $postBody,
+                'timeout' => 45,
+            ],
+            'ssl' => ['verify_peer' => $verifyPeer, 'verify_peer_name' => $verifyPeer],
+        ]);
+        $response = @file_get_contents($url, false, $ctx);
+    }
+
+    $raw = is_string($response) ? $response : '';
+    $decoded = json_decode($raw, true);
+    if (is_array($decoded)) {
+        if (!empty($decoded['code']) && isset($decoded['message'])) {
+            return ['ok' => false, 'error' => (string) $decoded['message'] . ' (Twilio ' . $decoded['code'] . ')', 'response_raw' => $raw];
+        }
+        if (!empty($decoded['message']) && empty($decoded['sid'])) {
+            return ['ok' => false, 'error' => (string) $decoded['message'], 'response_raw' => $raw];
+        }
+        if (!empty($decoded['sid'])) {
+            $st = (string) ($decoded['status'] ?? '');
+            if (in_array($st, ['queued', 'accepted', 'sending', 'sent', 'delivered'], true)) {
+                return ['ok' => true, 'error' => null, 'response_raw' => $raw, 'log_message' => $logMessage];
+            }
+        }
+    }
+    if ($raw === '') {
+        return ['ok' => false, 'error' => 'Empty response from Twilio.', 'response_raw' => $raw];
+    }
+
+    return ['ok' => false, 'error' => 'Unexpected Twilio response: ' . mb_substr($raw, 0, 500), 'response_raw' => $raw];
+}
+
+/** @return array{ok: bool, error: ?string, response_raw: ?string, log_message?: string} */
+function whatsappDispatchSend(array $config, string $toDigits, string $messageBody, ?string $templateName, ?string $templateLang): array
+{
+    $p = strtolower(trim((string) ($config['whatsapp_provider'] ?? 'twilio')));
+    if ($p === 'twilio') {
+        return whatsappSendTwilio($config, $toDigits, $messageBody, $templateName, $templateLang);
+    }
+
+    return whatsappSendCloudApi($config, $toDigits, $messageBody, $templateName, $templateLang);
+}
+
 function normalizeEmailBlockHtml(string $html): string
 {
     $html = preg_replace('#<head\b[^>]*>.*?</head>#is', '', $html) ?? $html;
@@ -1336,15 +1467,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $message = trim($_POST['message'] ?? '');
         $templateName = trim((string) ($_POST['template_name'] ?? ''));
         $templateLang = trim((string) ($_POST['template_language'] ?? 'en_US'));
-        $accessToken = trim((string) ($config['whatsapp_access_token'] ?? ''));
-        $phoneNumberId = trim((string) ($config['whatsapp_phone_number_id'] ?? ''));
+        $waProvider = strtolower(trim((string) ($config['whatsapp_provider'] ?? 'twilio')));
         if ($groupId < 1) {
             header('Location: ' . url('whatsapp', ['error' => 'Please select a group.']));
             exit;
         }
-        if ($accessToken === '' || $phoneNumberId === '') {
-            header('Location: ' . url('whatsapp', ['error' => 'WhatsApp not configured. Add WHATSAPP_ACCESS_TOKEN and WHATSAPP_PHONE_NUMBER_ID to .env.']));
-            exit;
+        if ($waProvider === 'twilio') {
+            $twSid = trim((string) ($config['twilio_account_sid'] ?? ''));
+            $twToken = trim((string) ($config['twilio_auth_token'] ?? ''));
+            $twFrom = trim((string) ($config['twilio_whatsapp_from'] ?? ''));
+            if ($twSid === '' || $twToken === '' || $twFrom === '') {
+                header('Location: ' . url('whatsapp', ['error' => 'WhatsApp (Twilio) not configured. Set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_WHATSAPP_FROM in .env.']));
+                exit;
+            }
+        } else {
+            $accessToken = trim((string) ($config['whatsapp_access_token'] ?? ''));
+            $phoneNumberId = trim((string) ($config['whatsapp_phone_number_id'] ?? ''));
+            if ($accessToken === '' || $phoneNumberId === '') {
+                header('Location: ' . url('whatsapp', ['error' => 'WhatsApp (Meta) is selected (WHATSAPP_PROVIDER=meta) but not configured. Set WHATSAPP_ACCESS_TOKEN and WHATSAPP_PHONE_NUMBER_ID in .env.']));
+                exit;
+            }
         }
         if ($templateName === '' && $message === '') {
             header('Location: ' . url('whatsapp', ['error' => 'Enter a message, or fill template name for template sends.']));
@@ -1391,7 +1533,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $failed++;
                 continue;
             }
-            $result = whatsappSendCloudApi($config, $digits, $message, $tplArg, $langArg);
+            $result = whatsappDispatchSend($config, $digits, $message, $tplArg, $langArg);
             @file_put_contents($logFile, date('Y-m-d H:i:s') . ' to=' . $digits . ' ok=' . ($result['ok'] ? '1' : '0') . ' body=' . ($result['response_raw'] ?? '') . "\n---\n", FILE_APPEND | LOCK_EX);
             $logMsg = $result['log_message'] ?? ($templateName !== '' ? '[template:' . $templateName . ']' : $message);
             if (!empty($result['ok'])) {

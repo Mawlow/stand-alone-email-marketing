@@ -9,6 +9,7 @@ $recipientsByGroup = [];
 foreach ($waRecipients as $r) {
     $recipientsByGroup[(int)$r['group_id']][] = ['id' => (int)$r['id'], 'name' => $r['name'], 'phone_number' => $r['phone_number']];
 }
+$waProvider = strtolower(trim((string) ($config['whatsapp_provider'] ?? 'twilio')));
 ?>
 <style>
     main > div.max-w-6xl {
@@ -38,7 +39,7 @@ foreach ($waRecipients as $r) {
     <div class="max-w-6xl mx-auto w-full px-3 sm:px-4 md:px-6 lg:px-8 relative z-10 flex flex-row flex-wrap items-center justify-between gap-4 py-3">
         <div class="min-w-0 pt-2 md:pt-3">
             <h1 class="text-xl font-bold leading-tight md:text-2xl">WhatsApp</h1>
-            <p class="text-emerald-100/90 mt-0.5 text-xs font-medium md:text-sm leading-snug">Groups and recipients — send via Meta WhatsApp Cloud API.</p>
+            <p class="text-emerald-100/90 mt-0.5 text-xs font-medium md:text-sm leading-snug"><?= $waProvider === 'twilio' ? 'Groups and recipients — send via Twilio WhatsApp.' : 'Groups and recipients — send via Meta WhatsApp Cloud API.' ?></p>
         </div>
         <button type="button" class="send-wa-open-btn inline-flex items-center gap-2 px-5 py-2.5 bg-[#25D366] text-white text-sm font-bold rounded-xl hover:bg-[#20bd5a] transition-colors shadow-md shrink-0">
             <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
@@ -85,7 +86,11 @@ foreach ($waRecipients as $r) {
 
 <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 space-y-8">
     <div class="rounded-2xl border border-amber-200 bg-amber-50/90 px-4 py-3 text-sm text-amber-950">
-        <strong class="font-bold">Setup:</strong> Add <code class="text-xs bg-white/80 px-1 rounded">WHATSAPP_ACCESS_TOKEN</code> and <code class="text-xs bg-white/80 px-1 rounded">WHATSAPP_PHONE_NUMBER_ID</code> to your <code class="text-xs bg-white/80 px-1 rounded">.env</code> (Meta for Developers → WhatsApp → API Setup). Plain text only works inside Meta’s <strong>24-hour messaging window</strong> after the user messaged you. For first contact or marketing, use an <strong>approved template</strong> (fill Template name below; message body can be empty).
+        <?php if ($waProvider === 'twilio'): ?>
+        <strong class="font-bold">Twilio:</strong> In <code class="text-xs bg-white/80 px-1 rounded">.env</code> set <code class="text-xs bg-white/80 px-1 rounded">TWILIO_ACCOUNT_SID</code>, <code class="text-xs bg-white/80 px-1 rounded">TWILIO_AUTH_TOKEN</code>, and <code class="text-xs bg-white/80 px-1 rounded">TWILIO_WHATSAPP_FROM</code> (sandbox: e.g. <code class="text-xs bg-white/80 px-1 rounded">whatsapp:+14155238886</code>). On your phone, <strong>join the Twilio sandbox</strong> with the code from the Console, then <strong>add that WhatsApp number</strong> as a recipient. Send a plain <strong>session message</strong> in the form. For <strong>production</strong>, replace <code class="text-xs bg-white/80 px-1 rounded">TWILIO_WHATSAPP_FROM</code> with your approved <code class="text-xs bg-white/80 px-1 rounded">whatsapp:+…</code> sender. Optional: <code class="text-xs bg-white/80 px-1 rounded">TWILIO_WHATSAPP_CONTENT_SID</code> (+ variables) for approved templates — fill “Template name” in the app to use it.
+        <?php else: ?>
+        <strong class="font-bold">Meta Cloud API (optional):</strong> You set <code class="text-xs bg-white/80 px-1 rounded">WHATSAPP_PROVIDER=meta</code>. Add <code class="text-xs bg-white/80 px-1 rounded">WHATSAPP_ACCESS_TOKEN</code> and <code class="text-xs bg-white/80 px-1 rounded">WHATSAPP_PHONE_NUMBER_ID</code> to <code class="text-xs bg-white/80 px-1 rounded">.env</code> (Meta for Developers → WhatsApp → API Setup). Plain text works inside the <strong>24-hour</strong> window; otherwise use an approved <strong>Meta template</strong> (Template name; message can be empty).
+        <?php endif; ?>
     </div>
 
     <div class="bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">
@@ -238,18 +243,21 @@ foreach ($waRecipients as $r) {
                     </div>
                     <div>
                         <label for="wa_send_message" class="block text-sm font-medium text-slate-700 mb-1">Message (session / text)</label>
-                        <textarea name="message" id="wa_send_message" rows="4" placeholder="Plain text — only if user messaged you within 24 hours." class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-slate-900 focus:ring-2 focus:ring-[#075e54] focus:border-[#075e54]"></textarea>
+                        <textarea name="message" id="wa_send_message" rows="4" placeholder="<?= $waProvider === 'twilio' ? 'Sandbox: plain text after the recipient joined your Twilio sandbox.' : 'Plain text — only if user messaged you within 24 hours.' ?>" class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-slate-900 focus:ring-2 focus:ring-[#075e54] focus:border-[#075e54]"></textarea>
                     </div>
                     <div class="border-t border-slate-100 pt-4 space-y-2">
-                        <p class="text-xs font-bold text-slate-500 uppercase tracking-wide">Or use Meta template</p>
+                        <p class="text-xs font-bold text-slate-500 uppercase tracking-wide"><?= $waProvider === 'twilio' ? 'Or Twilio template (Content SID in .env)' : 'Or use Meta template' ?></p>
                         <div>
-                            <label for="wa_template_name" class="block text-sm font-medium text-slate-700 mb-1">Template name</label>
-                            <input type="text" name="template_name" id="wa_template_name" placeholder="e.g. hello_world" class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-slate-900 focus:ring-2 focus:ring-[#075e54] focus:border-[#075e54]">
+                            <label for="wa_template_name" class="block text-sm font-medium text-slate-700 mb-1"><?= $waProvider === 'twilio' ? 'Template name (any text — enables Content send if TWILIO_WHATSAPP_CONTENT_SID is set)' : 'Template name' ?></label>
+                            <input type="text" name="template_name" id="wa_template_name" placeholder="<?= $waProvider === 'twilio' ? 'e.g. notify — requires TWILIO_WHATSAPP_CONTENT_SID' : 'e.g. hello_world' ?>" class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-slate-900 focus:ring-2 focus:ring-[#075e54] focus:border-[#075e54]">
                         </div>
                         <div>
-                            <label for="wa_template_language" class="block text-sm font-medium text-slate-700 mb-1">Template language code</label>
+                            <label for="wa_template_language" class="block text-sm font-medium text-slate-700 mb-1">Template language code <?= $waProvider === 'twilio' ? '(ignored for Twilio)' : '' ?></label>
                             <input type="text" name="template_language" id="wa_template_language" value="en_US" placeholder="en_US" class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-slate-900 focus:ring-2 focus:ring-[#075e54] focus:border-[#075e54]">
                         </div>
+                        <?php if ($waProvider === 'twilio'): ?>
+                        <p class="text-xs text-slate-500">Twilio ignores Meta language codes. Use <code class="bg-slate-100 px-1 rounded">TWILIO_WHATSAPP_CONTENT_VARIABLES</code> in <code class="bg-slate-100 px-1 rounded">.env</code> for JSON variables.</p>
+                        <?php endif; ?>
                     </div>
                     <div class="flex gap-3 pt-2">
                         <button type="button" class="send-wa-close-btn px-4 py-2.5 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors">Cancel</button>
